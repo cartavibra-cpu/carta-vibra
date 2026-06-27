@@ -14,6 +14,7 @@ function getSession(): string {
 export default function WidgetPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [venue, setVenue] = useState<any>(null);
+  const [activePl, setActivePl] = useState<{ id: string; name: string } | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
   const [votes, setVotes] = useState<Record<string, number>>({});
   const [nowId, setNowId] = useState<string | null>(null);
@@ -34,8 +35,11 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     const { data: v } = await sb.from('venue').select('*').eq('slug', slug).single();
     setVenue(v);
     if (!v) return;
+    const { data: pl } = await sb.from('venue_playlist').select('id,name').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
+    setActivePl((pl as any) || null);
+    if (!pl) { setTracks([]); return; }
     const { data: t } = await sb.from('catalog_track')
-      .select('id,title,artist,external_id').eq('venue_id', v.id).eq('enabled', true);
+      .select('id,title,artist,external_id').eq('playlist_id', (pl as any).id).eq('enabled', true);
     setTracks((t as Track[]) || []);
   }, [slug]);
 
@@ -89,38 +93,44 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   return (
     <div className="mx-auto max-w-xl p-4">
       <h1 className="text-xl font-bold">{venue.name}</h1>
-      {mesa && <p className="text-xs text-gray-500">Mesa {mesa}</p>}
+      {activePl && <p className="text-xs text-gray-500">Playlist: {activePl.name}{mesa ? ` · Mesa ${mesa}` : ''}</p>}
 
       <div className="my-3 rounded-lg bg-gray-100 p-3">
         <p className="text-xs uppercase text-gray-500">Sonando ahora</p>
         <p className="font-semibold">{nowTrack ? `${nowTrack.title}${nowTrack.artist ? ' — ' + nowTrack.artist : ''}` : '—'}</p>
       </div>
 
-      {!present && (
-        <div className="my-3 rounded-lg border p-3">
-          <p className="mb-2 text-sm">Para votar, ingresá el código que aparece en la pantalla del local:</p>
-          <div className="flex gap-2">
-            <input className="w-28 rounded border p-2 text-center text-lg tracking-widest" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={redeem}>Validar</button>
-          </div>
-        </div>
+      {!activePl ? (
+        <p className="my-4 text-sm text-gray-600">El local no tiene una playlist activa en este momento.</p>
+      ) : (
+        <>
+          {!present && (
+            <div className="my-3 rounded-lg border p-3">
+              <p className="mb-2 text-sm">Para votar, ingresá el código que aparece en la pantalla del local:</p>
+              <div className="flex gap-2">
+                <input className="w-28 rounded border p-2 text-center text-lg tracking-widest" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)} />
+                <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={redeem}>Validar</button>
+              </div>
+            </div>
+          )}
+
+          {msg && <p className="my-2 text-sm text-blue-700">{msg}</p>}
+
+          <h2 className="mt-4 mb-2 font-semibold">Votá tu canción</h2>
+          <ul className="space-y-2">
+            {sorted.map((t) => (
+              <li key={t.id} className="flex items-center justify-between rounded border p-2">
+                <span>{t.title}{t.artist ? <span className="text-gray-500"> — {t.artist}</span> : null}</span>
+                <span className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">{votes[t.id] || 0} ▲</span>
+                  <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => vote(t.id)}>Votar</button>
+                </span>
+              </li>
+            ))}
+            {sorted.length === 0 && <li className="text-sm text-gray-500">La playlist activa no tiene canciones.</li>}
+          </ul>
+        </>
       )}
-
-      {msg && <p className="my-2 text-sm text-blue-700">{msg}</p>}
-
-      <h2 className="mt-4 mb-2 font-semibold">Votá tu canción</h2>
-      <ul className="space-y-2">
-        {sorted.map((t) => (
-          <li key={t.id} className="flex items-center justify-between rounded border p-2">
-            <span>{t.title}{t.artist ? <span className="text-gray-500"> — {t.artist}</span> : null}</span>
-            <span className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">{votes[t.id] || 0} ▲</span>
-              <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => vote(t.id)}>Votar</button>
-            </span>
-          </li>
-        ))}
-        {sorted.length === 0 && <li className="text-sm text-gray-500">Este local todavía no cargó canciones.</li>}
-      </ul>
     </div>
   );
 }
