@@ -22,10 +22,16 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
+  const [embeddable, setEmbeddable] = useState(true);
+  const [metaMsg, setMetaMsg] = useState<string | null>(null);
+  const [metaLoading, setMetaLoading] = useState(false);
   const [qr, setQr] = useState('');
   const [mesa, setMesa] = useState('1');
   const [pairCode, setPairCode] = useState('');
   const [pairMsg, setPairMsg] = useState<string | null>(null);
+  const [plUrl, setPlUrl] = useState('');
+  const [plMsg, setPlMsg] = useState<string | null>(null);
+  const [plLoading, setPlLoading] = useState(false);
 
   const handlePair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,10 +40,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     const trimmed = pairCode.trim();
     if (!trimmed) return;
     const { data, error } = await sb.rpc('console_confirm_pairing', { p_code: trimmed, p_venue: venue.id });
-    if (error) {
-      setPairMsg('❌ ' + error.message);
-      return;
-    }
+    if (error) { setPairMsg('❌ ' + error.message); return; }
     setPairMsg(data?.ok ? '✓ Consola vinculada. Mirá la pantalla del local.' : 'Hecho.');
     setPairCode('');
   };
@@ -55,6 +58,28 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
 
   useEffect(() => { load(); }, [slug, mesa]);
 
+  // Autocompletar título y artista desde la URL de YouTube
+  const fetchMeta = async () => {
+    if (!url.trim()) return;
+    setMetaLoading(true);
+    setMetaMsg(null);
+    try {
+      const r = await fetch(`/api/youtube-meta?kind=video&url=${encodeURIComponent(url.trim())}`);
+      const data = await r.json();
+      if (!r.ok) { setMetaMsg('⚠️ ' + (data.error || 'No se pudo leer el video')); return; }
+      setTitle(data.title || '');
+      setArtist(data.artist || '');
+      setEmbeddable(data.embeddable !== false);
+      setMetaMsg(data.embeddable === false
+        ? '⚠️ Datos cargados, pero este video NO permite reproducirse embebido.'
+        : '✓ Datos cargados');
+    } catch {
+      setMetaMsg('⚠️ Error consultando YouTube');
+    } finally {
+      setMetaLoading(false);
+    }
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const sb = supa();
@@ -67,13 +92,41 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       external_id: videoId,
       title: title || 'Sin título',
       artist,
-      is_embeddable: true,
+      is_embeddable: embeddable,
     });
     if (error) return alert(error.message);
-    setUrl('');
-    setTitle('');
-    setArtist('');
+    setUrl(''); setTitle(''); setArtist(''); setEmbeddable(true); setMetaMsg(null);
     load();
+  };
+
+  // Importar una playlist entera de YouTube
+  const importPlaylist = async () => {
+    const sb = supa();
+    if (!sb || !venue || !plUrl.trim()) return;
+    setPlLoading(true);
+    setPlMsg('Leyendo playlist…');
+    try {
+      const r = await fetch(`/api/youtube-meta?kind=playlist&url=${encodeURIComponent(plUrl.trim())}`);
+      const data = await r.json();
+      if (!r.ok) { setPlMsg('⚠️ ' + (data.error || 'No se pudo leer la playlist')); return; }
+      const fetched: { videoId: string; title: string; artist: string }[] = data.tracks || [];
+      const have = new Set(tracks.map((t) => t.external_id));
+      const nuevas = fetched.filter((t) => !have.has(t.videoId));
+      if (nuevas.length === 0) { setPlMsg('Todas esas canciones ya estaban en el catálogo.'); return; }
+      const rows = nuevas.map((t) => ({
+        venue_id: venue.id, source: 'youtube', external_id: t.videoId,
+        title: t.title || 'Sin título', artist: t.artist || '', is_embeddable: true,
+      }));
+      const { error } = await sb.from('catalog_track').insert(rows);
+      if (error) { setPlMsg('⚠️ ' + error.message); return; }
+      setPlMsg(`✓ Importadas ${nuevas.length} canciones (${fetched.length - nuevas.length} ya estaban).`);
+      setPlUrl('');
+      load();
+    } catch {
+      setPlMsg('⚠️ Error consultando YouTube');
+    } finally {
+      setPlLoading(false);
+    }
   };
 
   if (!venue) return <div className="p-6">Cargando local...</div>;
@@ -88,14 +141,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
           Abrí <b>/console</b> en la pantalla/PC del local. Te muestra un <b>código de 6 dígitos</b>. Escribilo acá para vincular esa pantalla a este local.
         </p>
         <form onSubmit={handlePair} className="flex flex-wrap gap-2">
-          <input
-            className="w-40 rounded border p-2 text-center text-xl tracking-widest"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="000000"
-            value={pairCode}
-            onChange={(e) => setPairCode(e.target.value)}
-          />
+          <input className="w-40 rounded border p-2 text-center text-xl tracking-widest" inputMode="numeric" maxLength={6} placeholder="000000" value={pairCode} onChange={(e) => setPairCode(e.target.value)} />
           <button className="rounded bg-blue-600 px-5 py-2 text-white" type="submit">Vincular</button>
         </form>
         {pairMsg && <p className="mt-2 text-sm font-medium text-blue-800">{pairMsg}</p>}
@@ -104,11 +150,33 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       <section className="mb-8">
         <h2 className="mb-2 text-xl font-semibold">2. Cargar canción YouTube</h2>
         <form onSubmit={handleAdd} className="space-y-2">
-          <input className="w-full border p-2" placeholder="URL del video" value={url} onChange={(e) => setUrl(e.target.value)} />
-          <input className="w-full border p-2" placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <input className="w-full border p-2" placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
+          <input
+            className="w-full border p-2"
+            placeholder="Pegá la URL del video y soltá → se autocompleta"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onBlur={fetchMeta}
+          />
+          {metaLoading && <p className="text-sm text-gray-500">Buscando datos en YouTube…</p>}
+          {metaMsg && <p className="text-sm text-gray-700">{metaMsg}</p>}
+          <input className="w-full border p-2" placeholder="Título (se completa solo)" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <input className="w-full border p-2" placeholder="Artista (se completa solo)" value={artist} onChange={(e) => setArtist(e.target.value)} />
           <button className="rounded bg-blue-600 px-4 py-2 text-white" type="submit">Agregar</button>
         </form>
+      </section>
+
+      <section className="mb-8 rounded-lg border border-gray-300 p-4">
+        <h2 className="mb-1 text-xl font-semibold">2b. Importar playlist de YouTube</h2>
+        <p className="mb-2 text-sm text-gray-600">
+          Pegá la URL de una playlist de YouTube y se cargan todas las canciones de una (hasta 200), con título y artista.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <input className="min-w-0 flex-1 border p-2" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} />
+          <button className="rounded bg-gray-800 px-4 py-2 text-white disabled:opacity-50" onClick={importPlaylist} disabled={plLoading}>
+            {plLoading ? 'Importando…' : 'Importar'}
+          </button>
+        </div>
+        {plMsg && <p className="mt-2 text-sm text-gray-700">{plMsg}</p>}
       </section>
 
       <section className="mb-8">
@@ -123,7 +191,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       </section>
 
       <section>
-        <h2 className="mb-2 text-xl font-semibold">Catálogo</h2>
+        <h2 className="mb-2 text-xl font-semibold">Catálogo ({tracks.length})</h2>
         <ul className="space-y-2">
           {tracks.map((t) => (
             <li key={t.id} className="rounded border p-2">{t.title} - {t.artist}</li>
