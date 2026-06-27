@@ -9,11 +9,11 @@ export default function Home() {
   useEffect(() => {
     const sb = supa();
     if (!sb) return;
-    sb.auth.getSession().then(({ data }) => {
+    sb.auth.getSession().then(({ data }: any) => {
       setSession(data.session ?? null);
       setLoading(false);
     });
-    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = sb.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
     return () => { sub.subscription.unsubscribe(); };
   }, []);
 

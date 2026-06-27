@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 
@@ -15,7 +15,8 @@ function getYouTubeId(url: string) {
   }
 }
 
-export default function VenuePanelPage({ params }: { params: { slug: string } }) {
+export default function VenuePanelPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [venue, setVenue] = useState<any>(null);
   const [tracks, setTracks] = useState<any[]>([]);
   const [url, setUrl] = useState('');
@@ -44,15 +45,15 @@ export default function VenuePanelPage({ params }: { params: { slug: string } })
   const load = async () => {
     const sb = supa();
     if (!sb) return;
-    const { data: v } = await sb.from('venue').select('*').eq('slug', params.slug).single();
+    const { data: v } = await sb.from('venue').select('*').eq('slug', slug).single();
     setVenue(v);
     const { data: t } = await sb.from('catalog_track').select('*').eq('venue_id', v.id);
     setTracks(t || []);
-    const qrUrl = `/widget/${params.slug}?mesa=${mesa}`;
+    const qrUrl = `/widget/${slug}?mesa=${mesa}`;
     QRCode.toDataURL(qrUrl, { width: 400 }).then(setQr);
   };
 
-  useEffect(() => { load(); }, [params.slug, mesa]);
+  useEffect(() => { load(); }, [slug, mesa]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();

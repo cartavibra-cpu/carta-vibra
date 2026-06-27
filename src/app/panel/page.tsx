@@ -12,8 +12,8 @@ export default function PanelPage() {
   useEffect(() => {
     const sb = supa();
     if (!sb) return;
-    sb.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = sb.auth.onAuthStateChange((_event, s) => setSession(s));
+    sb.auth.getSession().then(({ data }: any) => setSession(data.session));
+    const { data: sub } = sb.auth.onAuthStateChange((_event: any, s: any) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
 
