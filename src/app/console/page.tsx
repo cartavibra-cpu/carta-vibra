@@ -40,13 +40,36 @@ export default function ConsolePage() {
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
-    if (token) { tokenRef.current = token; pollStatus(token); }
+    if (token) resumeSession(token);
     else startPairing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Si hay un token guardado: si está vinculado, lo usamos; si quedó a medias o es
+  // desconocido, lo descartamos y pedimos un código nuevo (así nunca quedás pegado).
+  const resumeSession = async (token: string) => {
+    setLoading(true);
+    try {
+      const sb = supa(); if (!sb) throw new Error('Supabase no configurado');
+      const { data, error } = await sb.rpc('console_status', { p_token: token });
+      if (error) { localStorage.removeItem('console_device_token'); return startPairing(); }
+      if (data.paired) {
+        tokenRef.current = token;
+        venueRef.current = data.venue_id;
+        setStatus(data);
+        setLoading(false);
+      } else {
+        localStorage.removeItem('console_device_token');
+        return startPairing();
+      }
+    } catch {
+      localStorage.removeItem('console_device_token');
+      return startPairing();
+    }
+  };
+
   const startPairing = async () => {
-    setLoading(true); setError(null);
+    setLoading(true); setError(null); setStatus(null);
     try {
       const sb = supa(); if (!sb) throw new Error('Supabase no configurado');
       const { data, error } = await sb.rpc('console_request_pairing');
@@ -68,6 +91,13 @@ export default function ConsolePage() {
       if (data.paired) venueRef.current = data.venue_id;
       else setTimeout(() => pollStatus(token), 2000);
     } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
+  };
+
+  const resetPairing = () => {
+    localStorage.removeItem('console_device_token');
+    tokenRef.current = null; venueRef.current = null;
+    setStatus(null); setPairCode(null); setStarted(false);
+    startPairing();
   };
 
   const rotate = async () => {
@@ -159,22 +189,27 @@ export default function ConsolePage() {
 
   if (!status?.paired) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-black">Emparejando consola…</h1>
-        {pairCode && (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
+        <h1 className="text-4xl font-black">Vinculá esta consola</h1>
+        {pairCode ? (
           <div className="rounded-2xl border-4 border-black bg-white p-8">
             <p className="mb-2 text-center text-lg font-semibold">Código de vinculación</p>
-            <p className="text-center text-6xl font-black">{pairCode}</p>
+            <p className="text-center text-7xl font-black tracking-widest">{pairCode}</p>
           </div>
+        ) : (
+          <p className="text-gray-600">Generando código…</p>
         )}
-        <p className="text-sm text-gray-600">Ingresá este código en el panel del dueño para vincular esta consola.</p>
+        <p className="max-w-md text-center text-sm text-gray-600">
+          Escribí este código de 6 dígitos en tu <b>panel</b> (en la compu donde iniciaste sesión): tu local → sección <b>“Vincular consola”</b>.
+        </p>
+        <button className="text-sm text-gray-500 underline" onClick={resetPairing}>Generar un código nuevo</button>
       </div>
     );
   }
 
   if (!started) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
         <h1 className="text-3xl font-bold">{status.name}</h1>
         <p className="text-gray-600">Consola lista para {status.slug}</p>
         <button className="rounded-2xl bg-green-600 px-10 py-5 text-2xl font-bold text-white" onClick={startConsole}>
@@ -183,6 +218,7 @@ export default function ConsolePage() {
         <p className="max-w-sm text-center text-xs text-gray-500">
           Tocá el botón para desbloquear el audio (los navegadores no dejan reproducir solos hasta que hay un clic).
         </p>
+        <button className="text-sm text-gray-500 underline" onClick={resetPairing}>Vincular otra consola</button>
       </div>
     );
   }
@@ -200,7 +236,7 @@ export default function ConsolePage() {
           <div className="rounded-2xl border-4 border-black bg-white p-6 text-center">
             <p className="text-sm font-semibold uppercase text-gray-500">Código para votar</p>
             <p className="text-6xl font-black tracking-widest">{roomCode ?? '—'}</p>
-            <p className="mt-1 text-xs text-gray-500">Cambia cada pocos minutos</p>
+            <p className="mt-1 text-xs text-gray-500">Los clientes lo ingresan en su celular · cambia cada pocos minutos</p>
           </div>
           <div>
             <h2 className="mb-2 font-semibold">En cola (por votos)</h2>

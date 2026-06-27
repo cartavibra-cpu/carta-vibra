@@ -35,10 +35,10 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     if (!trimmed) return;
     const { data, error } = await sb.rpc('console_confirm_pairing', { p_code: trimmed, p_venue: venue.id });
     if (error) {
-      setPairMsg(error.message);
+      setPairMsg('❌ ' + error.message);
       return;
     }
-    setPairMsg(data?.message ? 'Vinculación OK' : 'Vinculación enviada');
+    setPairMsg(data?.ok ? '✓ Consola vinculada. Mirá la pantalla del local.' : 'Hecho.');
     setPairCode('');
   };
 
@@ -82,8 +82,27 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       <h1 className="mb-2 text-2xl font-bold">{venue.name}</h1>
       <p className="mb-4 text-sm text-gray-600">Modo: {venue.mode}</p>
 
+      <section className="mb-8 rounded-lg border-2 border-blue-300 bg-blue-50 p-4">
+        <h2 className="mb-1 text-xl font-semibold">1. Vincular consola</h2>
+        <p className="mb-3 text-sm text-gray-700">
+          Abrí <b>/console</b> en la pantalla/PC del local. Te muestra un <b>código de 6 dígitos</b>. Escribilo acá para vincular esa pantalla a este local.
+        </p>
+        <form onSubmit={handlePair} className="flex flex-wrap gap-2">
+          <input
+            className="w-40 rounded border p-2 text-center text-xl tracking-widest"
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="000000"
+            value={pairCode}
+            onChange={(e) => setPairCode(e.target.value)}
+          />
+          <button className="rounded bg-blue-600 px-5 py-2 text-white" type="submit">Vincular</button>
+        </form>
+        {pairMsg && <p className="mt-2 text-sm font-medium text-blue-800">{pairMsg}</p>}
+      </section>
+
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Cargar canción YouTube</h2>
+        <h2 className="mb-2 text-xl font-semibold">2. Cargar canción YouTube</h2>
         <form onSubmit={handleAdd} className="space-y-2">
           <input className="w-full border p-2" placeholder="URL del video" value={url} onChange={(e) => setUrl(e.target.value)} />
           <input className="w-full border p-2" placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -93,7 +112,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       </section>
 
       <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">QR para clientes</h2>
+        <h2 className="mb-2 text-xl font-semibold">3. QR para clientes</h2>
         <div className="flex items-center gap-4">
           <img src={qr} alt="QR" className="h-40 w-40" />
           <div>
