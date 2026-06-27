@@ -23,6 +23,23 @@ export default function VenuePanelPage({ params }: { params: { slug: string } })
   const [artist, setArtist] = useState('');
   const [qr, setQr] = useState('');
   const [mesa, setMesa] = useState('1');
+  const [pairCode, setPairCode] = useState('');
+  const [pairMsg, setPairMsg] = useState<string | null>(null);
+
+  const handlePair = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const sb = supa();
+    if (!sb || !venue) return;
+    const trimmed = pairCode.trim();
+    if (!trimmed) return;
+    const { data, error } = await sb.rpc('console_confirm_pairing', { p_code: trimmed, p_venue: venue.id });
+    if (error) {
+      setPairMsg(error.message);
+      return;
+    }
+    setPairMsg(data?.message ? 'Vinculación OK' : 'Vinculación enviada');
+    setPairCode('');
+  };
 
   const load = async () => {
     const sb = supa();
