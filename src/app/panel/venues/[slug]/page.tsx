@@ -15,6 +15,8 @@ function getYouTubeId(url: string) {
   }
 }
 
+type Template = { id: string; name: string; description: string | null; mood: string | null };
+
 export default function VenuePanelPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [venue, setVenue] = useState<any>(null);
@@ -32,6 +34,9 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
   const [plUrl, setPlUrl] = useState('');
   const [plMsg, setPlMsg] = useState<string | null>(null);
   const [plLoading, setPlLoading] = useState(false);
+  const [curated, setCurated] = useState<Template[]>([]);
+  const [curatedCounts, setCuratedCounts] = useState<Record<string, number>>({});
+  const [curatedMsg, setCuratedMsg] = useState<string | null>(null);
 
   const handlePair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,9 +61,20 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     QRCode.toDataURL(qrUrl, { width: 400 }).then(setQr);
   };
 
-  useEffect(() => { load(); }, [slug, mesa]);
+  const loadCurated = async () => {
+    const sb = supa();
+    if (!sb) return;
+    const { data } = await sb.from('playlist_template').select('*').eq('published', true).order('sort').order('created_at');
+    setCurated((data as Template[]) || []);
+    const { data: trk } = await sb.from('playlist_template_track').select('template_id');
+    const c: Record<string, number> = {};
+    (trk as any[] | null)?.forEach((r) => { c[r.template_id] = (c[r.template_id] || 0) + 1; });
+    setCuratedCounts(c);
+  };
 
-  // Autocompletar título y artista desde la URL de YouTube
+  useEffect(() => { load(); }, [slug, mesa]);
+  useEffect(() => { loadCurated(); }, []);
+
   const fetchMeta = async () => {
     if (!url.trim()) return;
     setMetaLoading(true);
@@ -87,19 +103,14 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     const videoId = getYouTubeId(url);
     if (!videoId) return alert('URL de YouTube inválida');
     const { error } = await sb.from('catalog_track').insert({
-      venue_id: venue.id,
-      source: 'youtube',
-      external_id: videoId,
-      title: title || 'Sin título',
-      artist,
-      is_embeddable: embeddable,
+      venue_id: venue.id, source: 'youtube', external_id: videoId,
+      title: title || 'Sin título', artist, is_embeddable: embeddable,
     });
     if (error) return alert(error.message);
     setUrl(''); setTitle(''); setArtist(''); setEmbeddable(true); setMetaMsg(null);
     load();
   };
 
-  // Importar una playlist entera de YouTube
   const importPlaylist = async () => {
     const sb = supa();
     if (!sb || !venue || !plUrl.trim()) return;
@@ -129,6 +140,16 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     }
   };
 
+  const importCurated = async (t: Template) => {
+    const sb = supa();
+    if (!sb || !venue) return;
+    setCuratedMsg(`Importando "${t.name}"…`);
+    const { data, error } = await sb.rpc('import_playlist', { p_template: t.id, p_venue: venue.id });
+    if (error) { setCuratedMsg('⚠️ ' + error.message); return; }
+    setCuratedMsg(`✓ "${t.name}": ${data?.imported ?? 0} canciones agregadas a tu catálogo.`);
+    load();
+  };
+
   if (!venue) return <div className="p-6">Cargando local...</div>;
   return (
     <div className="mx-auto max-w-4xl p-6">
@@ -150,13 +171,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       <section className="mb-8">
         <h2 className="mb-2 text-xl font-semibold">2. Cargar canción YouTube</h2>
         <form onSubmit={handleAdd} className="space-y-2">
-          <input
-            className="w-full border p-2"
-            placeholder="Pegá la URL del video y soltá → se autocompleta"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onBlur={fetchMeta}
-          />
+          <input className="w-full border p-2" placeholder="Pegá la URL del video y soltá → se autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
           {metaLoading && <p className="text-sm text-gray-500">Buscando datos en YouTube…</p>}
           {metaMsg && <p className="text-sm text-gray-700">{metaMsg}</p>}
           <input className="w-full border p-2" placeholder="Título (se completa solo)" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -167,16 +182,32 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
 
       <section className="mb-8 rounded-lg border border-gray-300 p-4">
         <h2 className="mb-1 text-xl font-semibold">2b. Importar playlist de YouTube</h2>
-        <p className="mb-2 text-sm text-gray-600">
-          Pegá la URL de una playlist de YouTube y se cargan todas las canciones de una (hasta 200), con título y artista.
-        </p>
+        <p className="mb-2 text-sm text-gray-600">Pegá la URL de una playlist de YouTube y se cargan todas las canciones de una (hasta 200), con título y artista.</p>
         <div className="flex flex-wrap gap-2">
           <input className="min-w-0 flex-1 border p-2" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} />
-          <button className="rounded bg-gray-800 px-4 py-2 text-white disabled:opacity-50" onClick={importPlaylist} disabled={plLoading}>
-            {plLoading ? 'Importando…' : 'Importar'}
-          </button>
+          <button className="rounded bg-gray-800 px-4 py-2 text-white disabled:opacity-50" onClick={importPlaylist} disabled={plLoading}>{plLoading ? 'Importando…' : 'Importar'}</button>
         </div>
         {plMsg && <p className="mt-2 text-sm text-gray-700">{plMsg}</p>}
+      </section>
+
+      <section className="mb-8 rounded-lg border border-purple-300 bg-purple-50 p-4">
+        <h2 className="mb-1 text-xl font-semibold">2c. Importar una playlist curada</h2>
+        <p className="mb-3 text-sm text-gray-600">Playlists armadas y pensadas por Carta Vibra. Importás una y queda en tu catálogo, lista para editar a tu gusto.</p>
+        <ul className="space-y-2">
+          {curated.length === 0 && <li className="text-sm text-gray-500">No hay playlists curadas disponibles por ahora.</li>}
+          {curated.map((t) => (
+            <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded border bg-white p-3">
+              <div>
+                <span className="font-semibold">{t.name}</span>
+                {t.mood && <span className="ml-2 text-sm text-gray-500">· {t.mood}</span>}
+                <span className="ml-2 text-sm text-gray-500">· {curatedCounts[t.id] || 0} temas</span>
+                {t.description && <p className="text-sm text-gray-600">{t.description}</p>}
+              </div>
+              <button className="rounded bg-purple-600 px-4 py-2 text-white" onClick={() => importCurated(t)}>Importar</button>
+            </li>
+          ))}
+        </ul>
+        {curatedMsg && <p className="mt-2 text-sm text-gray-700">{curatedMsg}</p>}
       </section>
 
       <section className="mb-8">
