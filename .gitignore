@@ -43,3 +43,6 @@ next-env.d.ts
 # OpenNext / Cloudflare build output
 /.open-next/
 /.wrangler/
+
+# package-lock se regenera por plataforma (evita el bug de binarios nativos Windows/Linux en Cloudflare)
+/package-lock.json
