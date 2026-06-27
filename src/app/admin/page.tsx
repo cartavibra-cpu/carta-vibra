@@ -99,6 +99,7 @@ export default function AdminPage() {
     const sb = supa(); if (!sb || !selected) return;
     const videoId = getYouTubeId(url);
     if (!videoId) return alert('URL de YouTube inválida');
+    if (!embeddable) { setMetaMsg('⚠️ Este video no se puede reproducir embebido. Buscá otra versión.'); return; }
     const { error } = await sb.from('playlist_template_track').insert({
       template_id: selected.id, source: 'youtube', external_id: videoId,
       title: title || 'Sin título', artist, is_embeddable: embeddable,
@@ -115,17 +116,18 @@ export default function AdminPage() {
       const r = await fetch(`/api/youtube-meta?kind=playlist&url=${encodeURIComponent(plUrl.trim())}`);
       const data = await r.json();
       if (!r.ok) { setPlMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
-      const fetched: { videoId: string; title: string; artist: string }[] = data.tracks || [];
+      const fetched: { videoId: string; title: string; artist: string; embeddable?: boolean }[] = data.tracks || [];
       const have = new Set(tplTracks.map((t) => t.external_id));
-      const nuevas = fetched.filter((t) => !have.has(t.videoId));
-      if (nuevas.length === 0) { setPlMsg('Todas esas canciones ya estaban.'); return; }
+      const nuevas = fetched.filter((t) => !have.has(t.videoId) && t.embeddable !== false);
+      const blocked = fetched.filter((t) => t.embeddable === false).length;
+      if (nuevas.length === 0) { setPlMsg(blocked > 0 ? `⚠️ No se agregó nada: ${blocked} con embed bloqueado y el resto ya estaba.` : 'Todas esas canciones ya estaban.'); return; }
       const rows = nuevas.map((t) => ({
         template_id: selected.id, source: 'youtube', external_id: t.videoId,
         title: t.title || 'Sin título', artist: t.artist || '', is_embeddable: true,
       }));
       const { error } = await sb.from('playlist_template_track').insert(rows);
       if (error) { setPlMsg('⚠️ ' + error.message); return; }
-      setPlMsg(`✓ Importadas ${nuevas.length} canciones (${fetched.length - nuevas.length} ya estaban).`);
+      setPlMsg(`✓ Importadas ${nuevas.length} canciones${blocked > 0 ? `, omití ${blocked} no reproducibles` : ''}.`);
       setPlUrl('');
       loadTplTracks(selected.id); loadTemplates();
     } catch { setPlMsg('⚠️ Error consultando YouTube'); } finally { setPlLoading(false); }

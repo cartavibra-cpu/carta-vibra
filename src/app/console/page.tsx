@@ -172,6 +172,7 @@ export default function ConsolePage() {
       events: {
         onReady: () => playNext(),
         onStateChange: (e: any) => { if (e.data === YT.PlayerState.ENDED) playNext(); },
+        onError: () => { playingRef.current = false; setTimeout(() => playNext(), 400); },
       },
     });
   };

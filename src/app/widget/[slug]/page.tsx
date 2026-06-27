@@ -39,7 +39,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     setActivePl((pl as any) || null);
     if (!pl) { setTracks([]); return; }
     const { data: t } = await sb.from('catalog_track')
-      .select('id,title,artist,external_id').eq('playlist_id', (pl as any).id).eq('enabled', true);
+      .select('id,title,artist,external_id').eq('playlist_id', (pl as any).id).eq('enabled', true).neq('is_embeddable', false);
     setTracks((t as Track[]) || []);
   }, [slug]);
 

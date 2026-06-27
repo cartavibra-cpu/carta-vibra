@@ -135,6 +135,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     const sb = supa(); if (!sb || !venue || !selected) return;
     const videoId = getYouTubeId(url);
     if (!videoId) return alert('URL de YouTube inválida');
+    if (!embeddable) { setMetaMsg('⚠️ Este video no se puede reproducir embebido. Buscá otra versión de la canción.'); return; }
     const { error } = await sb.from('catalog_track').insert({
       venue_id: venue.id, playlist_id: selected.id, source: 'youtube', external_id: videoId,
       title: title || 'Sin título', artist, is_embeddable: embeddable,
@@ -158,18 +159,21 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       const r = await fetch(`/api/youtube-meta?kind=playlist&url=${encodeURIComponent(ytUrl.trim())}`);
       const data = await r.json();
       if (!r.ok) { setYtMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
-      const tracks: { videoId: string; title: string; artist: string }[] = data.tracks || [];
+      const tracks: { videoId: string; title: string; artist: string; embeddable?: boolean }[] = data.tracks || [];
       if (tracks.length === 0) { setYtMsg('La playlist no tiene canciones.'); return; }
+      const playable = tracks.filter((t) => t.embeddable !== false);
+      const blocked = tracks.length - playable.length;
+      if (playable.length === 0) { setYtMsg('⚠️ Ninguna de esas canciones se puede reproducir (embed bloqueado). Probá otra playlist.'); return; }
       const name = ytName.trim() || 'Playlist de YouTube';
       const { data: plId, error: e1 } = await sb.rpc('create_venue_playlist', { p_venue: venue.id, p_name: name });
       if (e1) { setYtMsg('⚠️ ' + e1.message); return; }
-      const rows = tracks.map((t) => ({
+      const rows = playable.map((t) => ({
         venue_id: venue.id, playlist_id: plId, source: 'youtube', external_id: t.videoId,
         title: t.title || 'Sin título', artist: t.artist || '', is_embeddable: true,
       }));
       const { error: e2 } = await sb.from('catalog_track').insert(rows);
       if (e2) { setYtMsg('⚠️ ' + e2.message); return; }
-      setYtMsg(`✓ Playlist "${name}" creada con ${rows.length} canciones.`);
+      setYtMsg(`✓ Playlist "${name}" creada con ${rows.length} canciones${blocked > 0 ? `. Omití ${blocked} que no se pueden reproducir.` : '.'}`);
       setYtUrl(''); setYtName('');
       load();
     } catch { setYtMsg('⚠️ Error consultando YouTube'); } finally { setYtLoading(false); }

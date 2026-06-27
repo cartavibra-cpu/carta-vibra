@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       if (!playlistId) {
         return NextResponse.json({ error: 'No reconocí una playlist de YouTube en esa URL.' }, { status: 400 });
       }
-      const tracks: { videoId: string; title: string; artist: string }[] = [];
+      const raw: { videoId: string; title: string; artist: string }[] = [];
       let pageToken = '';
       do {
         const api = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&pageToken=${pageToken}&key=${key}`;
@@ -57,12 +57,33 @@ export async function GET(req: NextRequest) {
           const s = it.snippet;
           const vid = s?.resourceId?.videoId;
           if (vid && s.title !== 'Deleted video' && s.title !== 'Private video') {
-            tracks.push({ videoId: vid, title: s.title, artist: cleanArtist(s.videoOwnerChannelTitle || '') });
+            raw.push({ videoId: vid, title: s.title, artist: cleanArtist(s.videoOwnerChannelTitle || '') });
           }
         }
         pageToken = data.nextPageToken || '';
-      } while (pageToken && tracks.length < 200);
+      } while (pageToken && raw.length < 200);
 
+      // Chequear reproducibilidad (endpoint videos, en lotes de 50)
+      const embeddable: Record<string, boolean> = {};
+      const ids = raw.map((t) => t.videoId);
+      for (let i = 0; i < ids.length; i += 50) {
+        const batchIds = ids.slice(i, i + 50);
+        const r2 = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status&id=${batchIds.join(',')}&key=${key}`);
+        const d2: any = await r2.json();
+        if (d2.error || !d2.items) {
+          batchIds.forEach((id) => { embeddable[id] = true; }); // si falla el chequeo, no bloqueamos
+          continue;
+        }
+        const returned = new Set<string>();
+        for (const it of d2.items) {
+          embeddable[it.id] = it.status?.embeddable !== false;
+          returned.add(it.id);
+        }
+        // los que no volvieron están borrados / no disponibles
+        batchIds.forEach((id) => { if (!returned.has(id)) embeddable[id] = false; });
+      }
+
+      const tracks = raw.map((t) => ({ ...t, embeddable: embeddable[t.videoId] !== false }));
       return NextResponse.json({ type: 'playlist', tracks });
     }
 
