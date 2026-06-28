@@ -42,22 +42,29 @@ export default function ConsolePage() {
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
+  const [isFs, setIsFs] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [ccOn, setCcOn] = useState(false);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
   const tracksRef = useRef<Record<string, Track>>({});
+  const stageRef = useRef<HTMLDivElement | null>(null);
 
   // dos "decks" para el crossfade
   const decksRef = useRef<Record<string, any>>({});
   const currentRef = useRef<'A' | 'B'>('A');
   const busyRef = useRef(false);
   const playingRef = useRef(false);
+  const pausedRef = useRef(false);
   const rampRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const fadeRampRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const maxSecondsRef = useRef(0);
+  const ccOnRef = useRef(false);
 
   // AutoDJ (relleno aleatorio inteligente cuando no hay votos)
-  const autoPoolRef = useRef<string[]>([]);   // ids reproducibles de la playlist activa
-  const bagRef = useRef<string[]>([]);        // "bolsa barajada": toca todas antes de repetir
+  const autoPoolRef = useRef<string[]>([]);
+  const bagRef = useRef<string[]>([]);
   const lastAutoRef = useRef<string | null>(null);
   const autoOnRef = useRef(true);
 
@@ -66,6 +73,13 @@ export default function ConsolePage() {
     if (token) resumeSession(token);
     else startPairing();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // pantalla completa: refleja el estado real del navegador
+  useEffect(() => {
+    const onFs = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
   const resumeSession = async (token: string) => {
@@ -134,8 +148,7 @@ export default function ConsolePage() {
     setNowTitle(tr ? `${tr.title}${tr.artist ? ' — ' + tr.artist : ''}` : '—');
   };
 
-  // AutoDJ: elige la próxima canción de la playlist activa con bolsa barajada.
-  // Reproduce todas una vez antes de repetir y evita repetir la última al rebarajar.
+  // AutoDJ: bolsa barajada de la playlist activa (todas una vez antes de repetir).
   const pickAuto = (): string | null => {
     const pool = autoPoolRef.current;
     if (!pool.length) return null;
@@ -153,6 +166,58 @@ export default function ConsolePage() {
     const id = bagRef.current.shift() as string;
     lastAutoRef.current = id;
     return id;
+  };
+
+  // Subtítulos: aplica el estado actual (on/off) a un reproductor.
+  const applyCC = (p: any) => {
+    if (!p) return;
+    try {
+      if (ccOnRef.current) { p.loadModule?.('captions'); p.loadModule?.('cc'); }
+      else { p.unloadModule?.('captions'); p.unloadModule?.('cc'); }
+    } catch {}
+  };
+  const toggleCC = () => {
+    const next = !ccOnRef.current;
+    ccOnRef.current = next; setCcOn(next);
+    applyCC(decksRef.current[currentRef.current]);
+  };
+
+  // Pantalla completa sobre el ESCENARIO (video + código flotante), no sobre el iframe pelado.
+  const toggleFs = () => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else el.requestFullscreen?.();
+  };
+
+  // Pausa/Reanuda con fundido suave (lo maneja el operador).
+  const pauseWithFade = () => {
+    const p = decksRef.current[currentRef.current];
+    if (!p) return;
+    setIsPaused(true); pausedRef.current = true;
+    if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; }
+    let v = 100;
+    fadeRampRef.current = setInterval(() => {
+      v -= 12;
+      try { p.setVolume(Math.max(0, v)); } catch {}
+      if (v <= 0) {
+        if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; }
+        try { p.pauseVideo(); } catch {}
+      }
+    }, 60);
+  };
+  const resumeWithFade = () => {
+    const p = decksRef.current[currentRef.current];
+    if (!p) return;
+    setIsPaused(false); pausedRef.current = false;
+    try { p.setVolume(0); p.playVideo(); } catch {}
+    if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; }
+    let v = 0;
+    fadeRampRef.current = setInterval(() => {
+      v += 12;
+      try { p.setVolume(Math.min(100, v)); } catch {}
+      if (v >= 100) { if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; } }
+    }, 60);
   };
 
   // Funde el deck actual hacia el otro deck reproduciendo videoId
@@ -185,8 +250,8 @@ export default function ConsolePage() {
     }, STEP_MS);
   };
 
-  // Pasa a la siguiente canción. Prioridad: lo más votado. Si no hay votos y el
-  // AutoDJ está activo, elige de la playlist activa (así el local nunca se queda en silencio).
+  // Pasa a la siguiente. Prioridad: lo más votado. Si no hay votos y AutoDJ está activo,
+  // elige de la playlist activa (el local nunca se queda en silencio).
   const advance = async () => {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -200,12 +265,8 @@ export default function ConsolePage() {
 
       let trackId: string | null = null;
       let isAuto = false;
-      if (top) {
-        trackId = top.track_id;
-      } else if (autoOnRef.current) {
-        trackId = pickAuto();
-        isAuto = true;
-      }
+      if (top) { trackId = top.track_id; }
+      else if (autoOnRef.current) { trackId = pickAuto(); isAuto = true; }
 
       if (!trackId) { playingRef.current = false; busyRef.current = false; return; }
 
@@ -214,6 +275,7 @@ export default function ConsolePage() {
       setIsAutoNow(isAuto);
       await refreshNow();
       if (!track?.external_id) { busyRef.current = false; setTimeout(advance, 400); return; }
+      pausedRef.current = false; setIsPaused(false);
       playingRef.current = true;
       transitionTo(track.external_id);
     } catch { busyRef.current = false; }
@@ -229,8 +291,7 @@ export default function ConsolePage() {
     (t as Track[] | null)?.forEach((tr) => { map[tr.id] = tr; });
     tracksRef.current = map;
 
-    // AutoDJ: arma el pool con las canciones reproducibles de la playlist ACTIVA
-    // (las mismas que el cliente puede votar): habilitadas, embebibles y con video.
+    // AutoDJ: pool con las canciones reproducibles de la playlist ACTIVA.
     try {
       const { data: apl } = await sb.from('venue_playlist').select('id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
       let pool: string[] = [];
@@ -252,13 +313,14 @@ export default function ConsolePage() {
     sb.channel('console-' + venueId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'queue', filter: `venue_id=eq.${venueId}` }, async () => {
         await refreshQueue();
-        if (!playingRef.current && !busyRef.current) advance();
+        if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow)
       .subscribe();
 
     const onStateChange = (e: any) => {
-      if (e.data === window.YT.PlayerState.ENDED && !busyRef.current) {
+      if (e.data === window.YT.PlayerState.PLAYING) { applyCC(e.target); }
+      if (e.data === window.YT.PlayerState.ENDED && !busyRef.current && !pausedRef.current) {
         playingRef.current = false;
         advance();
       }
@@ -276,7 +338,7 @@ export default function ConsolePage() {
     const onReady = () => { ready++; if (ready === 2) advance(); };
     const opts = (id: string) => ({
       width: '100%', height: '100%',
-      playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, playsinline: 1 },
+      playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
       events: { onReady, onStateChange, onError },
     } as any);
     decksRef.current.A = new YT.Player('yt-A', opts('A'));
@@ -284,7 +346,7 @@ export default function ConsolePage() {
 
     // monitor: cuando la actual está por terminar, traer la siguiente fundida
     setInterval(() => {
-      if (busyRef.current || !playingRef.current) return;
+      if (busyRef.current || !playingRef.current || pausedRef.current) return;
       const p = decksRef.current[currentRef.current];
       if (!p || !p.getDuration) return;
       let dur = 0, cur = 0;
@@ -346,8 +408,8 @@ export default function ConsolePage() {
           <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(110,243,178,.5)' }} onClick={startConsole}>
             ▶ Iniciar sesión musical
           </button>
-          <p style={{ maxWidth: 380, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
-            Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos.
+          <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
+            Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos. Para no mostrar avisos, logueá este navegador con tu cuenta de YouTube Premium.
           </p>
           <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
         </div>
@@ -372,12 +434,39 @@ export default function ConsolePage() {
 
         <div style={{ flex: 1, display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', alignItems: 'start' }}>
 
-          {/* izquierda: video + sonando ahora */}
+          {/* izquierda: escenario (video + código flotante en full screen) + controles */}
           <div>
-            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,.08)', boxShadow: '0 30px 80px -40px rgba(0,0,0,.9)' }}>
+            <div
+              ref={stageRef}
+              style={{
+                position: 'relative', background: '#000', overflow: 'hidden',
+                ...(isFs
+                  ? { width: '100%', height: '100%', borderRadius: 0 }
+                  : { width: '100%', aspectRatio: '16 / 9', borderRadius: 16, border: '1px solid rgba(255,255,255,.08)', boxShadow: '0 30px 80px -40px rgba(0,0,0,.9)' }),
+              }}
+            >
               <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
               <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
+
+              {/* código flotante: visible SOLO en pantalla completa (para karaoke) */}
+              {isFs && (
+                <div style={{ position: 'absolute', top: 28, right: 28, zIndex: 10, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px' }}>
+                  <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)' }}>VOTÁ EN TU CELULAR · CÓDIGO</div>
+                  <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4 }}>{roomCode ?? '—'}</div>
+                </div>
+              )}
             </div>
+
+            {/* controles del operador */}
+            <div style={{ display: 'flex', gap: 9, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '9px 16px' }} onClick={isPaused ? resumeWithFade : pauseWithFade}>
+                {isPaused ? '▶ Reanudar' : '⏸ Pausa'}
+              </button>
+              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px' }} onClick={() => advance()}>⏭ Saltear</button>
+              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px' }} onClick={toggleFs}>⛶ {isFs ? 'Salir de pantalla' : 'Pantalla completa'}</button>
+              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px', opacity: ccOn ? 1 : 0.55 }} onClick={toggleCC}>Subtítulos {ccOn ? 'on' : 'off'}</button>
+            </div>
+
             <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span>SONANDO AHORA</span>
               {isAutoNow && (
@@ -436,7 +525,7 @@ export default function ConsolePage() {
                 <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds}
                   onChange={(e) => { const n = parseInt(e.target.value) || 0; setMaxSeconds(n); maxSecondsRef.current = n; }} />
               </label>
-              <button className="cv-btn cv-btn-ghost" style={{ marginTop: 10, fontSize: 13, padding: '8px 14px' }} onClick={() => advance()}>⏭ Saltear a la siguiente</button>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad del video se elige en el engranaje ⚙ del propio reproductor.</p>
             </div>
 
           </div>
