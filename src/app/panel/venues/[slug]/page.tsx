@@ -25,6 +25,9 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<Playlist | null>(null);
   const [plTracks, setPlTracks] = useState<any[]>([]);
+  const [editName, setEditName] = useState('');
+  const [editMood, setEditMood] = useState('');
+  const [editDesc, setEditDesc] = useState('');
 
   const [newPlName, setNewPlName] = useState('');
 
@@ -87,6 +90,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
 
   const selectPlaylist = async (p: Playlist) => {
     setSelected(p);
+    setEditName(p.name); setEditMood(p.mood || ''); setEditDesc(p.description || '');
     setUrl(''); setTitle(''); setArtist(''); setMetaMsg(null);
     const sb = supa(); if (!sb) return;
     const { data } = await sb.from('catalog_track').select('*').eq('playlist_id', p.id).order('created_at');
@@ -94,6 +98,17 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
   };
 
   const reloadSelected = async () => { if (selected) await selectPlaylist(selected); };
+
+  const saveDetails = async () => {
+    const sb = supa(); if (!sb || !selected) return;
+    const nm = editName.trim() || selected.name;
+    const md = editMood.trim() || null;
+    const ds = editDesc.trim() || null;
+    const { error } = await sb.from('venue_playlist').update({ name: nm, mood: md, description: ds }).eq('id', selected.id);
+    if (error) return alert(error.message);
+    setSelected({ ...selected, name: nm, mood: md, description: ds });
+    load();
+  };
 
   const createEmpty = async () => {
     const sb = supa(); if (!sb || !venue || !newPlName.trim()) return;
@@ -173,7 +188,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       }));
       const { error: e2 } = await sb.from('catalog_track').insert(rows);
       if (e2) { setYtMsg('⚠️ ' + e2.message); return; }
-      setYtMsg(`✓ Playlist "${name}" creada con ${rows.length} canciones${blocked > 0 ? `. Omití ${blocked} que no se pueden reproducir.` : '.'}`);
+      setYtMsg(`✓ Playlist "${name}" creada con ${rows.length} canciones${blocked > 0 ? `. Omití ${blocked} que no se pueden reproducir.` : ' (todas reproducibles ✓).'}`);
       setYtUrl(''); setYtName('');
       load();
     } catch { setYtMsg('⚠️ Error consultando YouTube'); } finally { setYtLoading(false); }
@@ -268,7 +283,15 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
         <section className="mb-8 rounded-lg border-2 border-gray-400 p-4">
           <h2 className="text-xl font-semibold">Editando: {selected.name}{selected.is_active && <span className="ml-2 text-sm text-green-700">(activa)</span>}</h2>
 
-          <h3 className="mb-1 mt-3 font-semibold">Agregar canción</h3>
+          <div className="mt-3 space-y-2 rounded border bg-gray-50 p-3">
+            <p className="text-sm font-semibold">Nombre y datos de la playlist</p>
+            <input className="w-full border p-2" placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <input className="w-full border p-2" placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
+            <input className="w-full border p-2" placeholder="Descripción (opcional)" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={saveDetails}>Guardar datos</button>
+          </div>
+
+          <h3 className="mb-1 mt-5 font-semibold">Agregar canción</h3>
           <form onSubmit={addSong} className="space-y-2">
             <input className="w-full border p-2" placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
             {metaLoading && <p className="text-sm text-gray-500">Buscando…</p>}

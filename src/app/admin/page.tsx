@@ -22,6 +22,9 @@ export default function AdminPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<Template | null>(null);
   const [tplTracks, setTplTracks] = useState<any[]>([]);
+  const [editName, setEditName] = useState('');
+  const [editMood, setEditMood] = useState('');
+  const [editDesc, setEditDesc] = useState('');
 
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -73,8 +76,20 @@ export default function AdminPage() {
 
   const selectTemplate = async (t: Template) => {
     setSelected(t);
+    setEditName(t.name); setEditMood(t.mood || ''); setEditDesc(t.description || '');
     setMetaMsg(null); setPlMsg(null); setUrl(''); setTitle(''); setArtist('');
     loadTplTracks(t.id);
+  };
+
+  const saveDetails = async () => {
+    const sb = supa(); if (!sb || !selected) return;
+    const nm = editName.trim() || selected.name;
+    const md = editMood.trim() || null;
+    const ds = editDesc.trim() || null;
+    const { error } = await sb.from('playlist_template').update({ name: nm, mood: md, description: ds }).eq('id', selected.id);
+    if (error) return alert(error.message);
+    setSelected({ ...selected, name: nm, mood: md, description: ds });
+    loadTemplates();
   };
 
   const loadTplTracks = async (templateId: string) => {
@@ -127,7 +142,7 @@ export default function AdminPage() {
       }));
       const { error } = await sb.from('playlist_template_track').insert(rows);
       if (error) { setPlMsg('⚠️ ' + error.message); return; }
-      setPlMsg(`✓ Importadas ${nuevas.length} canciones${blocked > 0 ? `, omití ${blocked} no reproducibles` : ''}.`);
+      setPlMsg(`✓ Importadas ${nuevas.length} canciones${blocked > 0 ? `, omití ${blocked} no reproducibles` : ' (todas reproducibles ✓)'}.`);
       setPlUrl('');
       loadTplTracks(selected.id); loadTemplates();
     } catch { setPlMsg('⚠️ Error consultando YouTube'); } finally { setPlLoading(false); }
@@ -208,6 +223,14 @@ export default function AdminPage() {
         <section className="rounded-lg border-2 border-gray-400 p-4">
           <h2 className="text-xl font-semibold">Editando: {selected.name}</h2>
           {selected.description && <p className="mb-3 text-sm text-gray-600">{selected.description}</p>}
+
+          <div className="mt-3 space-y-2 rounded border bg-gray-50 p-3">
+            <p className="text-sm font-semibold">Nombre y datos</p>
+            <input className="w-full border p-2" placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
+            <input className="w-full border p-2" placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
+            <input className="w-full border p-2" placeholder="Intención / descripción" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={saveDetails}>Guardar datos</button>
+          </div>
 
           <h3 className="mb-1 mt-3 font-semibold">Agregar canción</h3>
           <div className="space-y-2">
