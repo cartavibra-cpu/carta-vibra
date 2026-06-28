@@ -86,9 +86,9 @@ export default function ConsolePage() {
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
-  // Atajos de teclado. Como la consola usa controles propios (sin los nativos de
-  // YouTube), el teclado ya no se lo roba el reproductor → andan firmes, también
-  // en pantalla completa.
+  // Atajos de teclado. El teclado lo maneja la consola (con fade); el reproductor
+  // de YouTube conserva sus controles con el mouse. Si el foco entra al video, el
+  // efecto de abajo lo devuelve al escenario para que los atajos sigan andando.
   useEffect(() => {
     if (!started) return;
     const onKey = (e: KeyboardEvent) => {
@@ -105,6 +105,23 @@ export default function ConsolePage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started]);
+
+  // Diálogo con los controles nativos: al hacer clic en el video el foco se va al
+  // iframe de YouTube. Lo devolvemos al escenario para que el teclado siga siendo
+  // de la consola (mouse = controles de YouTube, teclado = atajos con fade).
+  useEffect(() => {
+    if (!started) return;
+    const onBlur = () => {
+      setTimeout(() => {
+        const ae = document.activeElement as HTMLElement | null;
+        if (ae && ae.tagName === 'IFRAME' && stageRef.current && stageRef.current.contains(ae)) {
+          try { stageRef.current.focus(); } catch {}
+        }
+      }, 0);
+    };
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
   }, [started]);
 
   const resumeSession = async (token: string) => {
@@ -393,11 +410,11 @@ export default function ConsolePage() {
     const YT = await loadYT();
     let ready = 0;
     const onReady = () => { ready++; if (ready === 2) advance(); };
-    // controls:0 + disablekb:1 → la consola es el único control; YouTube no captura
-    // el teclado ni el clic, así que los atajos y el fade quedan firmes.
+    // controls:1 → el reproductor conserva sus controles nativos (mouse). disablekb:1
+    // deja el teclado para nuestros atajos. Ambos conviven y el estado se sincroniza.
     const opts = (id: string) => ({
       width: '100%', height: '100%',
-      playerVars: { autoplay: 1, controls: 0, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
+      playerVars: { autoplay: 1, controls: 1, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
       events: { onReady, onStateChange, onError },
     } as any);
     decksRef.current.A = new YT.Player('yt-A', opts('A'));
@@ -515,9 +532,6 @@ export default function ConsolePage() {
               <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
               <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
 
-              {/* capa de clic: pausa/reanuda al tocar el video y mantiene el teclado en la consola */}
-              <div onClick={togglePlayPause} title="Pausar / reanudar" style={{ position: 'absolute', inset: 0, zIndex: 5, cursor: 'pointer' }} />
-
               {/* código flotante: visible SOLO en pantalla completa (para karaoke) */}
               {isFs && (
                 <div style={{ position: 'absolute', top: 28, right: 28, zIndex: 10, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px' }}>
@@ -538,7 +552,7 @@ export default function ConsolePage() {
             </div>
 
             <div className="cv-mono" style={{ marginTop: 10, fontSize: 11, color: 'var(--cv-mono-2)', lineHeight: 1.5 }}>
-              Atajos: <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Espacio</b> pausa/play · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>→</b> siguiente · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>F</b> pantalla · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>C</b> subtítulos · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Esc</b> salir · también podés tocar el video para pausar
+              Atajos (con fade): <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Espacio</b> pausa/play · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>→</b> siguiente · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>F</b> pantalla · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>C</b> subtítulos · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Esc</b> salir. El video conserva sus controles de YouTube (mouse).
             </div>
 
             <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -599,7 +613,7 @@ export default function ConsolePage() {
                 <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds}
                   onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
               </label>
-              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad se ajusta sola según la conexión (YouTube no deja fijarla por código).</p>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad del video se elige en el engranaje ⚙ del propio reproductor.</p>
             </div>
 
           </div>
