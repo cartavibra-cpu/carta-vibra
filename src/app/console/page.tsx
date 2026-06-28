@@ -45,6 +45,7 @@ export default function ConsolePage() {
   const [isFs, setIsFs] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [ccOn, setCcOn] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
@@ -175,6 +176,20 @@ export default function ConsolePage() {
     tokenRef.current = null; venueRef.current = null;
     setStatus(null); setPairCode(null); setStarted(false);
     startPairing();
+  };
+
+  const copyPairCode = async () => {
+    if (!pairCode) return;
+    try {
+      await navigator.clipboard.writeText(pairCode);
+    } catch {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = pairCode; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      } catch {}
+    }
+    setCopied(true); setTimeout(() => setCopied(false), 1500);
   };
 
   const rotate = async () => {
@@ -459,15 +474,18 @@ export default function ConsolePage() {
             <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Escribí este código en tu panel · sección “Vincular consola”</p>
           </div>
           {pairCode ? (
-            <div style={{ display: 'flex', gap: 10 }}>
-              {pairCode.split('').map((d, i) => (
-                <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-bg-2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-text)' }}>{d}</div>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {pairCode.split('').map((d, i) => (
+                  <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-bg-2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-text)' }}>{d}</div>
+                ))}
+              </div>
+              <button onClick={copyPairCode} className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '8px 18px' }}>{copied ? '✓ Copiado' : '📋 Copiar código'}</button>
             </div>
           ) : (<p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>generando código…</p>)}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
             <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Generar un código nuevo</button>
-            <a href="/" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al inicio</a>
+            <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al panel</a>
           </div>
         </div>
       </main>
@@ -493,7 +511,7 @@ export default function ConsolePage() {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
-            <a href="/" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al inicio</a>
+            <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al panel</a>
           </div>
         </div>
       </main>
@@ -614,6 +632,8 @@ export default function ConsolePage() {
                   onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
               </label>
               <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad del video se elige en el engranaje ⚙ del propio reproductor.</p>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
+              <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>
             </div>
 
           </div>
