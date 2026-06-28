@@ -582,7 +582,7 @@ export default function ConsolePage() {
 
   // ---------- Consola en vivo ----------
   if (karaokeMode) {
-    return <KaraokeConsole token={tokenRef.current || ''} venueId={venueRef.current || ''} slug={status?.slug || ''} roomCode={roomCode} />;
+    return <KaraokeConsole token={tokenRef.current || ''} venueId={venueRef.current || ''} slug={status?.slug || ''} roomCode={roomCode} playlistId={activePlaylistRef.current} />;
   }
 
   return (

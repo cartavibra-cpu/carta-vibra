@@ -7,6 +7,8 @@ declare global {
 }
 
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number };
+type Track = { id: string; title: string; artist: string | null; external_id: string | null };
+type Picked = { external_id: string; title: string; artist: string; is_embeddable: boolean };
 
 function loadYT(): Promise<any> {
   return new Promise((resolve) => {
@@ -22,14 +24,35 @@ function loadYT(): Promise<any> {
   });
 }
 
+function getYouTubeId(url: string) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    if (u.pathname.startsWith('/watch')) return u.searchParams.get('v') || '';
+    if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1]?.split(/[?/]/)[0] || '';
+    return '';
+  } catch { return ''; }
+}
+
 const STAGE_BG =
   'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(110,243,178,.10), transparent 60%), #07060e';
 
-export default function KaraokeConsole({ token, venueId, slug, roomCode }: { token: string; venueId: string; slug: string; roomCode: string | null }) {
+export default function KaraokeConsole({ token, venueId, slug, roomCode, playlistId }: { token: string; venueId: string; slug: string; roomCode: string | null; playlistId: string | null }) {
   const [queue, setQueue] = useState<Signup[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [backAvailable, setBackAvailable] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFs, setIsFs] = useState(false);
+
+  // alta de cantante (operador)
+  const [showAdd, setShowAdd] = useState(false);
+  const [addSinger, setAddSinger] = useState('');
+  const [addPickMode, setAddPickMode] = useState<'catalog' | 'paste'>('catalog');
+  const [addPicked, setAddPicked] = useState<Picked | null>(null);
+  const [addFilter, setAddFilter] = useState('');
+  const [addPasteUrl, setAddPasteUrl] = useState('');
+  const [addPasteMsg, setAddPasteMsg] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const playerRef = useRef<any>(null);
   const readyRef = useRef(false);
@@ -40,6 +63,9 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
 
   const current = queue.find((s) => s.state === 'singing') || null;
   const waiting = queue.filter((s) => s.state === 'waiting');
+  const addMatches = addFilter.trim()
+    ? tracks.filter((t) => (t.title + ' ' + (t.artist || '')).toLowerCase().includes(addFilter.trim().toLowerCase()))
+    : tracks;
 
   const loadQueue = async () => {
     const sb = supa(); if (!sb) return;
@@ -51,6 +77,13 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
       .select('id', { count: 'exact', head: true })
       .eq('venue_id', venueId).eq('state', 'done');
     setBackAvailable((count ?? 0) > 0);
+  };
+
+  const loadCatalog = async () => {
+    const sb = supa(); if (!sb || !playlistId) return;
+    const { data } = await sb.from('catalog_track')
+      .select('id,title,artist,external_id').eq('playlist_id', playlistId).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
+    setTracks((data as Track[]) || []);
   };
 
   const advance = async () => {
@@ -77,6 +110,33 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
   const moveOne = async (id: string, dir: -1 | 1) => {
     const sb = supa(); if (!sb) return;
     await sb.rpc('karaoke_move', { p_token: token, p_id: id, p_dir: dir });
+  };
+
+  const fetchAddPaste = async () => {
+    if (!addPasteUrl.trim()) return;
+    const id = getYouTubeId(addPasteUrl.trim());
+    if (!id) { setAddPasteMsg('⚠️ Link inválido.'); setAddPicked(null); return; }
+    setAddPasteMsg('Buscando…');
+    try {
+      const r = await fetch(`/api/youtube-meta?kind=video&url=${encodeURIComponent(addPasteUrl.trim())}`);
+      const data = await r.json();
+      if (!r.ok) { setAddPasteMsg('⚠️ ' + (data.error || 'No se pudo leer')); setAddPicked(null); return; }
+      if (data.embeddable === false) { setAddPasteMsg('⚠️ No se puede reproducir.'); setAddPicked(null); return; }
+      setAddPicked({ external_id: id, title: data.title || 'Sin título', artist: data.artist || '', is_embeddable: true });
+      setAddPasteMsg('✓ ' + (data.title || 'cargada'));
+    } catch { setAddPasteMsg('⚠️ Error consultando YouTube'); setAddPicked(null); }
+  };
+
+  const doAdd = async () => {
+    const sb = supa(); if (!sb || !addPicked || !addSinger.trim()) return;
+    setAdding(true);
+    const { error } = await sb.rpc('karaoke_add', {
+      p_token: token, p_singer: addSinger.trim(), p_external_id: addPicked.external_id,
+      p_title: addPicked.title, p_artist: addPicked.artist, p_is_embeddable: addPicked.is_embeddable,
+    });
+    setAdding(false);
+    if (error) { alert('No se pudo agregar: ' + error.message); return; }
+    setAddSinger(''); setAddPicked(null); setAddFilter(''); setAddPasteUrl(''); setAddPasteMsg(null); setShowAdd(false);
   };
 
   const syncPlayer = () => {
@@ -106,6 +166,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
   useEffect(() => {
     let cancelled = false;
     loadQueue();
+    loadCatalog();
     const sb = supa();
     const ch = sb?.channel('karaoke-' + venueId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venueId}` }, () => loadQueue())
@@ -130,7 +191,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
 
     return () => { cancelled = true; if (sb && ch) sb.removeChannel(ch); try { playerRef.current?.destroy?.(); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId]);
+  }, [venueId, playlistId]);
 
   useEffect(() => {
     wantRef.current = current?.external_id || null;
@@ -201,13 +262,10 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
               )}
             </div>
 
-            {/* cantando ahora + controles */}
             <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
               <div style={{ minWidth: 0 }}>
                 <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>CANTANDO AHORA</div>
-                <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: 'var(--cv-text)', lineHeight: 1.1, marginTop: 2 }}>
-                  {current ? current.singer : '—'}
-                </div>
+                <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: 'var(--cv-text)', lineHeight: 1.1, marginTop: 2 }}>{current ? current.singer : '—'}</div>
                 {current && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 420 }}>{current.title}{current.artist ? ` — ${current.artist}` : ''}</div>}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -222,25 +280,71 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode }: { tok
             </div>
           </div>
 
-          {/* fila */}
-          <div className="cv-card" style={{ padding: '18px 18px' }}>
-            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 14 }}>PRÓXIMOS TURNOS ({waiting.length})</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '62vh', overflowY: 'auto' }}>
-              {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
-              {waiting.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-line)' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
-                    <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
+          {/* columna derecha */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* agregar cantante */}
+            <div className="cv-card" style={{ padding: showAdd ? '16px 18px' : '12px 18px' }}>
+              {!showAdd ? (
+                <button className="cv-btn cv-btn-ghost" onClick={() => setShowAdd(true)} style={{ fontSize: 13, padding: '9px 14px', width: '100%' }}>➕ Agregar cantante</button>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>AGREGAR CANTANTE</span>
+                    <button onClick={() => setShowAdd(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
                   </div>
-                  <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-muted)', width: 20, flexShrink: 0 }}>{i + 1}</span>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
-                    <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
+                  <input className="cv-input" placeholder="Nombre o apodo" value={addSinger} onChange={(e) => setAddSinger(e.target.value)} style={{ width: '100%', marginBottom: 10 }} />
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
+                    <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
                   </div>
-                  <button onClick={() => removeOne(s.id)} title="Sacar de la fila" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 16, flexShrink: 0, lineHeight: 1 }}>✕</button>
-                </div>
-              ))}
+                  {addPickMode === 'catalog' ? (
+                    <>
+                      <input className="cv-input" placeholder="Buscá en el catálogo…" value={addFilter} onChange={(e) => setAddFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 13 }} />
+                      <div style={{ maxHeight: 170, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>sin resultados.</div>}
+                        {addMatches.map((t) => {
+                          const sel = addPicked?.external_id === t.external_id;
+                          return (
+                            <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(110,243,178,.10)' : 'rgba(255,255,255,.03)' }}>
+                              <div style={{ fontSize: 13.5, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                              {t.artist && <div className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-mono)' }}>{t.artist}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={addPasteUrl} onChange={(e) => setAddPasteUrl(e.target.value)} onBlur={fetchAddPaste} style={{ width: '100%', fontSize: 13 }} />
+                      {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: addPasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
+                    </>
+                  )}
+                  {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 12, color: 'var(--cv-text-2)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}
+                  <button className="cv-btn cv-btn-mint" onClick={doAdd} disabled={adding || !addSinger.trim() || !addPicked} style={{ width: '100%', marginTop: 12, fontSize: 14, padding: '10px 0', opacity: adding || !addSinger.trim() || !addPicked ? 0.5 : 1 }}>{adding ? 'Agregando…' : 'Agregar a la fila'}</button>
+                </>
+              )}
+            </div>
+
+            {/* fila */}
+            <div className="cv-card" style={{ padding: '18px 18px' }}>
+              <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 14 }}>PRÓXIMOS TURNOS ({waiting.length})</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: '50vh', overflowY: 'auto' }}>
+                {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
+                {waiting.map((s, i) => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-line)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
+                      <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
+                    </div>
+                    <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-muted)', width: 20, flexShrink: 0 }}>{i + 1}</span>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
+                      <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
+                    </div>
+                    <button onClick={() => removeOne(s.id)} title="Sacar de la fila" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 16, flexShrink: 0, lineHeight: 1 }}>✕</button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
