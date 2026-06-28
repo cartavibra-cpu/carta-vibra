@@ -53,10 +53,14 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   // karaoke
   const [signups, setSignups] = useState<Signup[]>([]);
   const [singer, setSinger] = useState('');
-  const [pickMode, setPickMode] = useState<'catalog' | 'paste'>('catalog');
+  const [pickMode, setPickMode] = useState<'catalog' | 'search' | 'paste'>('catalog');
   const [picked, setPicked] = useState<Picked | null>(null);
   const [catFilter, setCatFilter] = useState('');
   const [pasteUrl, setPasteUrl] = useState('');
+  const [searchQ, setSearchQ] = useState('');
+  const [searchResults, setSearchResults] = useState<{ videoId: string; title: string; artist: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchMsg, setSearchMsg] = useState<string | null>(null);
   const [pasteMsg, setPasteMsg] = useState<string | null>(null);
   const [kMsg, setKMsg] = useState<string | null>(null);
 
@@ -168,7 +172,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
       return;
     }
     setKMsg(`✓ ¡Anotado! Sos el N° ${data?.position ?? '?'} en la fila.`);
-    setPicked(null); setPasteUrl(''); setPasteMsg(null); setCatFilter('');
+    setPicked(null); setPasteUrl(''); setPasteMsg(null); setCatFilter(''); setSearchQ(''); setSearchResults([]); setSearchMsg(null);
   };
 
   const removeOwn = async (id: string) => {
@@ -185,6 +189,25 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
       </main>
     );
   }
+
+  // búsqueda en YouTube (con debounce; el caché y el fallback los maneja la ruta)
+  useEffect(() => {
+    if (pickMode !== 'search') return;
+    const q = searchQ.trim();
+    if (q.length < 2) { setSearchResults([]); setSearchMsg(null); setSearching(false); return; }
+    setSearching(true); setSearchMsg(null);
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/youtube-meta?kind=search&q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        if (r.status === 429 || data.error === 'quota') { setSearchResults([]); setSearchMsg('quota'); }
+        else if (!r.ok) { setSearchResults([]); setSearchMsg('⚠️ ' + (data.error || 'No se pudo buscar')); }
+        else { setSearchResults(data.results || []); if (!(data.results || []).length) setSearchMsg('Sin resultados. Probá otras palabras.'); }
+      } catch { setSearchResults([]); setSearchMsg('⚠️ Error buscando'); }
+      finally { setSearching(false); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [searchQ, pickMode]);
 
   const sorted = [...tracks].sort((a, b) => (votes[b.id] || 0) - (votes[a.id] || 0) || a.title.localeCompare(b.title));
   const nowTrack = tracks.find((t) => t.id === nowId);
@@ -234,11 +257,13 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 <input className="cv-input" placeholder="Tu nombre o apodo" value={singer} onChange={(e) => setSinger(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
 
                 {/* selector de canción */}
-                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   <button onClick={() => { setPickMode('catalog'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Del catálogo</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
+                  <button onClick={() => { setPickMode('search'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'search' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'search' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'search' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Buscar</button>
                   <button onClick={() => { setPickMode('paste'); setPicked(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Pegar link</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
                 </div>
 
                 {pickMode === 'catalog' ? (
@@ -257,6 +282,33 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                         );
                       })}
                     </div>
+                  </>
+                ) : pickMode === 'search' ? (
+                  <>
+                    <input className="cv-input" placeholder="Buscá tu canción (ej: bohemian rhapsody karaoke)" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 13 }} />
+                    {searching && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</div>}
+                    {!searching && searchMsg === 'quota' && (
+                      <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-warm)', lineHeight: 1.5 }}>
+                        Por ahora no se puede buscar (mucha demanda hoy). <button onClick={() => { setPickMode('paste'); setPicked(null); }} style={{ color: 'var(--cv-cyan)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: 12 }}>Pegá el link de YouTube</button> en su lugar.
+                      </div>
+                    )}
+                    {!searching && searchMsg && searchMsg !== 'quota' && (
+                      <div className="cv-mono" style={{ fontSize: 12, color: searchMsg.startsWith('⚠️') ? 'var(--cv-warm)' : 'var(--cv-mono)' }}>{searchMsg}</div>
+                    )}
+                    {!searching && searchResults.length > 0 && (
+                      <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                        {searchResults.map((res) => {
+                          const sel = picked?.external_id === res.videoId;
+                          return (
+                            <button key={res.videoId} onClick={() => setPicked({ external_id: res.videoId, title: res.title, artist: res.artist, is_embeddable: true })}
+                              style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(110,243,178,.10)' : 'rgba(255,255,255,.03)' }}>
+                              <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{res.title}</div>
+                              {res.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{res.artist}</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>

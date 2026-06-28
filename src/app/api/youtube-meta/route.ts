@@ -28,6 +28,12 @@ function cleanArtist(channelTitle: string): string {
   return (channelTitle || '').replace(/\s*-\s*Topic$/i, '').trim();
 }
 
+function decodeEntities(s: string): string {
+  return (s || '')
+    .replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (_, n) => String.fromCharCode(+n));
+}
+
 export async function GET(req: NextRequest) {
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) {
@@ -39,6 +45,63 @@ export async function GET(req: NextRequest) {
   const kind = searchParams.get('kind') || 'video';
 
   try {
+    if (kind === 'search') {
+      const q = (searchParams.get('q') || '').trim();
+      if (q.length < 2) {
+        return NextResponse.json({ error: 'Escribí algo para buscar.' }, { status: 400 });
+      }
+      const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      // 1) caché (no gasta cuota)
+      if (supaUrl && supaKey) {
+        try {
+          const cr = await fetch(`${supaUrl}/rest/v1/rpc/yt_cache_get`, {
+            method: 'POST',
+            headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_q: q }),
+          });
+          if (cr.ok) {
+            const cached: any = await cr.json();
+            if (Array.isArray(cached) && cached.length) {
+              return NextResponse.json({ type: 'search', results: cached, cached: true });
+            }
+          }
+        } catch { /* si falla el caché, seguimos a YouTube */ }
+      }
+
+      // 2) YouTube search.list (100 unidades de cuota)
+      const api = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=8&videoEmbeddable=true&q=${encodeURIComponent(q)}&key=${key}`;
+      const r = await fetch(api);
+      const data: any = await r.json();
+      if (data.error) {
+        const reason = data.error?.errors?.[0]?.reason || '';
+        if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
+          return NextResponse.json({ error: 'quota', message: 'Se acabó la cuota de búsqueda por hoy.' }, { status: 429 });
+        }
+        return NextResponse.json({ error: data.error.message || 'Error de YouTube' }, { status: 400 });
+      }
+      const results = (data.items || [])
+        .map((it: any) => ({
+          videoId: it.id?.videoId,
+          title: decodeEntities(it.snippet?.title || ''),
+          artist: decodeEntities(cleanArtist(it.snippet?.channelTitle || '')),
+        }))
+        .filter((x: any) => x.videoId);
+
+      // 3) guardar en caché
+      if (supaUrl && supaKey && results.length) {
+        try {
+          await fetch(`${supaUrl}/rest/v1/rpc/yt_cache_put`, {
+            method: 'POST',
+            headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ p_q: q, p_results: results }),
+          });
+        } catch { /* el caché es best-effort */ }
+      }
+      return NextResponse.json({ type: 'search', results });
+    }
+
     if (kind === 'playlist') {
       const playlistId = extractPlaylistId(url);
       if (!playlistId) {
