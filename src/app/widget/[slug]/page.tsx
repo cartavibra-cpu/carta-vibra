@@ -11,9 +11,18 @@ const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(94,46,255,.22), t
 
 function getSession(): string {
   if (typeof window === 'undefined') return '';
-  let s = localStorage.getItem('cv_session');
-  if (!s) { s = crypto.randomUUID() + crypto.randomUUID(); localStorage.setItem('cv_session', s); }
-  return s;
+  try {
+    let s = localStorage.getItem('cv_session');
+    if (!s) {
+      s = (crypto?.randomUUID?.() || '') + (crypto?.randomUUID?.() || '');
+      if (!s) s = 'anon-' + Math.random().toString(36).slice(2) + Date.now();
+      localStorage.setItem('cv_session', s);
+    }
+    return s;
+  } catch {
+    // localStorage bloqueado (incógnito, cookies off, iframe restringido): sesión efímera
+    return 'anon-' + Math.random().toString(36).slice(2) + Date.now();
+  }
 }
 
 function getYouTubeId(url: string) {
@@ -64,9 +73,10 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   const [pasteMsg, setPasteMsg] = useState<string | null>(null);
   const [kMsg, setKMsg] = useState<string | null>(null);
 
-  const session = typeof window !== 'undefined' ? getSession() : '';
+  const [session, setSession] = useState('');
 
   useEffect(() => {
+    setSession(getSession());
     const p = new URLSearchParams(window.location.search);
     setMesa(p.get('mesa') || '');
   }, []);
