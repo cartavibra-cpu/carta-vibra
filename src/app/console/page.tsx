@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
+import KaraokeConsole from '@/components/KaraokeConsole';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -37,6 +38,7 @@ export default function ConsolePage() {
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
   const [maxSeconds, setMaxSeconds] = useState(0);
@@ -96,7 +98,7 @@ export default function ConsolePage() {
   // de YouTube conserva sus controles con el mouse. Si el foco entra al video, el
   // efecto de abajo lo devuelve al escenario para que los atajos sigan andando.
   useEffect(() => {
-    if (!started) return;
+    if (!started || karaokeMode) return;
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -111,13 +113,13 @@ export default function ConsolePage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [started]);
+  }, [started, karaokeMode]);
 
   // Diálogo con los controles nativos: al hacer clic en el video el foco se va al
   // iframe de YouTube. Lo devolvemos al escenario para que el teclado siga siendo
   // de la consola (mouse = controles de YouTube, teclado = atajos con fade).
   useEffect(() => {
-    if (!started) return;
+    if (!started || karaokeMode) return;
     const onBlur = () => {
       setTimeout(() => {
         const ae = document.activeElement as HTMLElement | null;
@@ -128,7 +130,7 @@ export default function ConsolePage() {
     };
     window.addEventListener('blur', onBlur);
     return () => window.removeEventListener('blur', onBlur);
-  }, [started]);
+  }, [started, karaokeMode]);
 
   const resumeSession = async (token: string) => {
     setLoading(true);
@@ -426,15 +428,20 @@ export default function ConsolePage() {
     if (!sb || !token || !venueId) return;
     setStarted(true);
 
-    // playlist activa del local (desde la ASIGNACIÓN) + canciones (mapa + pool del AutoDJ)
+    // playlist activa del local (desde la ASIGNACIÓN) + sección (jukebox / karaoke)
     const { data: asg } = await sb.from('venue_playlist_assignment')
-      .select('playlist_id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+      .select('playlist_id,section').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
     activePlaylistRef.current = (asg as { playlist_id: string } | null)?.playlist_id ?? null;
-    await reloadActivePlaylist();
+    const section = (asg as { section: string } | null)?.section ?? 'jukebox';
 
     await rotate();
     setInterval(rotate, 120000);
 
+    // En modo KARAOKE la pantalla la maneja <KaraokeConsole/> (reproductor por turno).
+    // Salimos antes de montar el motor de jukebox (decks, AutoDJ, votos).
+    if (section === 'karaoke') { setKaraokeMode(true); return; }
+
+    await reloadActivePlaylist();
     await refreshQueue();
     await refreshNow();
     const ch = sb.channel('console-' + venueId)
@@ -574,6 +581,10 @@ export default function ConsolePage() {
   }
 
   // ---------- Consola en vivo ----------
+  if (karaokeMode) {
+    return <KaraokeConsole token={tokenRef.current || ''} venueId={venueRef.current || ''} slug={status?.slug || ''} roomCode={roomCode} />;
+  }
+
   return (
     <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: 'radial-gradient(1000px 720px at 50% 52%, rgba(0,212,255,.10), transparent 60%), #060810' }}>
       <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.02) 0 1px, transparent 1px 36px)', opacity: 0.4 }} />
