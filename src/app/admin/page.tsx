@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import TopNav from '@/components/TopNav';
+
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
 
 function getYouTubeId(url: string) {
   try {
@@ -172,96 +175,129 @@ export default function AdminPage() {
     loadTemplates();
   };
 
-  if (isAdmin === null) return <div className="p-6">Verificando acceso…</div>;
-  if (!isAdmin) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Panel de Admin</h1>
-        <p className="mt-2 text-gray-600">No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
-        <a href="/" className="mt-4 inline-block text-blue-600 underline">Volver al inicio</a>
+  if (isAdmin === null) return (
+    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG }}>
+      <div className="cv-mono" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.18em', color: 'var(--cv-muted)' }}>verificando acceso…</div>
+    </main>
+  );
+
+  if (!isAdmin) return (
+    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="cv-wordmark" style={{ fontSize: 26, fontWeight: 600, marginBottom: 12 }}>carta <span className="cv-grad-text">vibra</span></div>
+        <p style={{ fontSize: 15, color: 'var(--cv-text-2)', marginBottom: 18 }}>No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
+        <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
       </div>
-    );
-  }
+    </main>
+  );
+
+  const inputStyle: React.CSSProperties = { width: '100%' };
+  const sub = (s: string) => (<div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', margin: '0 0 8px' }}>{s}</div>);
 
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-4 text-2xl font-bold">Panel de Admin — Playlists curadas</h1>
-
-      <section className="mb-8 rounded-lg border-2 border-blue-300 bg-blue-50 p-4">
-        <h2 className="mb-2 text-xl font-semibold">Crear playlist nueva</h2>
-        <div className="space-y-2">
-          <input className="w-full border p-2" placeholder="Nombre (ej: Previa Latina)" value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <input className="w-full border p-2" placeholder="Intención (ej: cumbia y reggaetón para subir la energía)" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
-          <input className="w-full border p-2" placeholder="Mood corto (ej: Fiesta)" value={newMood} onChange={(e) => setNewMood(e.target.value)} />
-          <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={createTemplate}>Crear</button>
+    <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+      <TopNav />
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: '32px 20px 60px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 24 }}>
+          <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Admin</h1>
+          <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>PLAYLISTS CURADAS</span>
         </div>
-      </section>
 
-      <section className="mb-8">
-        <h2 className="mb-2 text-xl font-semibold">Playlists ({templates.length})</h2>
-        <ul className="space-y-2">
-          {templates.length === 0 && <li className="text-sm text-gray-500">Todavía no creaste ninguna.</li>}
-          {templates.map((t) => (
-            <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-3">
-              <div>
-                <span className="font-semibold">{t.name}</span>
-                {t.mood && <span className="ml-2 text-sm text-gray-500">· {t.mood}</span>}
-                <span className="ml-2 text-sm text-gray-500">· {counts[t.id] || 0} temas</span>
-                <span className={`ml-2 text-xs ${t.published ? 'text-green-700' : 'text-gray-400'}`}>{t.published ? '● publicada' : '○ borrador'}</span>
-              </div>
-              <div className="flex gap-2">
-                <button className="rounded bg-blue-600 px-3 py-1 text-sm text-white" onClick={() => selectTemplate(t)}>Editar</button>
-                <button className="rounded bg-gray-700 px-3 py-1 text-sm text-white" onClick={() => togglePublish(t)}>{t.published ? 'Despublicar' : 'Publicar'}</button>
-                <button className="rounded bg-red-600 px-3 py-1 text-sm text-white" onClick={() => deleteTemplate(t)}>Borrar</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {selected && (
-        <section className="rounded-lg border-2 border-gray-400 p-4">
-          <h2 className="text-xl font-semibold">Editando: {selected.name}</h2>
-          {selected.description && <p className="mb-3 text-sm text-gray-600">{selected.description}</p>}
-
-          <div className="mt-3 space-y-2 rounded border bg-gray-50 p-3">
-            <p className="text-sm font-semibold">Nombre y datos</p>
-            <input className="w-full border p-2" placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Intención / descripción" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={saveDetails}>Guardar datos</button>
+        {/* crear */}
+        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 22, border: '1px solid rgba(0,212,255,.25)' }}>
+          {sub('CREAR PLAYLIST NUEVA')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input className="cv-input" style={inputStyle} placeholder="Nombre (ej: Previa Latina)" value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <input className="cv-input" style={inputStyle} placeholder="Intención (ej: cumbia y reggaetón para subir la energía)" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
+            <input className="cv-input" style={inputStyle} placeholder="Mood corto (ej: Fiesta)" value={newMood} onChange={(e) => setNewMood(e.target.value)} />
+            <button className="cv-btn cv-btn-cyan" onClick={createTemplate} style={{ fontSize: 14, padding: '10px 20px', alignSelf: 'flex-start' }}>Crear</button>
           </div>
-
-          <h3 className="mb-1 mt-3 font-semibold">Agregar canción</h3>
-          <div className="space-y-2">
-            <input className="w-full border p-2" placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
-            {metaLoading && <p className="text-sm text-gray-500">Buscando…</p>}
-            {metaMsg && <p className="text-sm text-gray-700">{metaMsg}</p>}
-            <input className="w-full border p-2" placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={addSong}>Agregar a la playlist</button>
-          </div>
-
-          <h3 className="mb-1 mt-5 font-semibold">Importar playlist de YouTube a esta plantilla</h3>
-          <div className="flex flex-wrap gap-2">
-            <input className="min-w-0 flex-1 border p-2" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} />
-            <button className="rounded bg-gray-800 px-4 py-2 text-white disabled:opacity-50" onClick={importPlaylistToTpl} disabled={plLoading}>{plLoading ? 'Importando…' : 'Importar'}</button>
-          </div>
-          {plMsg && <p className="mt-2 text-sm text-gray-700">{plMsg}</p>}
-
-          <h3 className="mb-1 mt-5 font-semibold">Canciones ({tplTracks.length})</h3>
-          <ul className="space-y-1">
-            {tplTracks.length === 0 && <li className="text-sm text-gray-500">Sin canciones todavía.</li>}
-            {tplTracks.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded border p-2 text-sm">
-                <span>{t.title}{t.artist ? <span className="text-gray-500"> — {t.artist}</span> : null}{t.is_embeddable === false ? <span className="ml-2 text-xs text-amber-600">⚠️ no embebible</span> : null}</span>
-                <button className="text-red-600 underline" onClick={() => deleteSong(t.id)}>quitar</button>
-              </li>
-            ))}
-          </ul>
-          <button className="mt-4 text-sm text-gray-500 underline" onClick={() => { setSelected(null); setTplTracks([]); }}>Cerrar editor</button>
         </section>
-      )}
-    </div>
+
+        {/* lista */}
+        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>PLAYLISTS ({templates.length})</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
+          {templates.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no creaste ninguna.</div>}
+          {templates.map((t) => (
+            <div key={t.id} className="cv-card" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, ...(selected?.id === t.id ? { border: '1px solid rgba(0,212,255,.35)' } : {}) }}>
+              <div style={{ minWidth: 0 }}>
+                <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>{t.name}</span>
+                <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>
+                  {t.mood ? `${t.mood} · ` : ''}{counts[t.id] || 0} temas ·{' '}
+                  <span style={{ color: t.published ? 'var(--cv-mint)' : 'var(--cv-mono-2)' }}>{t.published ? '● publicada' : '○ borrador'}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <button className="cv-btn cv-btn-ghost" onClick={() => selectTemplate(t)} style={{ fontSize: 13, padding: '7px 14px' }}>Editar</button>
+                <button className={t.published ? 'cv-btn cv-btn-ghost' : 'cv-btn cv-btn-cyan'} onClick={() => togglePublish(t)} style={{ fontSize: 13, padding: '7px 14px' }}>{t.published ? 'Despublicar' : 'Publicar'}</button>
+                <button onClick={() => deleteTemplate(t)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 13, padding: '4px 8px' }}>Borrar</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* editor */}
+        {selected && (
+          <section className="cv-card" style={{ padding: '22px 24px', border: '1px solid rgba(123,77,255,.3)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+              <h2 className="cv-wordmark" style={{ fontSize: 19, fontWeight: 600, color: 'var(--cv-text)' }}>Editando: {selected.name}</h2>
+              <button onClick={() => { setSelected(null); setTplTracks([]); }} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>cerrar editor ✕</button>
+            </div>
+            {selected.description && <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', margin: '0 0 16px' }}>{selected.description}</p>}
+
+            {/* datos */}
+            <div style={{ paddingTop: 16, marginTop: 8, borderTop: '1px solid var(--cv-line)' }}>
+              {sub('NOMBRE Y DATOS')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <input className="cv-input" style={inputStyle} placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                <input className="cv-input" style={inputStyle} placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
+                <input className="cv-input" style={inputStyle} placeholder="Intención / descripción" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+                <button className="cv-btn cv-btn-ghost" onClick={saveDetails} style={{ fontSize: 14, padding: '9px 18px', alignSelf: 'flex-start' }}>Guardar datos</button>
+              </div>
+            </div>
+
+            {/* agregar canción */}
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+              {sub('AGREGAR CANCIÓN')}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <input className="cv-input" style={inputStyle} placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
+                {metaLoading && <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</p>}
+                {metaMsg && <p className="cv-mono" style={{ fontSize: 12.5, color: metaMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{metaMsg}</p>}
+                <input className="cv-input" style={inputStyle} placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input className="cv-input" style={inputStyle} placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
+                <button className="cv-btn cv-btn-cyan" onClick={addSong} style={{ fontSize: 14, padding: '9px 18px', alignSelf: 'flex-start' }}>Agregar a la playlist</button>
+              </div>
+            </div>
+
+            {/* importar playlist */}
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+              {sub('IMPORTAR PLAYLIST DE YOUTUBE')}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <input className="cv-input" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} style={{ flex: 1, minWidth: 220 }} />
+                <button className="cv-btn cv-btn-ghost" onClick={importPlaylistToTpl} disabled={plLoading} style={{ fontSize: 14, padding: '0 18px', opacity: plLoading ? 0.6 : 1 }}>{plLoading ? 'Importando…' : 'Importar'}</button>
+              </div>
+              {plMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 12.5, color: plMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{plMsg}</p>}
+            </div>
+
+            {/* canciones */}
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+              {sub(`CANCIONES (${tplTracks.length})`)}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {tplTracks.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin canciones todavía.</div>}
+                {tplTracks.map((t) => (
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.02)', border: '1px solid var(--cv-line)' }}>
+                    <span style={{ fontSize: 14, color: 'var(--cv-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {t.title}{t.artist ? <span style={{ color: 'var(--cv-muted)' }}> — {t.artist}</span> : null}
+                      {t.is_embeddable === false ? <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--cv-warm)' }}>⚠️ no embebible</span> : null}
+                    </span>
+                    <button onClick={() => deleteSong(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 12.5, flexShrink: 0 }}>quitar</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
+    </main>
   );
 }
