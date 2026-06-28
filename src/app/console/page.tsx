@@ -550,9 +550,10 @@ export default function ConsolePage() {
               <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
               <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
 
-              {/* código flotante: visible SOLO en pantalla completa (para karaoke) — abajo a la derecha, sobre la barra del reproductor */}
+              {/* código flotante: visible SOLO en pantalla completa (para karaoke) — abajo a la derecha, sobre la barra del reproductor.
+                  Sin backdrop-filter (se rompía sobre el video y desaparecía) y con capa propia (translateZ) para quedar SIEMPRE encima del iframe. */}
               {isFs && (
-                <div style={{ position: 'absolute', bottom: 80, right: 28, zIndex: 10, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px' }}>
+                <div style={{ position: 'absolute', bottom: 80, right: 28, zIndex: 2147483000, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.88)', border: '1px solid rgba(0,212,255,.35)', borderRadius: 18, padding: '14px 22px', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform', boxShadow: '0 10px 34px -12px rgba(0,0,0,.75)' }}>
                   <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)' }}>VOTÁ EN TU CELULAR · CÓDIGO</div>
                   <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4 }}>{roomCode ?? '—'}</div>
                 </div>
