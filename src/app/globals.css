@@ -165,3 +165,49 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; }
 }
+
+/* ============================================================
+   v2 · Director's cut — extras (ondas, termómetro, scroll)
+   ============================================================ */
+:root {
+  --cv-cyan-light:  #5FE0FF;
+  --cv-violet-tint: #A98BFF;
+  --cv-night-wave:  #060810;
+}
+
+/* barras de la forma de onda */
+@keyframes cvWiggle { 0%,100%{transform:scaleY(.9);} 50%{transform:scaleY(1.08);} }
+
+/* scroll suave para los anclas de la landing */
+html { scroll-behavior: smooth; }
+
+/* reveal al hacer scroll (lo activa el IntersectionObserver) */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+}
+[data-reveal].cv-in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none; }
+}
+
+/* ---- Landing: helpers responsive ---- */
+.cv-section { padding: 92px 0; }
+.cv-container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.cv-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.cv-thermo-row { display: flex; align-items: center; gap: 24px; }
+.cv-thermo-label { width: 150px; flex-shrink: 0; }
+.cv-eco { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.cv-hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+@media (max-width: 760px) {
+  .cv-section { padding: 64px 0; }
+  .cv-steps { grid-template-columns: 1fr; }
+  .cv-eco { grid-template-columns: 1fr; }
+  .cv-thermo-row { flex-wrap: wrap; gap: 12px 16px; }
+  .cv-thermo-label { width: auto; }
+  .cv-thermo-row .cv-thermo-wave { order: 3; width: 100%; flex-basis: 100%; }
+}

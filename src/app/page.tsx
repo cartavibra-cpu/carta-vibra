@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import Vinyl from '@/components/Vinyl';
+import Landing from '@/components/Landing';
 
 const STAGE_BG =
   'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(0,212,255,.1), transparent 60%), #07060e';
@@ -43,36 +44,12 @@ export default function Home() {
     );
   }
 
-  // ---------- Login (sin sesión) ----------
+  // ---------- Sin sesión: landing de presentación ----------
   if (!session) {
-    return (
-      <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
-        <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 44%, rgba(255,255,255,.024) 0 1px, transparent 1px 30px)' }} />
-        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, padding: 24 }}>
-
-          <Vinyl size={188} glow beat />
-
-          <div style={{ textAlign: 'center' }}>
-            <div className="cv-wordmark" style={{ fontSize: 'clamp(42px, 9vw, 58px)' }}>
-              carta <span className="cv-grad-text">vibra</span>
-            </div>
-            <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.05em', color: 'var(--cv-muted-2)', marginTop: 16 }}>
-              La vibra se elige entre todos.
-            </div>
-          </div>
-
-          <button onClick={handleLogin} className="cv-btn cv-btn-google" style={{ fontSize: 16, padding: '15px 30px' }}>
-            <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'conic-gradient(from 0deg,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-text)' }} />
-            </span>
-            Entrar con Google
-          </button>
-        </div>
-      </main>
-    );
+    return <Landing onLogin={handleLogin} />;
   }
 
-  // ---------- Con sesión ----------
+  // ---------- Con sesión: home del dueño ----------
   return (
     <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
       <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 30%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
