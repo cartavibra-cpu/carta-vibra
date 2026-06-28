@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
 
@@ -20,6 +21,7 @@ function getYouTubeId(url: string) {
 type Template = { id: string; name: string; description: string | null; mood: string | null; published: boolean };
 
 export default function AdminPage() {
+  const isMobile = useIsMobile();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -197,7 +199,7 @@ export default function AdminPage() {
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
-      <div style={{ maxWidth: 880, margin: '0 auto', padding: '32px 20px 60px' }}>
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 24 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Admin</h1>
           <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>PLAYLISTS CURADAS</span>
@@ -273,7 +275,7 @@ export default function AdminPage() {
             <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
               {sub('IMPORTAR PLAYLIST DE YOUTUBE')}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                <input className="cv-input" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} style={{ flex: 1, minWidth: 220 }} />
+                <input className="cv-input" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} style={{ flex: 1, minWidth: isMobile ? 0 : 220 }} />
                 <button className="cv-btn cv-btn-ghost" onClick={importPlaylistToTpl} disabled={plLoading} style={{ fontSize: 14, padding: '0 18px', opacity: plLoading ? 0.6 : 1 }}>{plLoading ? 'Importando…' : 'Importar'}</button>
               </div>
               {plMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 12.5, color: plMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{plMsg}</p>}

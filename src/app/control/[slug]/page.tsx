@@ -208,7 +208,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       </div>
       {addPickMode === 'catalog' ? (
         <>
-          <input className="cv-input" placeholder="Buscá en el catálogo…" value={addFilter} onChange={(e) => setAddFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 15 }} />
+          <input className="cv-input" placeholder="Buscá en el catálogo…" value={addFilter} onChange={(e) => setAddFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
           <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin resultados.</div>}
             {addMatches.map((t) => {
@@ -224,7 +224,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         </>
       ) : (
         <>
-          <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={addPasteUrl} onChange={(e) => setAddPasteUrl(e.target.value)} onBlur={fetchAddPaste} style={{ width: '100%', fontSize: 15 }} />
+          <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={addPasteUrl} onChange={(e) => setAddPasteUrl(e.target.value)} onBlur={fetchAddPaste} style={{ width: '100%', fontSize: 16 }} />
           {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 13, color: addPasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
         </>
       )}

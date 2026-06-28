@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 function getYouTubeId(url: string) {
   try {
@@ -25,6 +26,7 @@ const TYPES: { key: string; label: string; color: string; sub: string }[] = [
 const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(0,212,255,.09), transparent 60%), #07060e';
 
 export default function PlaylistsPage() {
+  const isMobile = useIsMobile();
   const [uid, setUid] = useState<string | null>(null);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -230,7 +232,7 @@ export default function PlaylistsPage() {
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 20px 80px' }}>
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: isMobile ? '20px 14px 64px' : '28px 20px 80px' }}>
 
         {/* encabezado */}
         <div style={{ marginBottom: 22 }}>

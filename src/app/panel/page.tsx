@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import VenueManager from '@/components/VenueManager';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
@@ -18,6 +19,7 @@ export default function PanelPage() {
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [openSlugs, setOpenSlugs] = useState<Set<string>>(new Set());
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const sb = supa();
@@ -76,7 +78,7 @@ export default function PanelPage() {
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
-      <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 20px 60px' }}>
+      <div style={{ maxWidth: 820, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Mis locales</h1>
           <button className="cv-btn cv-btn-cyan" onClick={() => setShowCreate((s) => !s)} style={{ fontSize: 14, padding: '9px 18px' }}>

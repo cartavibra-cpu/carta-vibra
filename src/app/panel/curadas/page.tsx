@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
 
@@ -21,6 +22,7 @@ function moodAccent(mood: string | null, name: string) {
 }
 
 export default function CuradasPage() {
+  const isMobile = useIsMobile();
   const [session, setSession] = useState<any>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
@@ -97,7 +99,7 @@ export default function CuradasPage() {
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
-      <div style={{ maxWidth: 980, margin: '0 auto', padding: '32px 20px 60px' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Curadas</h1>
         <p style={{ fontSize: 14.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '8px 0 26px', maxWidth: 580 }}>
           Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-text)' }}>escuchar sus temas</b>, e importá la que te guste a tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> — después la asignás a tus locales desde <a href="/panel" style={{ color: 'var(--cv-cyan)' }}>Mis locales</a>. Importar nunca pisa tus playlists: crea una copia tuya.
@@ -151,7 +153,7 @@ export default function CuradasPage() {
 
       {/* MODAL preview */}
       {modalTpl && (
-        <div onClick={closeModal} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(4,3,10,.72)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
+        <div onClick={closeModal} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(4,3,10,.72)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 10 : 18 }}>
           <div onClick={(e) => e.stopPropagation()} className="cv-card" style={{ width: '100%', maxWidth: 560, maxHeight: '86vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
             {/* header */}
             <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--cv-line)' }}>
@@ -211,7 +213,7 @@ export default function CuradasPage() {
             </div>
 
             {/* footer */}
-            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cv-line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cv-line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               {done[modalTpl.id] ? (
                 <>
                   <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mint)' }}>✓ En tu biblioteca</span>

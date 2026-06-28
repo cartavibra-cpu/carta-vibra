@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
 const modeLabel = (m: string) => MODE_LABELS[m] || m;
@@ -41,6 +42,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
   const [pairCode, setPairCode] = useState('');
   const [pairMsg, setPairMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const isMobile = useIsMobile();
 
   const handlePair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,15 +204,15 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: sec.accent, boxShadow: `0 0 10px ${sec.accent}` }} />
                 <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: sec.accent }}>{sec.label}</span>
               </div>
-              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', margin: '0 0 10px 16px' }}>{sec.hint}</p>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', margin: isMobile ? '0 0 10px 0' : '0 0 10px 16px' }}>{sec.hint}</p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginLeft: 16 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginLeft: isMobile ? 0 : 16 }}>
                 {items.length === 0 && (
                   <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin playlists asignadas.</div>
                 )}
                 {items.map((a, idx) => (
                   <div key={a.id} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
+                    display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
                     background: a.is_active ? 'rgba(110,243,178,.08)' : 'rgba(255,255,255,.02)',
                     border: a.is_active ? '1px solid rgba(110,243,178,.35)' : '1px solid var(--cv-line)',
                   }}>
@@ -226,16 +228,18 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                         {a.count} {a.count === 1 ? 'canción' : 'canciones'}{a.mood ? ` · ${a.mood}` : ''}
                       </div>
                     </div>
-                    {a.is_active ? (
-                      <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
-                        Sonando
-                      </span>
-                    ) : (
-                      <button className="cv-btn cv-btn-ghost" onClick={() => doActivate(a)} disabled={busy} style={{ fontSize: 13, padding: '7px 14px' }}>Poner a sonar</button>
-                    )}
-                    <button onClick={() => doUnassign(a)} disabled={busy} title="Quitar del local"
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 13, padding: '4px 6px' }}>Quitar</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: isMobile ? '1 1 100%' : '0 0 auto', justifyContent: isMobile ? 'flex-end' : undefined }}>
+                      {a.is_active ? (
+                        <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+                          Sonando
+                        </span>
+                      ) : (
+                        <button className="cv-btn cv-btn-ghost" onClick={() => doActivate(a)} disabled={busy} style={{ fontSize: 13, padding: '7px 14px' }}>Poner a sonar</button>
+                      )}
+                      <button onClick={() => doUnassign(a)} disabled={busy} title="Quitar del local"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 13, padding: '4px 6px' }}>Quitar</button>
+                    </div>
                   </div>
                 ))}
 

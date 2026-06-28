@@ -279,7 +279,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
 
                 {pickMode === 'catalog' ? (
                   <>
-                    <input className="cv-input" placeholder="Buscá en el catálogo…" value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 13 }} />
+                    <input className="cv-input" placeholder="Buscá en el catálogo…" value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
                     <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {catMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>sin resultados.</div>}
                       {catMatches.map((t) => {
@@ -296,7 +296,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                   </>
                 ) : pickMode === 'search' ? (
                   <>
-                    <input className="cv-input" placeholder="Buscá tu canción (ej: bohemian rhapsody karaoke)" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 13 }} />
+                    <input className="cv-input" placeholder="Buscá tu canción (ej: bohemian rhapsody karaoke)" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
                     {searching && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</div>}
                     {!searching && searchMsg === 'quota' && (
                       <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-warm)', lineHeight: 1.5 }}>
@@ -323,7 +323,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                   </>
                 ) : (
                   <>
-                    <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={pasteUrl} onChange={(e) => setPasteUrl(e.target.value)} onBlur={fetchPaste} style={{ width: '100%', fontSize: 13 }} />
+                    <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={pasteUrl} onChange={(e) => setPasteUrl(e.target.value)} onBlur={fetchPaste} style={{ width: '100%', fontSize: 16 }} />
                     {pasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: pasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{pasteMsg}</p>}
                   </>
                 )}
