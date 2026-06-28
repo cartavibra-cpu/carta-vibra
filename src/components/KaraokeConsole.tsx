@@ -176,7 +176,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
       if (cancelled) return;
       playerRef.current = new YT.Player('yt-karaoke', {
         width: '100%', height: '100%',
-        playerVars: { autoplay: 1, controls: 1, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 1, cc_load_policy: 0 },
+        playerVars: { autoplay: 1, controls: 1, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
         events: {
           onReady: () => { readyRef.current = true; syncPlayer(); },
           onStateChange: (e: any) => {
