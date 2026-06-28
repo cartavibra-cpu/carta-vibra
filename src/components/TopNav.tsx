@@ -33,6 +33,7 @@ export default function TopNav() {
       </a>
       <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
         <a href="/panel" className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', textDecoration: 'none' }}>Mis locales</a>
+        <a href="/panel/playlists" className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', textDecoration: 'none' }}>Mis playlists</a>
         <a href="/console" className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-cyan)', textDecoration: 'none' }}>Consola</a>
         <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted-2)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
       </div>

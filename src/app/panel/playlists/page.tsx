@@ -1,0 +1,344 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { supa } from '@/lib/supabaseClient';
+import TopNav from '@/components/TopNav';
+
+function getYouTubeId(url: string) {
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    if (u.pathname.startsWith('/watch')) return u.searchParams.get('v') || '';
+    if (u.pathname.startsWith('/embed/')) return u.pathname.split('/embed/')[1]?.split(/[?/]/)[0] || '';
+    return '';
+  } catch { return ''; }
+}
+
+type Playlist = { id: string; name: string; type: string; mood: string | null; description: string | null };
+type Track = { id: string; title: string; artist: string | null; external_id: string | null; is_embeddable: boolean; sort: number };
+
+const TYPES: { key: string; label: string; color: string; sub: string }[] = [
+  { key: 'jukebox', label: 'Jukebox', color: 'var(--cv-cyan)', sub: 'votos · YouTube' },
+  { key: 'karaoke', label: 'Karaoke', color: 'var(--cv-mint)', sub: 'por turnos · YouTube' },
+  { key: 'dj_pro', label: 'DJ Pro', color: 'var(--cv-violet-light)', sub: 'archivos propios · pronto' },
+];
+
+const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(0,212,255,.09), transparent 60%), #07060e';
+
+export default function PlaylistsPage() {
+  const [uid, setUid] = useState<string | null>(null);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(true);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ jukebox: true, karaoke: true, dj_pro: false });
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [tracks, setTracks] = useState<Track[]>([]);
+
+  // crear playlist
+  const [cName, setCName] = useState('');
+  const [cType, setCType] = useState('jukebox');
+  const [cMood, setCMood] = useState('');
+  const [cDesc, setCDesc] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [cErr, setCErr] = useState<string | null>(null);
+
+  // editar metadata
+  const [editId, setEditId] = useState<string | null>(null);
+  const [eName, setEName] = useState('');
+  const [eMood, setEMood] = useState('');
+  const [eDesc, setEDesc] = useState('');
+
+  // agregar canción
+  const [url, setUrl] = useState('');
+  const [tTitle, setTTitle] = useState('');
+  const [tArtist, setTArtist] = useState('');
+  const [embeddable, setEmbeddable] = useState(true);
+  const [metaMsg, setMetaMsg] = useState<string | null>(null);
+  const [metaLoading, setMetaLoading] = useState(false);
+
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  const load = async () => {
+    setLoading(true);
+    const sb = supa(); if (!sb) { setLoading(false); return; }
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) { setUid(null); setLoading(false); return; }
+    setUid(user.id);
+    const { data } = await sb.from('venue_playlist').select('id,name,type,mood,description').eq('owner', user.id).order('created_at');
+    const pls = (data as Playlist[]) || [];
+    setPlaylists(pls);
+    if (pls.length) {
+      const ids = pls.map((p) => p.id);
+      const { data: trk } = await sb.from('catalog_track').select('playlist_id').in('playlist_id', ids);
+      const c: Record<string, number> = {};
+      (trk as { playlist_id: string }[] | null)?.forEach((t) => { if (t.playlist_id) c[t.playlist_id] = (c[t.playlist_id] || 0) + 1; });
+      setCounts(c);
+    } else setCounts({});
+    setLoading(false);
+  };
+
+  const loadTracks = async (pid: string) => {
+    const sb = supa(); if (!sb) return;
+    const { data } = await sb.from('catalog_track').select('id,title,artist,external_id,is_embeddable,sort').eq('playlist_id', pid).order('sort');
+    setTracks((data as Track[]) || []);
+  };
+
+  const toggleExpand = async (p: Playlist) => {
+    if (expanded === p.id) { setExpanded(null); setTracks([]); return; }
+    setExpanded(p.id); setEditId(null);
+    setUrl(''); setTTitle(''); setTArtist(''); setEmbeddable(true); setMetaMsg(null);
+    await loadTracks(p.id);
+  };
+
+  const createPlaylist = async (e: React.FormEvent) => {
+    e.preventDefault(); setCErr(null);
+    const sb = supa(); if (!sb) return;
+    if (!cName.trim()) { setCErr('Poné un nombre.'); return; }
+    setCreating(true);
+    try {
+      const { data, error } = await sb.rpc('create_playlist', { p_name: cName.trim(), p_type: cType, p_mood: cMood.trim() || null, p_description: cDesc.trim() || null });
+      if (error) { setCErr(error.message); return; }
+      setCName(''); setCMood(''); setCDesc('');
+      setOpenSections((s) => ({ ...s, [cType]: true }));
+      await load();
+      const newId = (data as any)?.id;
+      if (newId) { setExpanded(newId); await loadTracks(newId); }
+    } catch (err: any) { setCErr(err?.message || 'No se pudo crear.'); }
+    finally { setCreating(false); }
+  };
+
+  const startEdit = (p: Playlist) => { setEditId(p.id); setEName(p.name); setEMood(p.mood || ''); setEDesc(p.description || ''); };
+  const saveEdit = async (p: Playlist) => {
+    const sb = supa(); if (!sb) return;
+    const { error } = await sb.rpc('update_playlist', { p_playlist: p.id, p_name: eName.trim(), p_mood: eMood.trim() || null, p_description: eDesc.trim() || null });
+    if (error) return alert(error.message);
+    setEditId(null); await load();
+  };
+  const removePlaylist = async (p: Playlist) => {
+    if (!confirm(`¿Borrar la playlist "${p.name}" y todas sus canciones?`)) return;
+    const sb = supa(); if (!sb) return;
+    const { error } = await sb.rpc('delete_playlist', { p_playlist: p.id });
+    if (error) return alert(error.message);
+    if (expanded === p.id) { setExpanded(null); setTracks([]); }
+    await load();
+  };
+
+  const fetchMeta = async () => {
+    if (!url.trim()) return;
+    setMetaLoading(true); setMetaMsg(null);
+    try {
+      const r = await fetch(`/api/youtube-meta?kind=video&url=${encodeURIComponent(url.trim())}`);
+      const data = await r.json();
+      if (!r.ok) { setMetaMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
+      const ok = (data.playable ?? data.embeddable) !== false;
+      setTTitle(data.title || ''); setTArtist(data.artist || ''); setEmbeddable(ok);
+      setMetaMsg(ok ? '✓ Datos cargados' : '⚠️ Este video no se reproduce embebido (edad/región). Probá otra versión.');
+    } catch { setMetaMsg('⚠️ Error consultando YouTube'); } finally { setMetaLoading(false); }
+  };
+
+  const addSong = async (p: Playlist, e: React.FormEvent) => {
+    e.preventDefault();
+    const sb = supa(); if (!sb) return;
+    const videoId = getYouTubeId(url);
+    if (!videoId) { setMetaMsg('⚠️ URL de YouTube inválida'); return; }
+    if (!embeddable) { setMetaMsg('⚠️ Ese video no se puede reproducir embebido. Probá otra versión.'); return; }
+    const nextSort = tracks.length ? Math.max(...tracks.map((t) => t.sort)) + 1 : 0;
+    const { error } = await sb.from('catalog_track').insert({
+      playlist_id: p.id, venue_id: null, source: 'youtube', external_id: videoId,
+      title: tTitle || 'Sin título', artist: tArtist, is_embeddable: embeddable, sort: nextSort,
+    });
+    if (error) return alert(error.message);
+    setUrl(''); setTTitle(''); setTArtist(''); setEmbeddable(true); setMetaMsg(null);
+    await loadTracks(p.id);
+    setCounts((c) => ({ ...c, [p.id]: (c[p.id] || 0) + 1 }));
+  };
+
+  const deleteSong = async (p: Playlist, trackId: string) => {
+    const sb = supa(); if (!sb) return;
+    const { error } = await sb.from('catalog_track').delete().eq('id', trackId);
+    if (error) return alert(error.message);
+    await loadTracks(p.id);
+    setCounts((c) => ({ ...c, [p.id]: Math.max(0, (c[p.id] || 1) - 1) }));
+  };
+
+  const moveSong = async (p: Playlist, idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= tracks.length) return;
+    const a = tracks[idx], b = tracks[j];
+    const sb = supa(); if (!sb) return;
+    await sb.from('catalog_track').update({ sort: b.sort }).eq('id', a.id);
+    await sb.from('catalog_track').update({ sort: a.sort }).eq('id', b.id);
+    await loadTracks(p.id);
+  };
+
+  // ---------- estados de carga / sesión ----------
+  if (loading) {
+    return (
+      <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+        <TopNav />
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando tu biblioteca…</div>
+      </main>
+    );
+  }
+  if (!uid) {
+    return (
+      <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+        <TopNav />
+        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+          <p style={{ color: 'var(--cv-text-2)', marginBottom: 16 }}>Iniciá sesión para ver tus playlists.</p>
+          <a href="/" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', textDecoration: 'none' }}>Ir al inicio</a>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+      <TopNav />
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 20px 80px' }}>
+
+        {/* encabezado */}
+        <div style={{ marginBottom: 22 }}>
+          <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 600 }}>Mis playlists</h1>
+          <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 6 }}>Tu biblioteca · las canciones viven acá y después las asignás a tus locales</p>
+        </div>
+
+        {/* crear playlist */}
+        <section className="cv-card" style={{ padding: '18px 20px', marginBottom: 26 }}>
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan-light)', marginBottom: 14 }}>NUEVA PLAYLIST</div>
+          <form onSubmit={createPlaylist} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <input className="cv-input" style={{ flex: '2 1 240px', padding: '11px 14px' }} placeholder="Nombre de la playlist" value={cName} onChange={(e) => setCName(e.target.value)} />
+              <select className="cv-input" style={{ flex: '1 1 160px', padding: '11px 14px' }} value={cType} onChange={(e) => setCType(e.target.value)}>
+                <option value="jukebox">Jukebox (YouTube)</option>
+                <option value="karaoke">Karaoke (YouTube)</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <input className="cv-input" style={{ flex: '1 1 160px', padding: '11px 14px' }} placeholder="Mood (ej: Fiesta, Cena)" value={cMood} onChange={(e) => setCMood(e.target.value)} />
+              <input className="cv-input" style={{ flex: '2 1 240px', padding: '11px 14px' }} placeholder="Descripción (opcional)" value={cDesc} onChange={(e) => setCDesc(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <button type="submit" disabled={creating} className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', opacity: creating ? 0.6 : 1 }}>{creating ? 'Creando…' : 'Crear playlist'}</button>
+              {cErr && <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-warm)' }}>{cErr}</span>}
+              <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)' }}>DJ Pro (archivos propios) llega más adelante.</span>
+            </div>
+          </form>
+        </section>
+
+        {/* secciones por tipo */}
+        {TYPES.map((t) => {
+          const pls = playlists.filter((p) => p.type === t.key);
+          const open = openSections[t.key];
+          return (
+            <section key={t.key} style={{ marginBottom: 18 }}>
+              <button
+                onClick={() => setOpenSections((s) => ({ ...s, [t.key]: !s[t.key] }))}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 4px', background: 'none', border: 'none', borderBottom: '1px solid var(--cv-line)', cursor: 'pointer', textAlign: 'left' }}
+              >
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
+                <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: 'var(--cv-text)' }}>{t.label}</span>
+                <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>· {t.sub}</span>
+                <span className="cv-mono" style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--cv-muted-2)' }}>{pls.length} {pls.length === 1 ? 'playlist' : 'playlists'} {open ? '▾' : '▸'}</span>
+              </button>
+
+              {open && (
+                <div style={{ paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {t.key === 'dj_pro' && (
+                    <div className="cv-card" style={{ padding: '16px 18px', borderStyle: 'dashed' }}>
+                      <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', lineHeight: 1.6 }}>
+                        Pronto — acá vas a poder armar playlists con <b style={{ color: 'var(--cv-text-2)' }}>tus propios archivos de audio</b> (no YouTube). Más adelante, importaciones de Beatport / Tidal y similares.
+                      </p>
+                    </div>
+                  )}
+
+                  {pls.length === 0 && t.key !== 'dj_pro' && (
+                    <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)', padding: '4px 2px' }}>Todavía no tenés playlists de {t.label}. Creá una arriba ↑</p>
+                  )}
+
+                  {pls.map((p) => {
+                    const isOpen = expanded === p.id;
+                    const isEditing = editId === p.id;
+                    return (
+                      <div key={p.id} className="cv-card" style={{ padding: 0, overflow: 'hidden', border: isOpen ? `1px solid ${t.color}55` : undefined }}>
+                        {/* fila de la playlist */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
+                          <button onClick={() => toggleExpand(p)} style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
+                            <span className="cv-mono" style={{ fontSize: 13, color: t.color, width: 14 }}>{isOpen ? '▾' : '▸'}</span>
+                            <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</span>
+                            {p.mood && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', border: '1px solid var(--cv-line)', borderRadius: 999, padding: '2px 9px' }}>{p.mood}</span>}
+                            <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>{counts[p.id] ?? 0} ♪</span>
+                          </button>
+                          <button onClick={() => startEdit(p)} className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}>Editar</button>
+                          <button onClick={() => removePlaylist(p)} style={{ fontSize: 12, padding: '6px 10px', background: 'none', border: '1px solid rgba(204,153,119,.4)', borderRadius: 8, color: 'var(--cv-warm)', cursor: 'pointer' }}>Borrar</button>
+                        </div>
+
+                        {/* editar metadata */}
+                        {isEditing && (
+                          <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--cv-line)' }}>
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
+                              <input className="cv-input" style={{ flex: '2 1 220px', padding: '10px 12px' }} placeholder="Nombre" value={eName} onChange={(e) => setEName(e.target.value)} />
+                              <input className="cv-input" style={{ flex: '1 1 140px', padding: '10px 12px' }} placeholder="Mood" value={eMood} onChange={(e) => setEMood(e.target.value)} />
+                            </div>
+                            <input className="cv-input" style={{ padding: '10px 12px' }} placeholder="Descripción" value={eDesc} onChange={(e) => setEDesc(e.target.value)} />
+                            <div style={{ display: 'flex', gap: 10 }}>
+                              <button onClick={() => saveEdit(p)} className="cv-btn cv-btn-cyan" style={{ fontSize: 13, padding: '8px 16px' }}>Guardar</button>
+                              <button onClick={() => setEditId(null)} className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '8px 16px' }}>Cancelar</button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* canciones */}
+                        {isOpen && (
+                          <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--cv-line)' }}>
+                            {/* agregar */}
+                            <form onSubmit={(e) => addSong(p, e)} style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '14px 0 16px' }}>
+                              <input className="cv-input" style={{ padding: '10px 12px' }} placeholder="Pegá un link de YouTube y soltá (Tab) → autocompleta" value={url}
+                                onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
+                              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                                <input className="cv-input" style={{ flex: '2 1 200px', padding: '10px 12px' }} placeholder="Título" value={tTitle} onChange={(e) => setTTitle(e.target.value)} />
+                                <input className="cv-input" style={{ flex: '1 1 140px', padding: '10px 12px' }} placeholder="Artista" value={tArtist} onChange={(e) => setTArtist(e.target.value)} />
+                                <button type="submit" className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '10px 18px' }}>Agregar</button>
+                              </div>
+                              {(metaMsg || metaLoading) && (
+                                <span className="cv-mono" style={{ fontSize: 12, color: metaLoading ? 'var(--cv-muted)' : (metaMsg?.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)') }}>
+                                  {metaLoading ? 'Leyendo…' : metaMsg}
+                                </span>
+                              )}
+                            </form>
+
+                            {/* lista */}
+                            {tracks.length === 0 ? (
+                              <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>Sin canciones aún · pegá un link de YouTube arriba.</p>
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {tracks.map((tr, i) => (
+                                  <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.05)' }}>
+                                    <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', width: 22 }}>{i + 1}</span>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {tr.title}{!tr.is_embeddable && <span title="No se reproduce embebido" style={{ color: 'var(--cv-warm)', marginLeft: 6 }}>⚠</span>}
+                                      </div>
+                                      {tr.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.artist}</div>}
+                                    </div>
+                                    <button onClick={() => moveSong(p, i, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, padding: '2px 4px' }}>↑</button>
+                                    <button onClick={() => moveSong(p, i, 1)} disabled={i === tracks.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === tracks.length - 1 ? 'default' : 'pointer', color: i === tracks.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, padding: '2px 4px' }}>↓</button>
+                                    <button onClick={() => deleteSong(p, tr.id)} className="cv-mono" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 12, padding: '2px 6px' }}>quitar</button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          );
+        })}
+
+      </div>
+    </main>
+  );
+}
