@@ -1,14 +1,28 @@
 'use client';
 import { useEffect, useState, use, useCallback } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import Vinyl from '@/components/Vinyl';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
+
+const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(94,46,255,.22), transparent 62%), #07060e';
 
 function getSession(): string {
   if (typeof window === 'undefined') return '';
   let s = localStorage.getItem('cv_session');
   if (!s) { s = crypto.randomUUID() + crypto.randomUUID(); localStorage.setItem('cv_session', s); }
   return s;
+}
+
+function MiniEq() {
+  const delays = [0, 0.2, 0.36, 0.12];
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 26 }}>
+      {delays.map((d, i) => (
+        <div key={i} style={{ width: 4, height: '100%', borderRadius: 2, transformOrigin: 'bottom', background: 'linear-gradient(180deg,#6EF3B2,#00D4FF)', animation: `cvEq ${(0.7 + i * 0.07).toFixed(2)}s ease-in-out infinite`, animationDelay: `${d}s` }} />
+      ))}
+    </div>
+  );
 }
 
 export default function WidgetPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -85,52 +99,84 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     setPresent(true); setMsg(null);
   };
 
-  if (!venue) return <div className="p-6">Cargando…</div>;
+  // ---------- Cargando ----------
+  if (!venue) {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: STAGE_BG }}>
+        <Vinyl size={52} mini />
+        <div className="cv-mono" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.18em' }}>cargando…</div>
+      </main>
+    );
+  }
 
   const sorted = [...tracks].sort((a, b) => (votes[b.id] || 0) - (votes[a.id] || 0) || a.title.localeCompare(b.title));
   const nowTrack = tracks.find((t) => t.id === nowId);
 
   return (
-    <div className="mx-auto max-w-xl p-4">
-      <h1 className="text-xl font-bold">{venue.name}</h1>
-      {activePl && <p className="text-xs text-gray-500">Playlist: {activePl.name}{mesa ? ` · Mesa ${mesa}` : ''}</p>}
+    <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
+      <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 24%, rgba(255,255,255,.02) 0 1px, transparent 1px 26px)', opacity: 0.45 }} />
+      <div style={{ position: 'relative', maxWidth: 520, margin: '0 auto', padding: '22px 16px 40px' }}>
 
-      <div className="my-3 rounded-lg bg-gray-100 p-3">
-        <p className="text-xs uppercase text-gray-500">Sonando ahora</p>
-        <p className="font-semibold">{nowTrack ? `${nowTrack.title}${nowTrack.artist ? ' — ' + nowTrack.artist : ''}` : '—'}</p>
-      </div>
+        {/* header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div className="cv-wordmark" style={{ fontSize: 18 }}>carta <span className="cv-grad-text">vibra</span></div>
+          {mesa && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted)', border: '1px solid var(--cv-line)', borderRadius: 999, padding: '5px 11px' }}>Mesa {mesa}</span>}
+        </div>
 
-      {!activePl ? (
-        <p className="my-4 text-sm text-gray-600">El local no tiene una playlist activa en este momento.</p>
-      ) : (
-        <>
-          {!present && (
-            <div className="my-3 rounded-lg border p-3">
-              <p className="mb-2 text-sm">Para votar, ingresá el código que aparece en la pantalla del local:</p>
-              <div className="flex gap-2">
-                <input className="w-28 rounded border p-2 text-center text-lg tracking-widest" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)} />
-                <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={redeem}>Validar</button>
+        <h1 className="cv-wordmark" style={{ fontSize: 24, fontWeight: 600 }}>{venue.name}</h1>
+        {activePl && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 4 }}>Suena: <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></div>}
+
+        {/* sonando ahora */}
+        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(150deg, rgba(94,46,255,.18), rgba(0,212,255,.06))', border: '1px solid rgba(255,255,255,.10)', borderRadius: 18, padding: 14 }}>
+          <Vinyl size={56} mini />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>SONANDO AHORA</div>
+            <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack ? nowTrack.title : '—'}</div>
+            {nowTrack?.artist && <div style={{ fontSize: 13, color: 'var(--cv-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack.artist}</div>}
+          </div>
+          {nowTrack && <MiniEq />}
+        </div>
+
+        {!activePl ? (
+          <p style={{ marginTop: 24, fontSize: 14, color: 'var(--cv-muted)', textAlign: 'center', lineHeight: 1.6 }}>El local no tiene una playlist activa en este momento.</p>
+        ) : (
+          <>
+            {!present && (
+              <div className="cv-card" style={{ marginTop: 18, padding: 16 }}>
+                <p style={{ fontSize: 14, color: 'var(--cv-text-2)', marginBottom: 12, lineHeight: 1.5 }}>Para votar, ingresá el código que aparece en la pantalla del local:</p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
+                    style={{ width: 120, textAlign: 'center', fontSize: 22, letterSpacing: '.3em', fontFamily: 'var(--cv-font-display)' }} />
+                  <button className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '0 22px' }} onClick={redeem}>Validar</button>
+                </div>
               </div>
+            )}
+
+            {msg && <p className="cv-mono" style={{ marginTop: 14, fontSize: 13, color: 'var(--cv-cyan-light)' }}>{msg}</p>}
+
+            <div className="cv-mono" style={{ marginTop: 22, marginBottom: 12, fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>VOTÁ TU CANCIÓN</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {sorted.map((t) => (
+                <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 14, padding: '10px 10px 10px 14px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="cv-wordmark" style={{ fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                    {t.artist && <div style={{ fontSize: 12, color: 'var(--cv-muted-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</div>}
+                  </div>
+                  <button className="cv-vote-btn" onClick={() => vote(t.id)}>
+                    <span style={{ fontSize: 14, lineHeight: 1, color: 'var(--cv-mint)' }}>▲</span>
+                    <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, lineHeight: 1 }}>{votes[t.id] || 0}</span>
+                  </button>
+                </div>
+              ))}
+              {sorted.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>la playlist activa no tiene canciones.</div>}
             </div>
-          )}
 
-          {msg && <p className="my-2 text-sm text-blue-700">{msg}</p>}
-
-          <h2 className="mt-4 mb-2 font-semibold">Votá tu canción</h2>
-          <ul className="space-y-2">
-            {sorted.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded border p-2">
-                <span>{t.title}{t.artist ? <span className="text-gray-500"> — {t.artist}</span> : null}</span>
-                <span className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{votes[t.id] || 0} ▲</span>
-                  <button className="rounded bg-blue-600 px-3 py-1 text-white" onClick={() => vote(t.id)}>Votar</button>
-                </span>
-              </li>
-            ))}
-            {sorted.length === 0 && <li className="text-sm text-gray-500">La playlist activa no tiene canciones.</li>}
-          </ul>
-        </>
-      )}
-    </div>
+            <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-mono-2)', marginTop: 22, lineHeight: 1.6 }}>
+              toca ▲ para sumar tu voto · la vibra se elige entre todos
+            </div>
+          </>
+        )}
+      </div>
+    </main>
   );
 }

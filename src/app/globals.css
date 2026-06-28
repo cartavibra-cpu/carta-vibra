@@ -211,3 +211,30 @@ html { scroll-behavior: smooth; }
   .cv-thermo-label { width: auto; }
   .cv-thermo-row .cv-thermo-wave { order: 3; width: 100%; flex-basis: 100%; }
 }
+
+/* ---- Controles: botón cian, inputs oscuros, botón de voto ---- */
+.cv-btn-cyan { background: var(--cv-cyan); color: var(--cv-night); }
+.cv-btn-mint { background: var(--cv-mint); color: var(--cv-night); }
+
+.cv-input {
+  background: var(--cv-bg-2);
+  border: 1px solid var(--cv-line);
+  color: var(--cv-text);
+  border-radius: 11px;
+  padding: 12px 14px;
+  font-family: var(--cv-font-body);
+  font-size: 15px;
+  outline: none;
+  transition: border-color .15s ease;
+}
+.cv-input:focus { border-color: rgba(0,212,255,.5); }
+.cv-input::placeholder { color: var(--cv-mono-2); }
+
+.cv-vote-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  width: 54px; height: 54px; border-radius: 14px; cursor: pointer; flex-shrink: 0;
+  background: linear-gradient(150deg, rgba(94,46,255,.32), rgba(0,212,255,.18));
+  border: 1px solid rgba(0,212,255,.4);
+  transition: transform .12s ease;
+}
+.cv-vote-btn:active { transform: scale(.94); }

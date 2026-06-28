@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import BrandMark from '@/components/BrandMark';
+import Waveform from '@/components/Waveform';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -10,6 +12,9 @@ type Track = { id: string; title: string; artist: string | null; external_id: st
 
 const CROSSFADE_SECONDS = 4;
 const STEP_MS = 100;
+
+const STAGE_BG =
+  'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(0,212,255,.1), transparent 60%), #07060e';
 
 function loadYT(): Promise<any> {
   return new Promise((resolve) => {
@@ -234,92 +239,138 @@ export default function ConsolePage() {
     }, 1000);
   };
 
+  // ---------- Error ----------
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="space-y-2 text-center">
-          <p className="text-red-600">Error: {error}</p>
-          <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={startPairing}>Reintentar</button>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: STAGE_BG }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ color: 'var(--cv-warm)', fontSize: 15, marginBottom: 14 }}>Error: {error}</p>
+          <button className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '12px 22px' }} onClick={startPairing}>Reintentar</button>
         </div>
-      </div>
+      </main>
     );
   }
 
+  // ---------- Vincular consola ----------
   if (!status?.paired) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-        <h1 className="text-4xl font-black">Vinculá esta consola</h1>
-        {pairCode ? (
-          <div className="rounded-2xl border-4 border-black bg-white p-8">
-            <p className="mb-2 text-center text-lg font-semibold">Código de vinculación</p>
-            <p className="text-center text-7xl font-black tracking-widest">{pairCode}</p>
+      <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
+        <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 42%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
+        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, padding: 24 }}>
+          <BrandMark size={150} />
+          <div style={{ textAlign: 'center' }}>
+            <h1 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 600 }}>Vinculá esta consola</h1>
+            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Escribí este código en tu panel · sección “Vincular consola”</p>
           </div>
-        ) : (<p className="text-gray-600">Generando código…</p>)}
-        <p className="max-w-md text-center text-sm text-gray-600">
-          Escribí este código de 6 dígitos en tu <b>panel</b>: tu local → sección <b>“Vincular consola”</b>.
-        </p>
-        <button className="text-sm text-gray-500 underline" onClick={resetPairing}>Generar un código nuevo</button>
-      </div>
+          {pairCode ? (
+            <div style={{ display: 'flex', gap: 10 }}>
+              {pairCode.split('').map((d, i) => (
+                <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-bg-2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-text)' }}>{d}</div>
+              ))}
+            </div>
+          ) : (<p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>generando código…</p>)}
+          <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Generar un código nuevo</button>
+        </div>
+      </main>
     );
   }
 
+  // ---------- Iniciar sesión musical ----------
   if (!started) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
-        <h1 className="text-3xl font-bold">{status.name}</h1>
-        <p className="text-gray-600">Consola lista para {status.slug}</p>
-        <button className="rounded-2xl bg-green-600 px-10 py-5 text-2xl font-bold text-white" onClick={startConsole}>
-          ▶ Iniciar sesión musical
-        </button>
-        <p className="max-w-sm text-center text-xs text-gray-500">
-          Tocá el botón para desbloquear el audio (los navegadores no dejan reproducir solos hasta que hay un clic).
-        </p>
-        <button className="text-sm text-gray-500 underline" onClick={resetPairing}>Vincular otra consola</button>
-      </div>
+      <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
+        <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 44%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
+        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, padding: 24 }}>
+          <BrandMark size={160} />
+          <div style={{ textAlign: 'center' }}>
+            <h1 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 600 }}>{status.name}</h1>
+            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Consola lista para {status.slug}</p>
+          </div>
+          <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(110,243,178,.5)' }} onClick={startConsole}>
+            ▶ Iniciar sesión musical
+          </button>
+          <p style={{ maxWidth: 360, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
+            Tocá el botón para desbloquear el audio (los navegadores no dejan reproducir solos hasta que hay un clic).
+          </p>
+          <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
+        </div>
+      </main>
     );
   }
 
+  // ---------- Consola en vivo ----------
   return (
-    <div className="min-h-screen p-4">
-      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
-        <div>
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: 8, overflow: 'hidden' }}>
-            <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
-            <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
+    <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: 'radial-gradient(1000px 720px at 50% 52%, rgba(0,212,255,.10), transparent 60%), #060810' }}>
+      <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.02) 0 1px, transparent 1px 36px)', opacity: 0.4 }} />
+      <div style={{ position: 'relative', minHeight: '100vh', padding: '24px 28px', display: 'flex', flexDirection: 'column' }}>
+
+        {/* top bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          <div className="cv-wordmark" style={{ fontSize: 22 }}>carta <span className="cv-grad-text">vibra</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-cyan)', boxShadow: '0 0 12px var(--cv-cyan)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+            <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>EN VIVO</span>
           </div>
-          <p className="mt-2 text-lg font-semibold">Sonando: {nowTitle}</p>
         </div>
-        <div className="space-y-4">
-          <div className="rounded-2xl border-4 border-black bg-white p-6 text-center">
-            <p className="text-sm font-semibold uppercase text-gray-500">Código para votar</p>
-            <p className="text-6xl font-black tracking-widest">{roomCode ?? '—'}</p>
-            <p className="mt-1 text-xs text-gray-500">Los clientes lo ingresan en su celular · cambia cada pocos minutos</p>
-          </div>
-          <div className="rounded border p-3">
-            <p className="mb-1 text-sm font-semibold">Ajustes (para probar)</p>
-            <label className="text-sm">Segundos por canción (0 = completa):{' '}
-              <input type="number" min={0} className="ml-1 w-20 border p-1" value={maxSeconds}
-                onChange={(e) => { const n = parseInt(e.target.value) || 0; setMaxSeconds(n); maxSecondsRef.current = n; }} />
-            </label>
-            <button className="mt-2 block rounded bg-gray-700 px-3 py-1 text-sm text-white" onClick={() => advance()}>⏭ Saltear a la siguiente</button>
-          </div>
+
+        <div style={{ flex: 1, display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', alignItems: 'start' }}>
+
+          {/* izquierda: video + sonando ahora */}
           <div>
-            <h2 className="mb-2 font-semibold">En cola (por votos)</h2>
-            <ul className="space-y-1">
-              {queue.length === 0 && <li className="text-sm text-gray-500">Esperando votos…</li>}
-              {queue.map((q, i) => {
-                const tr = tracksRef.current[q.track_id];
-                return (
-                  <li key={q.track_id} className="flex justify-between rounded border p-2 text-sm">
-                    <span>{i + 1}. {tr?.title ?? '—'}</span>
-                    <span className="text-gray-600">{q.votes} ▲</span>
-                  </li>
-                );
-              })}
-            </ul>
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: 16, overflow: 'hidden', border: '1px solid rgba(255,255,255,.08)', boxShadow: '0 30px 80px -40px rgba(0,0,0,.9)' }}>
+              <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
+              <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
+            </div>
+            <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)' }}>
+              SONANDO AHORA · <span style={{ color: 'var(--cv-cyan)' }}>{nowTitle}</span>
+            </div>
+          </div>
+
+          {/* derecha: código + cola + ajustes */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+
+            {/* código para votar (héroe en gradiente) */}
+            <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(0,212,255,.16)', background: 'radial-gradient(400px 240px at 50% 0%, rgba(0,212,255,.12), transparent 60%), var(--cv-bg-2)', padding: '22px 20px', textAlign: 'center' }}>
+              <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.24em', color: 'var(--cv-cyan-light)' }}>CÓDIGO PARA VOTAR</div>
+              <div className="cv-wordmark cv-grad-code" style={{ fontSize: 'clamp(56px, 7vw, 92px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', margin: '8px 0', textShadow: '0 0 50px rgba(0,212,255,.3)' }}>{roomCode ?? '—'}</div>
+              <div style={{ marginTop: 6 }}><Waveform n={40} color="#00D4FF" maxH={26} barW={3} gap={3} seed={7} /></div>
+              <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 10 }}>Los clientes lo ingresan en su celular · cambia cada pocos minutos</div>
+            </div>
+
+            {/* cola */}
+            <div>
+              <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>EN COLA · LO MÁS VOTADO</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {queue.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>esperando votos…</div>}
+                {queue.map((q, i) => {
+                  const tr = tracksRef.current[q.track_id];
+                  return (
+                    <div key={q.track_id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '11px 14px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)' }}>
+                      <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)', minWidth: 22 }}>{i + 1}</span>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 500, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr?.title ?? '—'}</span>
+                      <span className="cv-wordmark" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 15, fontWeight: 600, color: 'var(--cv-cyan-light)' }}>
+                        <span style={{ color: 'var(--cv-cyan)' }}>▲</span>{q.votes}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ajustes (discreto, para probar) */}
+            <div className="cv-card" style={{ padding: '14px 16px' }}>
+              <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)', marginBottom: 10 }}>AJUSTES</div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-muted)', flexWrap: 'wrap' }}>
+                Segundos por canción (0 = completa):
+                <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds}
+                  onChange={(e) => { const n = parseInt(e.target.value) || 0; setMaxSeconds(n); maxSecondsRef.current = n; }} />
+              </label>
+              <button className="cv-btn cv-btn-ghost" style={{ marginTop: 10, fontSize: 13, padding: '8px 14px' }} onClick={() => advance()}>⏭ Saltear a la siguiente</button>
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
