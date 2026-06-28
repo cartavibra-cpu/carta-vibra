@@ -34,6 +34,7 @@ export default function ConsolePage() {
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
+  const [maxSeconds, setMaxSeconds] = useState(0);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
@@ -45,6 +46,7 @@ export default function ConsolePage() {
   const busyRef = useRef(false);
   const playingRef = useRef(false);
   const rampRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const maxSecondsRef = useRef(0);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
@@ -225,7 +227,10 @@ export default function ConsolePage() {
       if (!p || !p.getDuration) return;
       let dur = 0, cur = 0;
       try { dur = p.getDuration(); cur = p.getCurrentTime(); } catch { return; }
-      if (dur > 0 && dur - cur <= CROSSFADE_SECONDS + 1) advance();
+      const maxSec = maxSecondsRef.current;
+      const nearEnd = dur > 0 && dur - cur <= CROSSFADE_SECONDS + 1;
+      const reachedMax = maxSec > 0 && cur >= maxSec;
+      if (nearEnd || reachedMax) advance();
     }, 1000);
   };
 
@@ -278,9 +283,9 @@ export default function ConsolePage() {
     <div className="min-h-screen p-4">
       <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
         <div>
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-            <div id="wrap-A" className="absolute inset-0" style={{ opacity: 1 }}><div id="yt-A" /></div>
-            <div id="wrap-B" className="absolute inset-0" style={{ opacity: 0 }}><div id="yt-B" /></div>
+          <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', background: '#000', borderRadius: 8, overflow: 'hidden' }}>
+            <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
+            <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
           </div>
           <p className="mt-2 text-lg font-semibold">Sonando: {nowTitle}</p>
         </div>
@@ -289,6 +294,14 @@ export default function ConsolePage() {
             <p className="text-sm font-semibold uppercase text-gray-500">Código para votar</p>
             <p className="text-6xl font-black tracking-widest">{roomCode ?? '—'}</p>
             <p className="mt-1 text-xs text-gray-500">Los clientes lo ingresan en su celular · cambia cada pocos minutos</p>
+          </div>
+          <div className="rounded border p-3">
+            <p className="mb-1 text-sm font-semibold">Ajustes (para probar)</p>
+            <label className="text-sm">Segundos por canción (0 = completa):{' '}
+              <input type="number" min={0} className="ml-1 w-20 border p-1" value={maxSeconds}
+                onChange={(e) => { const n = parseInt(e.target.value) || 0; setMaxSeconds(n); maxSecondsRef.current = n; }} />
+            </label>
+            <button className="mt-2 block rounded bg-gray-700 px-3 py-1 text-sm text-white" onClick={() => advance()}>⏭ Saltear a la siguiente</button>
           </div>
           <div>
             <h2 className="mb-2 font-semibold">En cola (por votos)</h2>
