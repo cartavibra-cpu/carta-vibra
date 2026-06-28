@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import Waveform from '@/components/Waveform';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -297,8 +298,8 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 </div>
               )}
 
-              {/* CÓDIGO: misma ventanita que jukebox — abajo a la derecha, mismo tamaño/opacidad */}
-              {current && (
+              {/* CÓDIGO en el video: solo en PANTALLA COMPLETA (igual que jukebox) */}
+              {isFs && current && (
                 <div style={{ position: 'absolute', bottom: 80, right: 28, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.42)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px', boxShadow: '0 10px 34px -12px rgba(0,0,0,.6)' }}>
                   <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>ANOTATE EN TU CELULAR · CÓDIGO</div>
                   <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4, textShadow: '0 2px 18px rgba(0,0,0,.85)' }}>{roomCode ?? '—'}</div>
@@ -341,6 +342,14 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
           {/* columna derecha */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {/* código para cantar (héroe en gradiente, igual que jukebox) */}
+            <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', border: '1px solid rgba(110,243,178,.16)', background: 'radial-gradient(400px 240px at 50% 0%, rgba(110,243,178,.12), transparent 60%), var(--cv-bg-2)', padding: '22px 20px', textAlign: 'center' }}>
+              <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.24em', color: 'var(--cv-mint)' }}>CÓDIGO PARA CANTAR</div>
+              <div className="cv-wordmark cv-grad-code" style={{ fontSize: 'clamp(56px, 7vw, 92px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', margin: '8px 0', textShadow: '0 0 50px rgba(110,243,178,.3)' }}>{roomCode ?? '—'}</div>
+              <div style={{ marginTop: 6 }}><Waveform n={40} color="#6EF3B2" maxH={26} barW={3} gap={3} seed={11} /></div>
+              <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 10 }}>Los clientes se anotan en su celular · cambia cada pocos minutos</div>
+            </div>
+
             {/* agregar cantante (fuera de pantalla completa) */}
             {!isFs && (
               <div className="cv-card" style={{ padding: showAdd ? '16px 18px' : '12px 18px' }}>
