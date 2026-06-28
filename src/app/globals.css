@@ -1,3 +1,167 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* ============================================================
+   CARTA VIBRA — Sistema de diseño
+   Neón sobre oscuro · de noche
+   Derivado del export de Claude Design
+   ============================================================ */
+
+:root {
+  /* Marca */
+  --cv-violet:        #5E2EFF;
+  --cv-violet-light:  #7B4DFF;   /* solo texto en gradiente (legibilidad) */
+  --cv-cyan:          #00D4FF;
+  --cv-mint:          #6EF3B2;
+
+  /* Superficies */
+  --cv-night:         #07060E;   /* fondo base */
+  --cv-bg-2:          #0A0812;   /* cards / fondo secundario */
+  --cv-surface:       #14101F;   /* superficie elevada */
+
+  /* Texto */
+  --cv-text:          #EDEAF5;
+  --cv-text-2:        #CFC9DA;
+  --cv-muted:         #9A93A8;
+  --cv-muted-2:       #8B8499;
+  --cv-mono:          #7F7890;
+  --cv-mono-2:        #6B6478;
+
+  /* Acentos */
+  --cv-dot-off:       #3A3548;   /* punto playlist inactiva */
+  --cv-warm:          #CC9977;   /* acción borrar */
+
+  /* Gradientes */
+  --cv-grad:       linear-gradient(100deg, #5E2EFF, #00D4FF 52%, #6EF3B2);
+  --cv-grad-text:  linear-gradient(102deg, #7B4DFF, #00D4FF 50%, #6EF3B2);
+  --cv-grad-code:  linear-gradient(135deg, #7B4DFF 5%, #00D4FF 52%, #6EF3B2 95%);
+
+  /* Forma */
+  --cv-radius:     16px;
+  --cv-radius-lg:  20px;
+
+  /* Motion (controlables) */
+  --cv-beat:  0.666s;   /* 60 / BPM  (default 90 BPM) */
+  --cv-surco: 0.5;      /* opacidad del campo de surcos vivos */
+
+  /* Fuentes (next/font expone estas variables) */
+  --cv-font-display: var(--font-space, 'Space Grotesk', sans-serif);
+  --cv-font-body:    var(--font-inter, 'Inter', system-ui, sans-serif);
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes cvSpin    { to { transform: rotate(360deg); } }
+@keyframes cvBeat    { 0%,100%{transform:scale(1);} 9%{transform:scale(1.055);} 24%{transform:scale(0.992);} 42%{transform:scale(1);} }
+@keyframes cvGlow    { 0%,100%{opacity:.4;} 11%{opacity:.95;} }
+@keyframes cvEq      { 0%,100%{transform:scaleY(0.22);} 50%{transform:scaleY(1);} }
+@keyframes cvLive    { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.25;transform:scale(.7);} }
+@keyframes cvBreathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.015);} }
+@keyframes cvWave    { 0%{transform:scale(.8);opacity:.55;} 100%{transform:scale(1.75);opacity:0;} }
+
+/* ---------- Base ---------- */
+html { background: var(--cv-night); }
+body {
+  background: var(--cv-night);
+  color: var(--cv-text);
+  font-family: var(--cv-font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- Átomos reutilizables ---------- */
+
+/* Wordmark: carta <vibra/> — tamaño vía style inline */
+.cv-wordmark {
+  font-family: var(--cv-font-display);
+  font-weight: 600;
+  letter-spacing: -.03em;
+  color: var(--cv-text);
+  line-height: 1;
+}
+.cv-grad-text {
+  background: var(--cv-grad-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cv-grad-code {
+  background: var(--cv-grad-code);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Etiquetas monoespaciadas (EN VIVO, SONANDO AHORA, CÓDIGO DE SALA) */
+.cv-mono {
+  font-family: ui-monospace, Menlo, monospace;
+  letter-spacing: .14em;
+  color: var(--cv-mono);
+}
+
+/* Superficie / tarjeta */
+.cv-card {
+  background: var(--cv-surface);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--cv-radius);
+}
+
+/* Botones */
+.cv-btn {
+  font-family: var(--cv-font-body);
+  font-weight: 600;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .15s ease, opacity .15s ease;
+}
+.cv-btn:active { transform: scale(.98); }
+.cv-btn-primary {
+  background: var(--cv-grad);
+  color: var(--cv-night);
+}
+.cv-btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--cv-text-2);
+}
+.cv-btn-google {
+  background: var(--cv-text);
+  color: var(--cv-surface);
+  box-shadow: 0 12px 34px rgba(0,0,0,.4);
+}
+
+/* Pastilla EN VIVO + punto que late */
+.cv-pill-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  border: 1px solid rgba(110,243,178,.4);
+  border-radius: 999px;
+  background: rgba(110,243,178,.06);
+}
+.cv-live-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--cv-mint);
+  box-shadow: 0 0 12px var(--cv-mint);
+  animation: cvLive 1.4s ease-in-out infinite;
+}
+
+/* Campo de surcos vivos (overlay que respira) */
+.cv-surco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--cv-surco, .5);
+  animation: cvBreathe 4s ease-in-out infinite;
+}
+
+/* ---------- Accesibilidad: respeta reduce motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+}
