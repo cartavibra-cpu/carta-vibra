@@ -134,6 +134,26 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     return () => { sb.removeChannel(ch); };
   }, [venue, loadLive, loadVenue, loadSignups]);
 
+  // búsqueda en YouTube (con debounce; el caché y el fallback los maneja la ruta).
+  // IMPORTANTE: este hook va con el resto, ANTES de cualquier return condicional.
+  useEffect(() => {
+    if (pickMode !== 'search') return;
+    const q = searchQ.trim();
+    if (q.length < 2) { setSearchResults([]); setSearchMsg(null); setSearching(false); return; }
+    setSearching(true); setSearchMsg(null);
+    const t = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/youtube-meta?kind=search&q=${encodeURIComponent(q)}`);
+        const data = await r.json();
+        if (r.status === 429 || data.error === 'quota') { setSearchResults([]); setSearchMsg('quota'); }
+        else if (!r.ok) { setSearchResults([]); setSearchMsg('⚠️ ' + (data.error || 'No se pudo buscar')); }
+        else { setSearchResults(data.results || []); if (!(data.results || []).length) setSearchMsg('Sin resultados. Probá otras palabras.'); }
+      } catch { setSearchResults([]); setSearchMsg('⚠️ Error buscando'); }
+      finally { setSearching(false); }
+    }, 600);
+    return () => clearTimeout(t);
+  }, [searchQ, pickMode]);
+
   const redeem = async () => {
     const sb = supa(); if (!sb || !venue) return;
     const { error } = await sb.rpc('redeem_room_code', { p_slug: slug, p_code: code.trim(), p_session: session, p_mesa: mesa || null });
@@ -199,25 +219,6 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
       </main>
     );
   }
-
-  // búsqueda en YouTube (con debounce; el caché y el fallback los maneja la ruta)
-  useEffect(() => {
-    if (pickMode !== 'search') return;
-    const q = searchQ.trim();
-    if (q.length < 2) { setSearchResults([]); setSearchMsg(null); setSearching(false); return; }
-    setSearching(true); setSearchMsg(null);
-    const t = setTimeout(async () => {
-      try {
-        const r = await fetch(`/api/youtube-meta?kind=search&q=${encodeURIComponent(q)}`);
-        const data = await r.json();
-        if (r.status === 429 || data.error === 'quota') { setSearchResults([]); setSearchMsg('quota'); }
-        else if (!r.ok) { setSearchResults([]); setSearchMsg('⚠️ ' + (data.error || 'No se pudo buscar')); }
-        else { setSearchResults(data.results || []); if (!(data.results || []).length) setSearchMsg('Sin resultados. Probá otras palabras.'); }
-      } catch { setSearchResults([]); setSearchMsg('⚠️ Error buscando'); }
-      finally { setSearching(false); }
-    }, 600);
-    return () => clearTimeout(t);
-  }, [searchQ, pickMode]);
 
   const sorted = [...tracks].sort((a, b) => (votes[b.id] || 0) - (votes[a.id] || 0) || a.title.localeCompare(b.title));
   const nowTrack = tracks.find((t) => t.id === nowId);
