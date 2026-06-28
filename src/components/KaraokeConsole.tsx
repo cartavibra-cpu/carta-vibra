@@ -60,6 +60,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const loadedIdRef = useRef<string | null>(null);
   const wantRef = useRef<string | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const cmdChRef = useRef<any>(null);
 
   const current = queue.find((s) => s.state === 'singing') || null;
   const waiting = queue.filter((s) => s.state === 'waiting');
@@ -172,6 +173,11 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venueId}` }, () => loadQueue())
       .subscribe();
 
+    // canal de comandos desde el celular (broadcast): pausar/reanudar
+    const cmdCh = sb?.channel('cmd-' + venueId);
+    cmdCh?.on('broadcast', { event: 'playpause' }, () => togglePlayPause()).subscribe();
+    cmdChRef.current = cmdCh || null;
+
     loadYT().then((YT) => {
       if (cancelled) return;
       playerRef.current = new YT.Player('yt-karaoke', {
@@ -181,15 +187,15 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           onReady: () => { readyRef.current = true; syncPlayer(); },
           onStateChange: (e: any) => {
             if (e.data === window.YT.PlayerState.ENDED) advance();
-            else if (e.data === window.YT.PlayerState.PAUSED) setIsPaused(true);
-            else if (e.data === window.YT.PlayerState.PLAYING) setIsPaused(false);
+            else if (e.data === window.YT.PlayerState.PAUSED) { setIsPaused(true); try { cmdChRef.current?.send({ type: 'broadcast', event: 'state', payload: { playing: false } }); } catch {} }
+            else if (e.data === window.YT.PlayerState.PLAYING) { setIsPaused(false); try { cmdChRef.current?.send({ type: 'broadcast', event: 'state', payload: { playing: true } }); } catch {} }
           },
           onError: () => { advance(); },
         },
       });
     });
 
-    return () => { cancelled = true; if (sb && ch) sb.removeChannel(ch); try { playerRef.current?.destroy?.(); } catch {} };
+    return () => { cancelled = true; if (sb && ch) sb.removeChannel(ch); if (sb && cmdCh) sb.removeChannel(cmdCh); try { playerRef.current?.destroy?.(); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venueId, playlistId]);
 
@@ -306,19 +312,6 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 </div>
               )}
 
-              {/* en PANTALLA COMPLETA: botón ➕ para agregar sin salir de full */}
-              {isFs && !showAdd && (
-                <button onClick={() => setShowAdd(true)} style={{ position: 'absolute', right: 20, top: 18, padding: '9px 16px', borderRadius: 999, border: '1px solid rgba(110,243,178,.4)', background: 'rgba(7,6,14,.5)', color: 'var(--cv-mint)', cursor: 'pointer', fontSize: 14, fontWeight: 600, boxShadow: '0 6px 24px -10px rgba(0,0,0,.6)' }}>➕ Agregar cantante</button>
-              )}
-
-              {/* overlay del formulario en pantalla completa */}
-              {isFs && showAdd && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(4,3,10,.62)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-                  <div className="cv-card" style={{ width: '100%', maxWidth: 420, padding: '20px 22px', background: 'rgba(20,16,31,.97)' }}>
-                    {addFormBody}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* cantando ahora + controles */}

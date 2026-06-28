@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, use, useCallback } from 'react';
+import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
@@ -29,6 +29,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [queue, setQueue] = useState<Signup[]>([]);
   const [backAvailable, setBackAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [pcPlaying, setPcPlaying] = useState(true);
+  const cmdChRef = useRef<any>(null);
 
   const [showAdd, setShowAdd] = useState(false);
   const [addSinger, setAddSinger] = useState('');
@@ -91,6 +93,18 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       .subscribe();
     return () => { sb.removeChannel(ch); };
   }, [venue, loadQueue]);
+
+  // canal de comandos hacia el PC (broadcast): pausar/reanudar + estado
+  useEffect(() => {
+    if (!venue) return;
+    const sb = supa(); if (!sb) return;
+    const cmd = sb.channel('cmd-' + venue.id);
+    cmd.on('broadcast', { event: 'state' }, (p: any) => { if (typeof p?.payload?.playing === 'boolean') setPcPlaying(p.payload.playing); }).subscribe();
+    cmdChRef.current = cmd;
+    return () => { sb.removeChannel(cmd); cmdChRef.current = null; };
+  }, [venue]);
+
+  const togglePlay = () => { try { cmdChRef.current?.send({ type: 'broadcast', event: 'playpause', payload: {} }); } catch {} setPcPlaying((v) => !v); };
 
   const advance = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_advance', { p_venue: vid }); } finally { setBusy(false); } };
   const goBack = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_back', { p_venue: vid }); } finally { setBusy(false); } };
@@ -225,6 +239,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         <button className="cv-btn cv-btn-ghost" onClick={goBack} disabled={!backAvailable || busy} style={{ padding: '16px 0', fontSize: 16, opacity: !backAvailable || busy ? 0.4 : 1 }}>◀ Anterior</button>
         <button className="cv-btn cv-btn-mint" onClick={advance} disabled={(!current && waiting.length === 0) || busy} style={{ padding: '16px 0', fontSize: 16, opacity: (!current && waiting.length === 0) || busy ? 0.4 : 1 }}>{current ? 'Siguiente ▶' : 'Empezar ▶'}</button>
       </div>
+      {current && (
+        <button className="cv-btn cv-btn-ghost" onClick={togglePlay} style={{ width: '100%', padding: '14px 0', fontSize: 16, marginBottom: 10 }}>{pcPlaying ? '⏸ Pausar' : '▶ Reanudar'}</button>
+      )}
       {!current && waiting.length > 0 && (
         <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono-2)', marginBottom: 12, textAlign: 'center' }}>el primer tema arrancalo desde el PC; después controlás todo desde acá.</p>
       )}
