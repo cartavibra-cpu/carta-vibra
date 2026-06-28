@@ -86,8 +86,9 @@ export default function ConsolePage() {
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
-  // Atajos de teclado (andan también en pantalla completa, salvo que el foco
-  // esté dentro del video de YouTube; en ese caso, un clic fuera del video y listo).
+  // Atajos de teclado. Como la consola usa controles propios (sin los nativos de
+  // YouTube), el teclado ya no se lo roba el reproductor → andan firmes, también
+  // en pantalla completa.
   useEffect(() => {
     if (!started) return;
     const onKey = (e: KeyboardEvent) => {
@@ -95,16 +96,11 @@ export default function ConsolePage() {
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key.toLowerCase();
-      if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        if (pausedRef.current) resumeWithFade(); else pauseWithFade();
-      } else if (e.key === 'ArrowRight' || k === 'n') {
-        e.preventDefault(); advance();
-      } else if (k === 'f') {
-        e.preventDefault(); toggleFs();
-      } else if (k === 'c') {
-        e.preventDefault(); toggleCC();
-      }
+      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePlayPause(); }
+      else if (e.key === 'ArrowRight' || k === 'n') { e.preventDefault(); advance(); }
+      else if (k === 'f') { e.preventDefault(); toggleFs(); }
+      else if (k === 'c') { e.preventDefault(); toggleCC(); }
+      else if (e.key === 'Escape') { if (document.fullscreenElement) { e.preventDefault(); document.exitFullscreen?.(); } }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -119,7 +115,14 @@ export default function ConsolePage() {
       if (error) { localStorage.removeItem('console_device_token'); return startPairing(); }
       if (data.paired) {
         tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false);
-      } else { localStorage.removeItem('console_device_token'); return startPairing(); }
+        localStorage.removeItem('console_pairing_code');
+      } else {
+        // Mantener el MISMO código entre recargas en vez de generar uno nuevo cada vez.
+        tokenRef.current = token;
+        const savedCode = typeof window !== 'undefined' ? localStorage.getItem('console_pairing_code') : null;
+        if (savedCode) { setPairCode(savedCode); setStatus(data); setLoading(false); pollStatus(token); }
+        else { localStorage.removeItem('console_device_token'); return startPairing(); }
+      }
     } catch { localStorage.removeItem('console_device_token'); return startPairing(); }
   };
 
@@ -130,6 +133,7 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_request_pairing');
       if (error) throw error;
       localStorage.setItem('console_device_token', data.device_token);
+      localStorage.setItem('console_pairing_code', data.pairing_code);
       tokenRef.current = data.device_token;
       setPairCode(data.pairing_code);
       pollStatus(data.device_token);
@@ -143,13 +147,14 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_status', { p_token: token });
       if (error) throw error;
       setStatus(data); setLoading(false);
-      if (data.paired) venueRef.current = data.venue_id;
+      if (data.paired) { venueRef.current = data.venue_id; localStorage.removeItem('console_pairing_code'); }
       else setTimeout(() => pollStatus(token), 2000);
     } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
   };
 
   const resetPairing = () => {
     localStorage.removeItem('console_device_token');
+    localStorage.removeItem('console_pairing_code');
     tokenRef.current = null; venueRef.current = null;
     setStatus(null); setPairCode(null); setStarted(false);
     startPairing();
@@ -220,7 +225,7 @@ export default function ConsolePage() {
     else { el.requestFullscreen?.(); setTimeout(() => { try { el.focus(); } catch {} }, 60); }
   };
 
-  // Pausa/Reanuda con fundido suave (lo maneja el operador).
+  // Pausa/Reanuda con fundido suave.
   const pauseWithFade = () => {
     const p = decksRef.current[currentRef.current];
     if (!p) return;
@@ -248,6 +253,15 @@ export default function ConsolePage() {
       try { p.setVolume(Math.min(100, v)); } catch {}
       if (v >= 100) { if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; } }
     }, 60);
+  };
+  // Decide según el estado REAL del reproductor (no solo nuestra bandera), así nunca se desfasa.
+  const togglePlayPause = () => {
+    const p = decksRef.current[currentRef.current];
+    let st: number | null = null;
+    try { st = p?.getPlayerState?.(); } catch {}
+    if (st === 2) resumeWithFade();
+    else if (st === 1 || st === 3) pauseWithFade();
+    else { if (pausedRef.current) resumeWithFade(); else pauseWithFade(); }
   };
 
   // Funde el deck actual hacia el otro deck reproduciendo videoId
@@ -351,6 +365,12 @@ export default function ConsolePage() {
 
     const onStateChange = (e: any) => {
       if (e.data === window.YT.PlayerState.PLAYING) { applyCC(e.target); }
+      // Sincronizar la bandera de pausa con el reproductor real (evita que el botón
+      // y los atajos queden desfasados si algo lo pausa por fuera).
+      if (!busyRef.current && e.target === decksRef.current[currentRef.current]) {
+        if (e.data === window.YT.PlayerState.PAUSED) { pausedRef.current = true; setIsPaused(true); }
+        else if (e.data === window.YT.PlayerState.PLAYING) { pausedRef.current = false; setIsPaused(false); }
+      }
       if (e.data === window.YT.PlayerState.ENDED && !busyRef.current && !pausedRef.current) {
         playingRef.current = false;
         advance();
@@ -373,13 +393,16 @@ export default function ConsolePage() {
     const YT = await loadYT();
     let ready = 0;
     const onReady = () => { ready++; if (ready === 2) advance(); };
+    // controls:0 + disablekb:1 → la consola es el único control; YouTube no captura
+    // el teclado ni el clic, así que los atajos y el fade quedan firmes.
     const opts = (id: string) => ({
       width: '100%', height: '100%',
-      playerVars: { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
+      playerVars: { autoplay: 1, controls: 0, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
       events: { onReady, onStateChange, onError },
     } as any);
     decksRef.current.A = new YT.Player('yt-A', opts('A'));
     decksRef.current.B = new YT.Player('yt-B', opts('B'));
+    setTimeout(() => { try { stageRef.current?.focus(); } catch {} }, 600);
 
     // monitor: cuando la actual está por terminar, traer la siguiente fundida
     setInterval(() => {
@@ -412,7 +435,7 @@ export default function ConsolePage() {
     return (
       <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
         <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 42%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
-        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28, padding: 24 }}>
+        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 26, padding: 24 }}>
           <BrandMark size={150} />
           <div style={{ textAlign: 'center' }}>
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 600 }}>Vinculá esta consola</h1>
@@ -425,7 +448,10 @@ export default function ConsolePage() {
               ))}
             </div>
           ) : (<p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>generando código…</p>)}
-          <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Generar un código nuevo</button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
+            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Generar un código nuevo</button>
+            <a href="/" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al inicio</a>
+          </div>
         </div>
       </main>
     );
@@ -448,7 +474,10 @@ export default function ConsolePage() {
           <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
             Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos. Para no mostrar avisos, logueá este navegador con tu cuenta de YouTube Premium.
           </p>
-          <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
+            <a href="/" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al inicio</a>
+          </div>
         </div>
       </main>
     );
@@ -486,6 +515,9 @@ export default function ConsolePage() {
               <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
               <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
 
+              {/* capa de clic: pausa/reanuda al tocar el video y mantiene el teclado en la consola */}
+              <div onClick={togglePlayPause} title="Pausar / reanudar" style={{ position: 'absolute', inset: 0, zIndex: 5, cursor: 'pointer' }} />
+
               {/* código flotante: visible SOLO en pantalla completa (para karaoke) */}
               {isFs && (
                 <div style={{ position: 'absolute', top: 28, right: 28, zIndex: 10, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.55)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px' }}>
@@ -497,7 +529,7 @@ export default function ConsolePage() {
 
             {/* controles del operador */}
             <div style={{ display: 'flex', gap: 9, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '9px 16px' }} onClick={isPaused ? resumeWithFade : pauseWithFade}>
+              <button className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '9px 16px' }} onClick={togglePlayPause}>
                 {isPaused ? '▶ Reanudar' : '⏸ Pausa'}
               </button>
               <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px' }} onClick={() => advance()}>⏭ Saltear</button>
@@ -505,8 +537,8 @@ export default function ConsolePage() {
               <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px', opacity: ccOn ? 1 : 0.55 }} onClick={toggleCC}>Subtítulos {ccOn ? 'on' : 'off'}</button>
             </div>
 
-            <div className="cv-mono" style={{ marginTop: 10, fontSize: 11, color: 'var(--cv-mono-2)' }}>
-              Atajos: <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Espacio</b> pausa/play · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>→</b> siguiente · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>F</b> pantalla · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>C</b> subtítulos
+            <div className="cv-mono" style={{ marginTop: 10, fontSize: 11, color: 'var(--cv-mono-2)', lineHeight: 1.5 }}>
+              Atajos: <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Espacio</b> pausa/play · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>→</b> siguiente · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>F</b> pantalla · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>C</b> subtítulos · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Esc</b> salir · también podés tocar el video para pausar
             </div>
 
             <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -565,9 +597,9 @@ export default function ConsolePage() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-muted)', flexWrap: 'wrap' }}>
                 Segundos por canción (0 = completa):
                 <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds}
-                  onChange={(e) => { const n = parseInt(e.target.value) || 0; setMaxSeconds(n); maxSecondsRef.current = n; }} />
+                  onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
               </label>
-              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad del video se elige en el engranaje ⚙ del propio reproductor.</p>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 8, lineHeight: 1.5 }}>La calidad se ajusta sola según la conexión (YouTube no deja fijarla por código).</p>
             </div>
 
           </div>

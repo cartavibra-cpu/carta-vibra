@@ -1,8 +1,11 @@
 'use client';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 import TopNav from '@/components/TopNav';
+
+const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
+const modeLabel = (m: string) => MODE_LABELS[m] || m;
 
 function getYouTubeId(url: string) {
   try {
@@ -52,6 +55,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
   const [mesa, setMesa] = useState('1');
   const [pairCode, setPairCode] = useState('');
   const [pairMsg, setPairMsg] = useState<string | null>(null);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
   const handlePair = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +100,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     const sb = supa(); if (!sb) return;
     const { data } = await sb.from('catalog_track').select('*').eq('playlist_id', p.id).order('created_at');
     setPlTracks(data || []);
+    setTimeout(() => { editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 80);
   };
 
   const reloadSelected = async () => { if (selected) await selectPlaylist(selected); };
@@ -219,7 +224,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
         {/* header */}
         <div style={{ marginBottom: 26 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>{venue.name}</h1>
-          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {venue.mode}</div>
+          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {modeLabel(venue.mode)}</div>
         </div>
 
         {/* 1. Vincular consola */}
@@ -307,7 +312,7 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
 
         {/* 4. Editor */}
         {selected && (
-          <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 18, border: '1px solid rgba(0,212,255,.25)' }}>
+          <section ref={editorRef} className="cv-card" style={{ padding: '20px 22px', marginBottom: 18, border: '1px solid rgba(0,212,255,.25)', scrollMarginTop: 80 }}>
             <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>
               EDITANDO · {selected.name}{selected.is_active && <span style={{ color: 'var(--cv-mint)' }}> (activa)</span>}
             </div>

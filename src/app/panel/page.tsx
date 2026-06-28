@@ -4,6 +4,8 @@ import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
+const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
+const modeLabel = (m: string) => MODE_LABELS[m] || m;
 
 export default function PanelPage() {
   const [session, setSession] = useState<any>(null);
@@ -11,6 +13,8 @@ export default function PanelPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [mode, setMode] = useState('youtube_jukebox');
+  const [err, setErr] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     const sb = supa();
@@ -33,11 +37,20 @@ export default function PanelPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErr(null);
     const sb = supa();
     if (!sb) return;
-    const { data, error } = await sb.rpc('create_venue', { p_slug: slug, p_name: name, p_mode: mode });
-    if (error) return alert(error.message);
-    window.location.href = `/panel/venues/${encodeURIComponent(data.slug)}`;
+    const cleanName = name.trim();
+    const cleanSlug = slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    if (!cleanName) { setErr('Poné el nombre del local.'); return; }
+    if (!cleanSlug) { setErr('Poné un identificador (slug) válido: letras, números y guiones, sin espacios.'); return; }
+    setCreating(true);
+    try {
+      const { data, error } = await sb.rpc('create_venue', { p_slug: cleanSlug, p_name: cleanName, p_mode: mode });
+      if (error) { setErr(error.message); return; }
+      window.location.href = `/panel/venues/${encodeURIComponent(data.slug)}`;
+    } catch (e: any) { setErr(e?.message || 'No se pudo crear el local.'); }
+    finally { setCreating(false); }
   };
 
   if (!session) {
@@ -69,7 +82,8 @@ export default function PanelPage() {
               <option value="youtube_karaoke">YouTube Karaoke</option>
               <option value="local_pro">Local Pro</option>
             </select>
-            <button className="cv-btn cv-btn-cyan" type="submit" style={{ fontSize: 15, padding: '11px 22px', alignSelf: 'flex-start' }}>Crear local</button>
+            <button className="cv-btn cv-btn-cyan" type="submit" disabled={creating} style={{ fontSize: 15, padding: '11px 22px', alignSelf: 'flex-start', opacity: creating ? 0.6 : 1 }}>{creating ? 'Creando…' : 'Crear local'}</button>
+            {err && <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-warm)' }}>{err}</p>}
           </form>
         </section>
 
@@ -81,7 +95,7 @@ export default function PanelPage() {
             <a key={v.id} href={`/panel/venues/${encodeURIComponent(v.slug)}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '15px 18px', borderRadius: 14, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', textDecoration: 'none' }}>
               <div>
                 <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, color: 'var(--cv-text)' }}>{v.name}</div>
-                <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{v.mode} · /{v.slug}</div>
+                <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{modeLabel(v.mode)} · /{v.slug}</div>
               </div>
               <span style={{ fontSize: 18, color: 'var(--cv-cyan)' }}>→</span>
             </a>
