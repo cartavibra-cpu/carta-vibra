@@ -46,6 +46,8 @@ export default function ConsolePage() {
   const [isPaused, setIsPaused] = useState(false);
   const [ccOn, setCcOn] = useState(false);
   const [copied, setCopied] = useState(false);
+  // aviso cuando activás otra playlist en el local (no corta sola)
+  const [pending, setPending] = useState<{ playlistId: string; name: string } | null>(null);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
@@ -66,6 +68,8 @@ export default function ConsolePage() {
   // AutoDJ (relleno aleatorio inteligente cuando no hay votos)
   const autoPoolRef = useRef<string[]>([]);
   const activePlaylistRef = useRef<string | null>(null);
+  // canal realtime de la playlist activa (se re-suscribe al cambiar de playlist)
+  const tracksChannelRef = useRef<{ unsubscribe: () => void } | null>(null);
   const bagRef = useRef<string[]>([]);
   const lastAutoRef = useRef<string | null>(null);
   const autoOnRef = useRef(true);
@@ -377,14 +381,55 @@ export default function ConsolePage() {
     bagRef.current = [];
   };
 
+  // Canal realtime SOLO de la playlist activa. Se re-suscribe cuando cambiás de
+  // playlist (porque el filtro de Supabase es por un único playlist_id).
+  const subscribeTracks = (pid: string | null) => {
+    const sb = supa(); if (!sb) return;
+    if (tracksChannelRef.current) { tracksChannelRef.current.unsubscribe(); tracksChannelRef.current = null; }
+    if (!pid) return;
+    tracksChannelRef.current = sb.channel('console-tracks-' + pid)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'catalog_track', filter: `playlist_id=eq.${pid}` }, async () => {
+        await reloadActivePlaylist();
+        await refreshQueue();
+      })
+      .subscribe();
+  };
+
+  // ¿Activaron otra playlist en el local? Comparamos la asignación activa contra
+  // la que estamos tocando. Si es distinta, mostramos el aviso (NO cambiamos solos).
+  const checkActiveChange = async () => {
+    const sb = supa(); const venueId = venueRef.current; if (!sb || !venueId) return;
+    const { data } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    const newPid = (data as { playlist_id: string } | null)?.playlist_id ?? null;
+    if (!newPid || newPid === activePlaylistRef.current) { setPending(null); return; }
+    const { data: pl } = await sb.from('venue_playlist').select('name').eq('id', newPid).maybeSingle();
+    setPending({ playlistId: newPid, name: (pl as { name: string } | null)?.name ?? 'Nueva playlist' });
+  };
+
+  // El operador acepta el cambio: cambiamos el pool. NO cortamos la canción en
+  // curso — si algo suena, el cambio toma efecto en la próxima; si no, arranca ya.
+  const switchToPending = async () => {
+    if (!pending) return;
+    activePlaylistRef.current = pending.playlistId;
+    await reloadActivePlaylist();
+    subscribeTracks(pending.playlistId);
+    await refreshQueue();
+    setPending(null);
+    if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
+  };
+
+  const dismissPending = () => setPending(null);
+
   const startConsole = async () => {
     const sb = supa(); const token = tokenRef.current; const venueId = venueRef.current;
     if (!sb || !token || !venueId) return;
     setStarted(true);
 
-    // playlist activa del local + canciones (mapa + pool del AutoDJ)
-    const { data: apl } = await sb.from('venue_playlist').select('id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
-    activePlaylistRef.current = (apl as any)?.id ?? null;
+    // playlist activa del local (desde la ASIGNACIÓN) + canciones (mapa + pool del AutoDJ)
+    const { data: asg } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    activePlaylistRef.current = (asg as { playlist_id: string } | null)?.playlist_id ?? null;
     await reloadActivePlaylist();
 
     await rotate();
@@ -397,15 +442,13 @@ export default function ConsolePage() {
         await refreshQueue();
         if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow);
-    // en vivo: si agregás/sacás canciones de la playlist activa, la consola se actualiza sola
-    if (activePlaylistRef.current) {
-      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'catalog_track', filter: `playlist_id=eq.${activePlaylistRef.current}` }, async () => {
-        await reloadActivePlaylist();
-        await refreshQueue();
-      });
-    }
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow)
+      // si activás otra playlist en el local, la consola te avisa (no corta sola)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venueId}` }, checkActiveChange);
     ch.subscribe();
+    // en vivo: si agregás/sacás canciones de la playlist activa, la consola se actualiza
+    // sola (canal aparte porque se re-suscribe al cambiar de playlist).
+    subscribeTracks(activePlaylistRef.current);
 
     const onStateChange = (e: any) => {
       if (e.data === window.YT.PlayerState.PLAYING) { applyCC(e.target); }
@@ -544,6 +587,30 @@ export default function ConsolePage() {
             <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>EN VIVO</span>
           </div>
         </div>
+
+        {/* aviso: activaron otra playlist en el local */}
+        {pending && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+            marginBottom: 18, padding: '14px 18px', borderRadius: 16,
+            border: '1px solid rgba(0,212,255,.35)', background: 'rgba(0,212,255,.08)',
+            boxShadow: '0 0 40px -12px rgba(0,212,255,.45)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>🔄</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: 'var(--cv-muted)' }}>Activaron otra playlist en el local</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {pending.name}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 9, flexShrink: 0 }}>
+              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 14px' }} onClick={dismissPending}>Seguir con la actual</button>
+              <button className="cv-btn cv-btn-cyan" style={{ fontSize: 13, padding: '9px 16px' }} onClick={switchToPending}>Cambiar ahora</button>
+            </div>
+          </div>
+        )}
 
         <div style={{ flex: 1, display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', alignItems: 'start' }}>
 

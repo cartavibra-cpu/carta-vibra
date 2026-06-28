@@ -49,11 +49,16 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     const { data: v } = await sb.from('venue').select('*').eq('slug', slug).single();
     setVenue(v);
     if (!v) return;
-    const { data: pl } = await sb.from('venue_playlist').select('id,name').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
+    // La playlist activa del local ahora se resuelve desde la asignación
+    // (una playlist de la biblioteca puede estar en varios locales).
+    const { data: asg } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
+    const plId = (asg as { playlist_id: string } | null)?.playlist_id ?? null;
+    if (!plId) { setActivePl(null); setTracks([]); return; }
+    const { data: pl } = await sb.from('venue_playlist').select('id,name').eq('id', plId).maybeSingle();
     setActivePl((pl as any) || null);
-    if (!pl) { setTracks([]); return; }
     const { data: t } = await sb.from('catalog_track')
-      .select('id,title,artist,external_id').eq('playlist_id', (pl as any).id).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
+      .select('id,title,artist,external_id').eq('playlist_id', plId).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
     setTracks((t as Track[]) || []);
   }, [slug]);
 
@@ -77,9 +82,10 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     const ch = sb.channel('live-' + venue.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'queue', filter: `venue_id=eq.${venue.id}` }, () => loadLive(venue.id))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venue.id}` }, () => loadLive(venue.id))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venue.id}` }, () => loadVenue())
       .subscribe();
     return () => { sb.removeChannel(ch); };
-  }, [venue, loadLive]);
+  }, [venue, loadLive, loadVenue]);
 
   const redeem = async () => {
     const sb = supa(); if (!sb || !venue) return;
