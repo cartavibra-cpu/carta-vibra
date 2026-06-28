@@ -2,6 +2,7 @@
 import { useEffect, useState, use } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
+import TopNav from '@/components/TopNav';
 
 function getYouTubeId(url: string) {
   try {
@@ -204,128 +205,165 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     load();
   };
 
-  if (!venue) return <div className="p-6">Cargando local...</div>;
+  if (!venue) return (
+    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e' }}>
+      <div className="cv-mono" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.18em', color: 'var(--cv-muted)' }}>cargando local…</div>
+    </main>
+  );
+
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-2 text-2xl font-bold">{venue.name}</h1>
-      <p className="mb-4 text-sm text-gray-600">Modo: {venue.mode}</p>
+    <main style={{ minHeight: '100vh', background: 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e' }}>
+      <TopNav />
+      <div style={{ maxWidth: 880, margin: '0 auto', padding: '28px 20px 60px' }}>
 
-      <section className="mb-8 rounded-lg border-2 border-blue-300 bg-blue-50 p-4">
-        <h2 className="mb-1 text-xl font-semibold">1. Vincular consola</h2>
-        <p className="mb-3 text-sm text-gray-700">
-          Abrí <b>/console</b> en la pantalla/PC del local. Te muestra un <b>código de 6 dígitos</b>. Escribilo acá.
-        </p>
-        <form onSubmit={handlePair} className="flex flex-wrap gap-2">
-          <input className="w-40 rounded border p-2 text-center text-xl tracking-widest" inputMode="numeric" maxLength={6} placeholder="000000" value={pairCode} onChange={(e) => setPairCode(e.target.value)} />
-          <button className="rounded bg-blue-600 px-5 py-2 text-white" type="submit">Vincular</button>
-        </form>
-        {pairMsg && <p className="mt-2 text-sm font-medium text-blue-800">{pairMsg}</p>}
-      </section>
-
-      <section className="mb-8">
-        <h2 className="mb-1 text-xl font-semibold">2. Mis playlists</h2>
-        <p className="mb-3 text-sm text-gray-600">Los clientes votan solo la playlist <b>activa</b>. Podés tener varias y cambiar cuál suena.</p>
-        <div className="mb-3 flex flex-wrap gap-2">
-          <input className="min-w-0 flex-1 border p-2" placeholder="Nombre de una playlist nueva vacía" value={newPlName} onChange={(e) => setNewPlName(e.target.value)} />
-          <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={createEmpty}>Crear vacía</button>
+        {/* header */}
+        <div style={{ marginBottom: 26 }}>
+          <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>{venue.name}</h1>
+          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {venue.mode}</div>
         </div>
-        <ul className="space-y-2">
-          {playlists.length === 0 && <li className="text-sm text-gray-500">Todavía no tenés playlists.</li>}
-          {playlists.map((p) => (
-            <li key={p.id} className={`flex flex-wrap items-center justify-between gap-2 rounded border p-3 ${p.is_active ? 'border-green-500 bg-green-50' : ''}`}>
-              <div>
-                <span className="font-semibold">{p.name}</span>
-                {p.mood && <span className="ml-2 text-sm text-gray-500">· {p.mood}</span>}
-                <span className="ml-2 text-sm text-gray-500">· {counts[p.id] || 0} temas</span>
-                {p.is_active && <span className="ml-2 text-xs font-bold text-green-700">● SONANDO</span>}
-              </div>
-              <div className="flex gap-2">
-                {!p.is_active && <button className="rounded bg-green-600 px-3 py-1 text-sm text-white" onClick={() => activate(p)}>Activar</button>}
-                <button className="rounded bg-blue-600 px-3 py-1 text-sm text-white" onClick={() => selectPlaylist(p)}>Editar</button>
-                <button className="rounded bg-red-600 px-3 py-1 text-sm text-white" onClick={() => deletePlaylist(p)}>Borrar</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
 
-      <section className="mb-8 rounded-lg border border-purple-300 bg-purple-50 p-4">
-        <h2 className="mb-1 text-xl font-semibold">3. Importar playlists (crean una playlist nueva)</h2>
-
-        <h3 className="mb-1 mt-2 font-semibold">Curadas de Carta Vibra</h3>
-        <ul className="space-y-2">
-          {curated.length === 0 && <li className="text-sm text-gray-500">No hay playlists curadas disponibles.</li>}
-          {curated.map((t) => (
-            <li key={t.id} className="flex flex-wrap items-center justify-between gap-2 rounded border bg-white p-3">
-              <div>
-                <span className="font-semibold">{t.name}</span>
-                {t.mood && <span className="ml-2 text-sm text-gray-500">· {t.mood}</span>}
-                <span className="ml-2 text-sm text-gray-500">· {curatedCounts[t.id] || 0} temas</span>
-                {t.description && <p className="text-sm text-gray-600">{t.description}</p>}
-              </div>
-              <button className="rounded bg-purple-600 px-4 py-2 text-white" onClick={() => importCurated(t)}>Importar</button>
-            </li>
-          ))}
-        </ul>
-        {curatedMsg && <p className="mt-2 text-sm text-gray-700">{curatedMsg}</p>}
-
-        <h3 className="mb-1 mt-4 font-semibold">Desde una playlist de YouTube</h3>
-        <div className="space-y-2">
-          <input className="w-full border p-2" placeholder="Nombre de la playlist (ej: Rock de los 2000)" value={ytName} onChange={(e) => setYtName(e.target.value)} />
-          <div className="flex flex-wrap gap-2">
-            <input className="min-w-0 flex-1 border p-2" placeholder="https://www.youtube.com/playlist?list=..." value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} />
-            <button className="rounded bg-gray-800 px-4 py-2 text-white disabled:opacity-50" onClick={importYouTube} disabled={ytLoading}>{ytLoading ? 'Importando…' : 'Importar'}</button>
+        {/* 1. Vincular consola */}
+        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+            <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)' }}>1</span>
+            <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)' }}>VINCULAR CONSOLA</span>
           </div>
-        </div>
-        {ytMsg && <p className="mt-2 text-sm text-gray-700">{ytMsg}</p>}
-      </section>
-
-      {selected && (
-        <section className="mb-8 rounded-lg border-2 border-gray-400 p-4">
-          <h2 className="text-xl font-semibold">Editando: {selected.name}{selected.is_active && <span className="ml-2 text-sm text-green-700">(activa)</span>}</h2>
-
-          <div className="mt-3 space-y-2 rounded border bg-gray-50 p-3">
-            <p className="text-sm font-semibold">Nombre y datos de la playlist</p>
-            <input className="w-full border p-2" placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Descripción (opcional)" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={saveDetails}>Guardar datos</button>
-          </div>
-
-          <h3 className="mb-1 mt-5 font-semibold">Agregar canción</h3>
-          <form onSubmit={addSong} className="space-y-2">
-            <input className="w-full border p-2" placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
-            {metaLoading && <p className="text-sm text-gray-500">Buscando…</p>}
-            {metaMsg && <p className="text-sm text-gray-700">{metaMsg}</p>}
-            <input className="w-full border p-2" placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <input className="w-full border p-2" placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white" type="submit">Agregar a esta playlist</button>
+          <p style={{ fontSize: 14, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '4px 0 14px' }}>
+            Abrí <b style={{ color: 'var(--cv-text)' }}>/console</b> en la pantalla del local. Te muestra un código de 6 dígitos. Escribilo acá.
+          </p>
+          <form onSubmit={handlePair} style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <input className="cv-input" inputMode="numeric" maxLength={6} placeholder="000000" value={pairCode} onChange={(e) => setPairCode(e.target.value)} style={{ width: 160, textAlign: 'center', fontSize: 20, letterSpacing: '.25em', fontFamily: 'var(--cv-font-display)' }} />
+            <button className="cv-btn cv-btn-cyan" type="submit" style={{ fontSize: 15, padding: '0 24px' }}>Vincular</button>
           </form>
-
-          <h3 className="mb-1 mt-5 font-semibold">Canciones ({plTracks.length})</h3>
-          <ul className="space-y-1">
-            {plTracks.length === 0 && <li className="text-sm text-gray-500">Sin canciones todavía.</li>}
-            {plTracks.map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded border p-2 text-sm">
-                <span>{t.title}{t.artist ? <span className="text-gray-500"> — {t.artist}</span> : null}{t.is_embeddable === false ? <span className="ml-2 text-xs text-amber-600">⚠️ no embebible</span> : null}</span>
-                <button className="text-red-600 underline" onClick={() => deleteSong(t.id)}>quitar</button>
-              </li>
-            ))}
-          </ul>
-          <button className="mt-4 text-sm text-gray-500 underline" onClick={() => { setSelected(null); setPlTracks([]); }}>Cerrar editor</button>
+          {pairMsg && <p className="cv-mono" style={{ marginTop: 12, fontSize: 13, color: 'var(--cv-cyan-light)' }}>{pairMsg}</p>}
         </section>
-      )}
 
-      <section>
-        <h2 className="mb-2 text-xl font-semibold">QR para clientes</h2>
-        <div className="flex items-center gap-4">
-          <img src={qr} alt="QR" className="h-40 w-40" />
-          <div>
-            <p>Mesa:</p>
-            <input className="w-20 border p-1" value={mesa} onChange={(e) => setMesa(e.target.value)} />
+        {/* 2. Mis playlists */}
+        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+            <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)' }}>2</span>
+            <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)' }}>MIS PLAYLISTS</span>
           </div>
-        </div>
-      </section>
-    </div>
+          <p style={{ fontSize: 14, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '4px 0 14px' }}>Los clientes votan solo la playlist <b style={{ color: 'var(--cv-mint)' }}>activa</b>. Podés tener varias y cambiar cuál suena.</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+            <input className="cv-input" placeholder="Nombre de una playlist nueva vacía" value={newPlName} onChange={(e) => setNewPlName(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
+            <button className="cv-btn cv-btn-ghost" onClick={createEmpty} style={{ fontSize: 14, padding: '0 18px' }}>Crear vacía</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {playlists.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no tenés playlists.</div>}
+            {playlists.map((p) => (
+              <div key={p.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '13px 15px', borderRadius: 13, background: p.is_active ? 'rgba(110,243,178,.07)' : 'rgba(255,255,255,.03)', border: p.is_active ? '1px solid rgba(110,243,178,.4)' : '1px solid rgba(255,255,255,.06)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600 }}>{p.name}</span>
+                  {p.mood && <span className="cv-mono" style={{ marginLeft: 8, fontSize: 12, color: 'var(--cv-muted-2)' }}>· {p.mood}</span>}
+                  <span className="cv-mono" style={{ marginLeft: 8, fontSize: 12, color: 'var(--cv-muted-2)' }}>· {counts[p.id] || 0} temas</span>
+                  {p.is_active && <span className="cv-mono" style={{ marginLeft: 8, fontSize: 11, fontWeight: 600, color: 'var(--cv-mint)' }}>● SONANDO</span>}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {!p.is_active && <button className="cv-btn cv-btn-mint" onClick={() => activate(p)} style={{ fontSize: 13, padding: '7px 14px' }}>Activar</button>}
+                  <button className="cv-btn cv-btn-ghost" onClick={() => selectPlaylist(p)} style={{ fontSize: 13, padding: '7px 14px' }}>Editar</button>
+                  <button onClick={() => deletePlaylist(p)} style={{ fontSize: 13, padding: '7px 12px', background: 'none', border: '1px solid rgba(204,153,119,.3)', borderRadius: 10, color: 'var(--cv-warm)', cursor: 'pointer', fontFamily: 'var(--cv-font-body)' }}>Borrar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 3. Importar */}
+        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
+            <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)' }}>3</span>
+            <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)' }}>IMPORTAR PLAYLISTS</span>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--cv-muted-2)', margin: '4px 0 16px' }}>Cada importación crea una playlist nueva.</p>
+
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-violet-light)', marginBottom: 10 }}>CURADAS DE CARTA VIBRA</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 8 }}>
+            {curated.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>no hay playlists curadas disponibles.</div>}
+            {curated.map((t) => (
+              <div key={t.id} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '13px 15px', borderRadius: 13, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)' }}>
+                <div style={{ minWidth: 0 }}>
+                  <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 600 }}>{t.name}</span>
+                  {t.mood && <span className="cv-mono" style={{ marginLeft: 8, fontSize: 12, color: 'var(--cv-muted-2)' }}>· {t.mood}</span>}
+                  <span className="cv-mono" style={{ marginLeft: 8, fontSize: 12, color: 'var(--cv-muted-2)' }}>· {curatedCounts[t.id] || 0} temas</span>
+                  {t.description && <p style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 3 }}>{t.description}</p>}
+                </div>
+                <button className="cv-btn cv-btn-ghost" onClick={() => importCurated(t)} style={{ fontSize: 13, padding: '8px 16px' }}>Importar</button>
+              </div>
+            ))}
+          </div>
+          {curatedMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-text-2)' }}>{curatedMsg}</p>}
+
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-cyan-light)', margin: '18px 0 10px' }}>DESDE UNA PLAYLIST DE YOUTUBE</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input className="cv-input" placeholder="Nombre de la playlist (ej: Rock de los 2000)" value={ytName} onChange={(e) => setYtName(e.target.value)} />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              <input className="cv-input" placeholder="https://www.youtube.com/playlist?list=..." value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
+              <button className="cv-btn cv-btn-ghost" onClick={importYouTube} disabled={ytLoading} style={{ fontSize: 14, padding: '0 18px', opacity: ytLoading ? 0.6 : 1 }}>{ytLoading ? 'Importando…' : 'Importar'}</button>
+            </div>
+          </div>
+          {ytMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-text-2)' }}>{ytMsg}</p>}
+        </section>
+
+        {/* 4. Editor */}
+        {selected && (
+          <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 18, border: '1px solid rgba(0,212,255,.25)' }}>
+            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>
+              EDITANDO · {selected.name}{selected.is_active && <span style={{ color: 'var(--cv-mint)' }}> (activa)</span>}
+            </div>
+
+            <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 13, padding: 14, display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)' }}>NOMBRE Y DATOS</div>
+              <input className="cv-input" placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              <input className="cv-input" placeholder="Mood (ej: Fiesta)" value={editMood} onChange={(e) => setEditMood(e.target.value)} />
+              <input className="cv-input" placeholder="Descripción (opcional)" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} />
+              <button className="cv-btn cv-btn-cyan" onClick={saveDetails} style={{ fontSize: 14, padding: '9px 18px', alignSelf: 'flex-start' }}>Guardar datos</button>
+            </div>
+
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)', margin: '18px 0 10px' }}>AGREGAR CANCIÓN</div>
+            <form onSubmit={addSong} style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <input className="cv-input" placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
+              {metaLoading && <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</p>}
+              {metaMsg && <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-text-2)' }}>{metaMsg}</p>}
+              <input className="cv-input" placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
+              <input className="cv-input" placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
+              <button className="cv-btn cv-btn-ghost" type="submit" style={{ fontSize: 14, padding: '9px 18px', alignSelf: 'flex-start' }}>Agregar a esta playlist</button>
+            </form>
+
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)', margin: '18px 0 10px' }}>CANCIONES ({plTracks.length})</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+              {plTracks.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin canciones todavía.</div>}
+              {plTracks.map((t) => (
+                <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 13px', borderRadius: 11, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.05)' }}>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {t.title}{t.artist ? <span style={{ color: 'var(--cv-muted-2)' }}> — {t.artist}</span> : null}
+                    {t.is_embeddable === false ? <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--cv-warm)' }}>⚠️ no reproducible</span> : null}
+                  </span>
+                  <button onClick={() => deleteSong(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--cv-warm)', textDecoration: 'underline', fontFamily: 'var(--cv-font-body)' }}>quitar</button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => { setSelected(null); setPlTracks([]); }} style={{ marginTop: 16, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline', fontFamily: 'var(--cv-font-body)' }}>Cerrar editor</button>
+          </section>
+        )}
+
+        {/* 5. QR */}
+        <section className="cv-card" style={{ padding: '20px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
+            <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)' }}>4</span>
+            <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)' }}>QR PARA CLIENTES</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            {qr && <img src={qr} alt="QR" style={{ width: 150, height: 150, borderRadius: 12, background: '#fff', padding: 8 }} />}
+            <div>
+              <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginBottom: 6 }}>MESA</div>
+              <input className="cv-input" value={mesa} onChange={(e) => setMesa(e.target.value)} style={{ width: 90 }} />
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 10, maxWidth: 240, lineHeight: 1.5 }}>El QR lleva al widget de este local con el número de mesa.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
   );
 }
