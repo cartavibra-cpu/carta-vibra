@@ -40,6 +40,8 @@ export default function ConsolePage() {
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
   const [maxSeconds, setMaxSeconds] = useState(0);
+  const [isAutoNow, setIsAutoNow] = useState(false);
+  const [autoOn, setAutoOn] = useState(true);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
@@ -52,6 +54,12 @@ export default function ConsolePage() {
   const playingRef = useRef(false);
   const rampRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const maxSecondsRef = useRef(0);
+
+  // AutoDJ (relleno aleatorio inteligente cuando no hay votos)
+  const autoPoolRef = useRef<string[]>([]);   // ids reproducibles de la playlist activa
+  const bagRef = useRef<string[]>([]);        // "bolsa barajada": toca todas antes de repetir
+  const lastAutoRef = useRef<string | null>(null);
+  const autoOnRef = useRef(true);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
@@ -126,6 +134,27 @@ export default function ConsolePage() {
     setNowTitle(tr ? `${tr.title}${tr.artist ? ' — ' + tr.artist : ''}` : '—');
   };
 
+  // AutoDJ: elige la próxima canción de la playlist activa con bolsa barajada.
+  // Reproduce todas una vez antes de repetir y evita repetir la última al rebarajar.
+  const pickAuto = (): string | null => {
+    const pool = autoPoolRef.current;
+    if (!pool.length) return null;
+    if (bagRef.current.length === 0) {
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      if (pool.length > 1 && shuffled[0] === lastAutoRef.current) {
+        shuffled.push(shuffled.shift() as string);
+      }
+      bagRef.current = shuffled;
+    }
+    const id = bagRef.current.shift() as string;
+    lastAutoRef.current = id;
+    return id;
+  };
+
   // Funde el deck actual hacia el otro deck reproduciendo videoId
   const transitionTo = (videoId: string) => {
     const fromKey = currentRef.current;
@@ -156,7 +185,8 @@ export default function ConsolePage() {
     }, STEP_MS);
   };
 
-  // Pasa a la siguiente canción más votada (con crossfade)
+  // Pasa a la siguiente canción. Prioridad: lo más votado. Si no hay votos y el
+  // AutoDJ está activo, elige de la playlist activa (así el local nunca se queda en silencio).
   const advance = async () => {
     if (busyRef.current) return;
     busyRef.current = true;
@@ -167,9 +197,21 @@ export default function ConsolePage() {
         .eq('venue_id', venueId).eq('state', 'queued')
         .order('votes', { ascending: false }).order('created_at', { ascending: true }).limit(1);
       const top = (data as any)?.[0];
-      if (!top) { busyRef.current = false; return; }
-      const track = tracksRef.current[top.track_id];
-      await sb.rpc('console_set_now_playing', { p_token: token, p_track: top.track_id, p_position: 0 });
+
+      let trackId: string | null = null;
+      let isAuto = false;
+      if (top) {
+        trackId = top.track_id;
+      } else if (autoOnRef.current) {
+        trackId = pickAuto();
+        isAuto = true;
+      }
+
+      if (!trackId) { playingRef.current = false; busyRef.current = false; return; }
+
+      const track = tracksRef.current[trackId];
+      await sb.rpc('console_set_now_playing', { p_token: token, p_track: trackId, p_position: 0 });
+      setIsAutoNow(isAuto);
       await refreshNow();
       if (!track?.external_id) { busyRef.current = false; setTimeout(advance, 400); return; }
       playingRef.current = true;
@@ -186,6 +228,21 @@ export default function ConsolePage() {
     const map: Record<string, Track> = {};
     (t as Track[] | null)?.forEach((tr) => { map[tr.id] = tr; });
     tracksRef.current = map;
+
+    // AutoDJ: arma el pool con las canciones reproducibles de la playlist ACTIVA
+    // (las mismas que el cliente puede votar): habilitadas, embebibles y con video.
+    try {
+      const { data: apl } = await sb.from('venue_playlist').select('id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+      let pool: string[] = [];
+      if ((apl as any)?.id) {
+        const { data: pt } = await sb.from('catalog_track')
+          .select('id,external_id,enabled,is_embeddable').eq('playlist_id', (apl as any).id)
+          .eq('enabled', true).neq('is_embeddable', false);
+        pool = ((pt as any[]) || []).filter((r) => r.external_id).map((r) => r.id as string);
+      }
+      autoPoolRef.current = pool;
+      bagRef.current = [];
+    } catch { autoPoolRef.current = []; bagRef.current = []; }
 
     await rotate();
     setInterval(rotate, 120000);
@@ -289,8 +346,8 @@ export default function ConsolePage() {
           <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(110,243,178,.5)' }} onClick={startConsole}>
             ▶ Iniciar sesión musical
           </button>
-          <p style={{ maxWidth: 360, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
-            Tocá el botón para desbloquear el audio (los navegadores no dejan reproducir solos hasta que hay un clic).
+          <p style={{ maxWidth: 380, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
+            Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos.
           </p>
           <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
         </div>
@@ -321,8 +378,12 @@ export default function ConsolePage() {
               <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
               <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
             </div>
-            <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)' }}>
-              SONANDO AHORA · <span style={{ color: 'var(--cv-cyan)' }}>{nowTitle}</span>
+            <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span>SONANDO AHORA</span>
+              {isAutoNow && (
+                <span style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-violet-light)', border: '1px solid rgba(123,77,255,.45)', borderRadius: 999, padding: '2px 9px' }}>AUTODJ</span>
+              )}
+              <span style={{ color: 'var(--cv-cyan)' }}>· {nowTitle}</span>
             </div>
           </div>
 
@@ -341,7 +402,11 @@ export default function ConsolePage() {
             <div>
               <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>EN COLA · LO MÁS VOTADO</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {queue.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>esperando votos…</div>}
+                {queue.length === 0 && (
+                  <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
+                    sin votos por ahora{autoOn ? ' · suena el AutoDJ' : ''}
+                  </div>
+                )}
                 {queue.map((q, i) => {
                   const tr = tracksRef.current[q.track_id];
                   return (
@@ -357,9 +422,15 @@ export default function ConsolePage() {
               </div>
             </div>
 
-            {/* ajustes (discreto, para probar) */}
+            {/* ajustes (discreto) */}
             <div className="cv-card" style={{ padding: '14px 16px' }}>
               <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)', marginBottom: 10 }}>AJUSTES</div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-text-2)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: '#00D4FF' }} />
+                AutoDJ cuando no hay votos
+              </label>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 6, lineHeight: 1.5 }}>Rellena con la playlist activa para que el local nunca quede en silencio. Los votos siempre tienen prioridad.</p>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-muted)', flexWrap: 'wrap' }}>
                 Segundos por canción (0 = completa):
                 <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds}
