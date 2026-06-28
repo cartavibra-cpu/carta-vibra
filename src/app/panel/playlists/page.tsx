@@ -55,6 +55,12 @@ export default function PlaylistsPage() {
   const [metaMsg, setMetaMsg] = useState<string | null>(null);
   const [metaLoading, setMetaLoading] = useState(false);
 
+  // importar playlist entera de YouTube (a la playlist abierta)
+  const [ytUrl, setYtUrl] = useState('');
+  const [ytLoading, setYtLoading] = useState(false);
+  const [ytMsg, setYtMsg] = useState<string | null>(null);
+  const [tracksLoading, setTracksLoading] = useState(false);
+
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   const load = async () => {
@@ -78,14 +84,17 @@ export default function PlaylistsPage() {
 
   const loadTracks = async (pid: string) => {
     const sb = supa(); if (!sb) return;
+    setTracksLoading(true);
     const { data } = await sb.from('catalog_track').select('id,title,artist,external_id,is_embeddable,sort').eq('playlist_id', pid).order('sort');
     setTracks((data as Track[]) || []);
+    setTracksLoading(false);
   };
 
   const toggleExpand = async (p: Playlist) => {
     if (expanded === p.id) { setExpanded(null); setTracks([]); return; }
-    setExpanded(p.id); setEditId(null);
+    setExpanded(p.id); setEditId(null); setTracks([]);
     setUrl(''); setTTitle(''); setTArtist(''); setEmbeddable(true); setMetaMsg(null);
+    setYtUrl(''); setYtMsg(null);
     await loadTracks(p.id);
   };
 
@@ -150,6 +159,33 @@ export default function PlaylistsPage() {
     setUrl(''); setTTitle(''); setTArtist(''); setEmbeddable(true); setMetaMsg(null);
     await loadTracks(p.id);
     setCounts((c) => ({ ...c, [p.id]: (c[p.id] || 0) + 1 }));
+  };
+
+  const importPlaylistInto = async (p: Playlist) => {
+    if (!ytUrl.trim()) return;
+    const sb = supa(); if (!sb) return;
+    setYtLoading(true); setYtMsg('Leyendo playlist…');
+    try {
+      const r = await fetch(`/api/youtube-meta?kind=playlist&url=${encodeURIComponent(ytUrl.trim())}`);
+      const data = await r.json();
+      if (!r.ok) { setYtMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
+      const all: { videoId: string; title: string; artist: string; embeddable?: boolean; playable?: boolean }[] = data.tracks || [];
+      if (all.length === 0) { setYtMsg('La playlist no tiene canciones.'); return; }
+      const playable = all.filter((t) => (t.playable ?? t.embeddable) !== false);
+      const blocked = all.length - playable.length;
+      if (playable.length === 0) { setYtMsg('⚠️ Ninguna de esas canciones se reproduce (embed bloqueado). Probá otra.'); return; }
+      const base = tracks.length ? Math.max(...tracks.map((t) => t.sort)) + 1 : 0;
+      const rows = playable.map((t, k) => ({
+        playlist_id: p.id, venue_id: null, source: 'youtube', external_id: t.videoId,
+        title: t.title || 'Sin título', artist: t.artist || '', is_embeddable: true, sort: base + k,
+      }));
+      const { error } = await sb.from('catalog_track').insert(rows);
+      if (error) { setYtMsg('⚠️ ' + error.message); return; }
+      setYtMsg(`✓ Agregué ${rows.length} canciones${blocked > 0 ? `. Omití ${blocked} que no se reproducen.` : '.'}`);
+      setYtUrl('');
+      await loadTracks(p.id);
+      setCounts((c) => ({ ...c, [p.id]: (c[p.id] || 0) + rows.length }));
+    } catch { setYtMsg('⚠️ Error consultando YouTube'); } finally { setYtLoading(false); }
   };
 
   const deleteSong = async (p: Playlist, trackId: string) => {
@@ -306,11 +342,24 @@ export default function PlaylistsPage() {
                               )}
                             </form>
 
+                            {/* importar playlist entera */}
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', margin: '0 0 16px', padding: '12px 14px', borderRadius: 10, background: 'rgba(0,212,255,.04)', border: '1px dashed rgba(0,212,255,.22)' }}>
+                              <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.1em', color: 'var(--cv-cyan-light)', width: '100%' }}>¿UNA PLAYLIST ENTERA? PEGÁ EL LINK DE LA PLAYLIST DE YOUTUBE</span>
+                              <input className="cv-input" style={{ flex: '2 1 220px', padding: '10px 12px' }} placeholder="https://youtube.com/playlist?list=…" value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} />
+                              <button type="button" onClick={() => importPlaylistInto(p)} disabled={ytLoading} className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '10px 18px', opacity: ytLoading ? 0.6 : 1 }}>{ytLoading ? 'Importando…' : 'Importar todas'}</button>
+                              {ytMsg && <span className="cv-mono" style={{ fontSize: 12, width: '100%', color: ytMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{ytMsg}</span>}
+                            </div>
+
                             {/* lista */}
-                            {tracks.length === 0 ? (
+                            {tracksLoading ? (
+                              <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>cargando canciones…</p>
+                            ) : tracks.length === 0 ? (
                               <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>Sin canciones aún · pegá un link de YouTube arriba.</p>
                             ) : (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto', paddingRight: 6 }}>
+                                {tracks.length > 8 && (
+                                  <div className="cv-mono" style={{ position: 'sticky', top: 0, zIndex: 1, background: '#14101F', fontSize: 11, color: 'var(--cv-mono-2)', padding: '0 0 6px', textAlign: 'right' }}>{tracks.length} canciones · scrolleá adentro</div>
+                                )}
                                 {tracks.map((tr, i) => (
                                   <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.05)' }}>
                                     <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', width: 22 }}>{i + 1}</span>
