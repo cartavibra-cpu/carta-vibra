@@ -643,9 +643,9 @@ export default function ConsolePage() {
               {/* código flotante: visible SOLO en pantalla completa (para karaoke) — abajo a la derecha, sobre la barra del reproductor.
                   Sin backdrop-filter (se rompía sobre el video y desaparecía) y con capa propia (translateZ) para quedar SIEMPRE encima del iframe. */}
               {isFs && (
-                <div style={{ position: 'absolute', bottom: 80, right: 28, zIndex: 2147483000, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.88)', border: '1px solid rgba(0,212,255,.35)', borderRadius: 18, padding: '14px 22px', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform', boxShadow: '0 10px 34px -12px rgba(0,0,0,.75)' }}>
-                  <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)' }}>VOTÁ EN TU CELULAR · CÓDIGO</div>
-                  <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4 }}>{roomCode ?? '—'}</div>
+                <div style={{ position: 'absolute', bottom: 80, right: 28, zIndex: 2147483000, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.42)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform', boxShadow: '0 10px 34px -12px rgba(0,0,0,.6)' }}>
+                  <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR · CÓDIGO</div>
+                  <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4, textShadow: '0 2px 18px rgba(0,0,0,.85)' }}>{roomCode ?? '—'}</div>
                 </div>
               )}
             </div>

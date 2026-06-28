@@ -255,10 +255,16 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 </div>
               )}
               {current && (
-                <div style={{ position: 'absolute', left: 16, top: 14, padding: '6px 12px', borderRadius: 999, background: 'rgba(7,6,14,.55)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)' }} />
-                  <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{current.singer}</span>
-                </div>
+                <>
+                  <div style={{ position: 'absolute', left: 16, top: 14, padding: '6px 12px', borderRadius: 999, background: 'rgba(7,6,14,.5)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)' }} />
+                    <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, color: '#fff', textShadow: '0 1px 8px rgba(0,0,0,.8)' }}>{current.singer}</span>
+                  </div>
+                  <div style={{ position: 'absolute', right: 16, top: 14, padding: '8px 16px', borderRadius: 14, background: 'rgba(7,6,14,.42)', border: '1px solid rgba(0,212,255,.3)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, boxShadow: '0 6px 24px -10px rgba(0,0,0,.6)' }}>
+                    <span className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-cyan-light)', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>ANOTATE · CÓDIGO</span>
+                    <span className="cv-wordmark cv-grad-code" style={{ fontSize: 34, fontWeight: 700, lineHeight: 1, letterSpacing: '.06em', textShadow: '0 2px 16px rgba(0,0,0,.85)' }}>{roomCode ?? '—'}</span>
+                  </div>
+                </>
               )}
             </div>
 
