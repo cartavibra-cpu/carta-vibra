@@ -30,6 +30,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [backAvailable, setBackAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pcPlaying, setPcPlaying] = useState(true);
+  const [mode, setMode] = useState<'jukebox' | 'karaoke'>('karaoke');
+  const [jbSeconds, setJbSeconds] = useState(0);
+  const [jbAutoDj, setJbAutoDj] = useState(true);
   const cmdChRef = useRef<any>(null);
 
   const [showAdd, setShowAdd] = useState(false);
@@ -63,6 +66,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     if (!v) return;
     const { data: asg } = await sb.from('venue_playlist_assignment')
       .select('playlist_id,section').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
+    setMode((asg as any)?.section === 'jukebox' ? 'jukebox' : 'karaoke');
     const plId = (asg as any)?.playlist_id ?? null;
     if (!plId) { setTracks([]); return; }
     const { data: t } = await sb.from('catalog_track')
@@ -94,17 +98,36 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     return () => { sb.removeChannel(ch); };
   }, [venue, loadQueue]);
 
-  // canal de comandos hacia el PC (broadcast): pausar/reanudar + estado
+  // canal de comandos hacia el PC (broadcast): pausar/reanudar + estado (karaoke y jukebox)
   useEffect(() => {
     if (!venue) return;
     const sb = supa(); if (!sb) return;
     const cmd = sb.channel('cmd-' + venue.id);
-    cmd.on('broadcast', { event: 'state' }, (p: any) => { if (typeof p?.payload?.playing === 'boolean') setPcPlaying(p.payload.playing); }).subscribe();
+    cmd
+      .on('broadcast', { event: 'state' }, (p: any) => { if (typeof p?.payload?.playing === 'boolean') setPcPlaying(p.payload.playing); })
+      .on('broadcast', { event: 'jbstate' }, (p: any) => {
+        const s = p?.payload || {};
+        if (typeof s.playing === 'boolean') setPcPlaying(s.playing);
+        if (typeof s.seconds === 'number') setJbSeconds(s.seconds);
+        if (typeof s.autodj === 'boolean') setJbAutoDj(s.autodj);
+      });
     cmdChRef.current = cmd;
+    cmd.subscribe((status: string) => {
+      if (status === 'SUBSCRIBED' && mode === 'jukebox') {
+        try { cmd.send({ type: 'broadcast', event: 'jbcmd', payload: { cmd: 'hello' } }); } catch {}
+      }
+    });
     return () => { sb.removeChannel(cmd); cmdChRef.current = null; };
-  }, [venue]);
+  }, [venue, mode]);
 
   const togglePlay = () => { try { cmdChRef.current?.send({ type: 'broadcast', event: 'playpause', payload: {} }); } catch {} setPcPlaying((v) => !v); };
+
+  // jukebox: órdenes al PC
+  const jbSend = (payload: any) => { try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbcmd', payload }); } catch {} };
+  const jbSkip = () => jbSend({ cmd: 'skip' });
+  const jbPlayPause = () => { jbSend({ cmd: 'playpause' }); setPcPlaying((v) => !v); };
+  const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
+  const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
 
   const advance = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_advance', { p_venue: vid }); } finally { setBusy(false); } };
   const goBack = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_back', { p_venue: vid }); } finally { setBusy(false); } };
@@ -222,12 +245,37 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginTop: 2 }}>{venue.name}</div>
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 10px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
-          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-mint)' }}>CONTROL EN VIVO</span>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)', boxShadow: mode === 'jukebox' ? '0 0 10px var(--cv-cyan)' : '0 0 10px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)' }}>CONTROL EN VIVO</span>
         </span>
       </div>
 
-      {/* cantando ahora */}
+      {mode === 'jukebox' ? (
+        <>
+          {/* controles de la rockola (jukebox) */}
+          <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>CONTROLES DE LA ROCKOLA</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button className="cv-btn cv-btn-ghost" onClick={jbSkip} style={{ padding: '16px 0', fontSize: 16 }}>⏭ Saltear</button>
+              <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '16px 0', fontSize: 16 }}>{pcPlaying ? '⏸ Pausar' : '▶ Reanudar'}</button>
+            </div>
+          </div>
+          <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>AJUSTES</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, cursor: 'pointer' }}>
+              <input type="checkbox" checked={jbAutoDj} onChange={(e) => jbSetAutoDj(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#00D4FF' }} />
+              <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>AutoDJ cuando no hay votos</span>
+            </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+              <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Segundos por canción <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(0 = completa)</span></span>
+              <input type="number" min={0} className="cv-input" value={jbSeconds} onChange={(e) => jbSetSeconds(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: 80, padding: '10px', fontSize: 16, textAlign: 'center' }} />
+            </div>
+          </div>
+          <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono-2)', textAlign: 'center' }}>la música arrancala desde el PC; desde acá saltás, pausás y ajustás.</p>
+        </>
+      ) : (
+        <>
+          {/* cantando ahora */}
       <div className="cv-card" style={{ padding: '18px', textAlign: 'center', marginBottom: 12 }}>
         <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>CANTANDO AHORA</div>
         <div className="cv-wordmark" style={{ fontSize: 26, fontWeight: 700, color: 'var(--cv-text)', lineHeight: 1.15, marginTop: 4 }}>{current ? current.singer : 'nadie todavía'}</div>
@@ -277,6 +325,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           </div>
         ))}
       </div>
+        </>
+      )}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
         <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>

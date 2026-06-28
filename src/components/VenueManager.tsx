@@ -171,9 +171,9 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
 
       {/* Control en vivo desde el celular */}
       <div style={block}>
-        <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>CONTROL EN VIVO (KARAOKE)</div>
+        <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>CONTROL EN VIVO (CELULAR)</div>
         <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          Mientras el PC proyecta a la TV, controlá la fila del karaoke <b style={{ color: 'var(--cv-text)' }}>desde tu celular</b>: agregar, reordenar, siguiente y anterior. Abrí este link en tu teléfono (logueado con tu cuenta).
+          Mientras el PC proyecta a la TV, controlá el local <b style={{ color: 'var(--cv-text)' }}>desde tu celular</b>. En karaoke: agregar, reordenar, anterior y siguiente. En jukebox: saltear, pausar, AutoDJ y segundos por canción. Abrí este link en tu teléfono (logueado con tu cuenta).
         </p>
         <a href={`/control/${slug}`} className="cv-btn cv-btn-mint" style={{ display: 'inline-block', fontSize: 14, padding: '10px 20px' }}>📱 Abrir control en vivo</a>
       </div>

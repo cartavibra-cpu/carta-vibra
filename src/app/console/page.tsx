@@ -64,6 +64,7 @@ export default function ConsolePage() {
   const pausedRef = useRef(false);
   const rampRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fadeRampRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cmdChRef = useRef<any>(null);
   const maxSecondsRef = useRef(0);
   const ccOnRef = useRef(false);
 
@@ -303,6 +304,11 @@ export default function ConsolePage() {
     else { if (pausedRef.current) resumeWithFade(); else pauseWithFade(); }
   };
 
+  // Avisa al control del celular el estado actual (play/pausa, segundos, AutoDJ).
+  const broadcastJbState = () => {
+    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current } }); } catch {}
+  };
+
   // Funde el deck actual hacia el otro deck reproduciendo videoId
   const transitionTo = (videoId: string) => {
     const fromKey = currentRef.current;
@@ -457,13 +463,25 @@ export default function ConsolePage() {
     // sola (canal aparte porque se re-suscribe al cambiar de playlist).
     subscribeTracks(activePlaylistRef.current);
 
+    // canal de comandos desde el celular (broadcast): saltear / pausa / segundos / AutoDJ
+    const cmdCh = sb.channel('cmd-' + venueId);
+    cmdCh.on('broadcast', { event: 'jbcmd' }, (p: any) => {
+      const c = p.payload || {};
+      if (c.cmd === 'skip') advance();
+      else if (c.cmd === 'playpause') togglePlayPause();
+      else if (c.cmd === 'seconds') { const n = Math.max(0, parseInt(c.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; broadcastJbState(); }
+      else if (c.cmd === 'autodj') { const v = !!c.value; setAutoOn(v); autoOnRef.current = v; broadcastJbState(); }
+      else if (c.cmd === 'hello') broadcastJbState();
+    }).subscribe();
+    cmdChRef.current = cmdCh;
+
     const onStateChange = (e: any) => {
       if (e.data === window.YT.PlayerState.PLAYING) { applyCC(e.target); }
       // Sincronizar la bandera de pausa con el reproductor real (evita que el botón
       // y los atajos queden desfasados si algo lo pausa por fuera).
       if (!busyRef.current && e.target === decksRef.current[currentRef.current]) {
-        if (e.data === window.YT.PlayerState.PAUSED) { pausedRef.current = true; setIsPaused(true); }
-        else if (e.data === window.YT.PlayerState.PLAYING) { pausedRef.current = false; setIsPaused(false); }
+        if (e.data === window.YT.PlayerState.PAUSED) { pausedRef.current = true; setIsPaused(true); broadcastJbState(); }
+        else if (e.data === window.YT.PlayerState.PLAYING) { pausedRef.current = false; setIsPaused(false); broadcastJbState(); }
       }
       if (e.data === window.YT.PlayerState.ENDED && !busyRef.current && !pausedRef.current) {
         playingRef.current = false;
