@@ -86,6 +86,31 @@ export default function ConsolePage() {
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
+  // Atajos de teclado (andan también en pantalla completa, salvo que el foco
+  // esté dentro del video de YouTube; en ese caso, un clic fuera del video y listo).
+  useEffect(() => {
+    if (!started) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (e.code === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        if (pausedRef.current) resumeWithFade(); else pauseWithFade();
+      } else if (e.key === 'ArrowRight' || k === 'n') {
+        e.preventDefault(); advance();
+      } else if (k === 'f') {
+        e.preventDefault(); toggleFs();
+      } else if (k === 'c') {
+        e.preventDefault(); toggleCC();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started]);
+
   const resumeSession = async (token: string) => {
     setLoading(true);
     try {
@@ -192,7 +217,7 @@ export default function ConsolePage() {
     const el = stageRef.current;
     if (!el) return;
     if (document.fullscreenElement) document.exitFullscreen?.();
-    else el.requestFullscreen?.();
+    else { el.requestFullscreen?.(); setTimeout(() => { try { el.focus(); } catch {} }, 60); }
   };
 
   // Pausa/Reanuda con fundido suave (lo maneja el operador).
@@ -450,8 +475,9 @@ export default function ConsolePage() {
           <div>
             <div
               ref={stageRef}
+              tabIndex={-1}
               style={{
-                position: 'relative', background: '#000', overflow: 'hidden',
+                position: 'relative', background: '#000', overflow: 'hidden', outline: 'none',
                 ...(isFs
                   ? { width: '100%', height: '100%', borderRadius: 0 }
                   : { width: '100%', aspectRatio: '16 / 9', borderRadius: 16, border: '1px solid rgba(255,255,255,.08)', boxShadow: '0 30px 80px -40px rgba(0,0,0,.9)' }),
@@ -477,6 +503,10 @@ export default function ConsolePage() {
               <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px' }} onClick={() => advance()}>⏭ Saltear</button>
               <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px' }} onClick={toggleFs}>⛶ {isFs ? 'Salir de pantalla' : 'Pantalla completa'}</button>
               <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '9px 16px', opacity: ccOn ? 1 : 0.55 }} onClick={toggleCC}>Subtítulos {ccOn ? 'on' : 'off'}</button>
+            </div>
+
+            <div className="cv-mono" style={{ marginTop: 10, fontSize: 11, color: 'var(--cv-mono-2)' }}>
+              Atajos: <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>Espacio</b> pausa/play · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>→</b> siguiente · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>F</b> pantalla · <b style={{ color: 'var(--cv-muted)', fontWeight: 600 }}>C</b> subtítulos
             </div>
 
             <div className="cv-mono" style={{ marginTop: 14, fontSize: 14, letterSpacing: '.06em', color: 'var(--cv-muted-2)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
