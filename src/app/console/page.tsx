@@ -68,6 +68,10 @@ export default function ConsolePage() {
   const lastAutoRef = useRef<string | null>(null);
   const autoOnRef = useRef(true);
 
+  // Auto-sanado: temas que fallan al reproducir se marcan "muertos" para no volver a elegirlos.
+  const deadRef = useRef<Set<string>>(new Set());
+  const nowTrackIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
     if (token) resumeSession(token);
@@ -150,20 +154,21 @@ export default function ConsolePage() {
 
   // AutoDJ: bolsa barajada de la playlist activa (todas una vez antes de repetir).
   const pickAuto = (): string | null => {
-    const pool = autoPoolRef.current;
+    const pool = autoPoolRef.current.filter((id) => !deadRef.current.has(id));
     if (!pool.length) return null;
-    if (bagRef.current.length === 0) {
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
+    let bag = bagRef.current.filter((id) => !deadRef.current.has(id) && pool.includes(id));
+    if (bag.length === 0) {
+      bag = [...pool];
+      for (let i = bag.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        [bag[i], bag[j]] = [bag[j], bag[i]];
       }
-      if (pool.length > 1 && shuffled[0] === lastAutoRef.current) {
-        shuffled.push(shuffled.shift() as string);
+      if (pool.length > 1 && bag[0] === lastAutoRef.current) {
+        bag.push(bag.shift() as string);
       }
-      bagRef.current = shuffled;
     }
-    const id = bagRef.current.shift() as string;
+    const id = bag.shift() as string;
+    bagRef.current = bag;
     lastAutoRef.current = id;
     return id;
   };
@@ -260,17 +265,18 @@ export default function ConsolePage() {
       if (!sb || !token || !venueId) { busyRef.current = false; return; }
       const { data } = await sb.from('queue').select('track_id')
         .eq('venue_id', venueId).eq('state', 'queued')
-        .order('votes', { ascending: false }).order('created_at', { ascending: true }).limit(1);
-      const top = (data as any)?.[0];
+        .order('votes', { ascending: false }).order('created_at', { ascending: true }).limit(20);
+      const voted = ((data as any[]) || []).find((r) => !deadRef.current.has(r.track_id));
 
       let trackId: string | null = null;
       let isAuto = false;
-      if (top) { trackId = top.track_id; }
+      if (voted) { trackId = voted.track_id; }
       else if (autoOnRef.current) { trackId = pickAuto(); isAuto = true; }
 
       if (!trackId) { playingRef.current = false; busyRef.current = false; return; }
 
       const track = tracksRef.current[trackId];
+      nowTrackIdRef.current = trackId;
       await sb.rpc('console_set_now_playing', { p_token: token, p_track: trackId, p_position: 0 });
       setIsAutoNow(isAuto);
       await refreshNow();
@@ -327,10 +333,16 @@ export default function ConsolePage() {
     };
     const onError = () => {
       if (rampRef.current) { clearInterval(rampRef.current); rampRef.current = null; }
+      const badId = nowTrackIdRef.current;
+      if (badId) {
+        deadRef.current.add(badId);
+        const sb2 = supa(); const tk = tokenRef.current;
+        if (sb2 && tk) { sb2.rpc('console_mark_unplayable', { p_token: tk, p_track: badId }).then(() => { refreshQueue(); }).catch(() => {}); }
+      }
       try { decksRef.current[currentRef.current]?.setVolume(100); } catch {}
       const el = document.getElementById('wrap-' + currentRef.current); if (el) el.style.opacity = '1';
       busyRef.current = false;
-      setTimeout(() => advance(), 400);
+      setTimeout(() => advance(), 600);
     };
 
     const YT = await loadYT();

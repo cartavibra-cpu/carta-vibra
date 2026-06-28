@@ -63,27 +63,35 @@ export async function GET(req: NextRequest) {
         pageToken = data.nextPageToken || '';
       } while (pageToken && raw.length < 200);
 
-      // Chequear reproducibilidad (endpoint videos, en lotes de 50)
-      const embeddable: Record<string, boolean> = {};
+      // Chequear reproducibilidad REAL (en lotes de 50). No alcanza con "embeddable":
+      // también descartamos restricción de edad y videos no disponibles/borrados,
+      // porque YouTube marca embeddable=true en videos que igual no se reproducen.
+      const playableMap: Record<string, boolean> = {};
       const ids = raw.map((t) => t.videoId);
       for (let i = 0; i < ids.length; i += 50) {
         const batchIds = ids.slice(i, i + 50);
-        const r2 = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status&id=${batchIds.join(',')}&key=${key}`);
+        const r2 = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status,contentDetails&id=${batchIds.join(',')}&key=${key}`);
         const d2: any = await r2.json();
         if (d2.error || !d2.items) {
-          batchIds.forEach((id) => { embeddable[id] = true; }); // si falla el chequeo, no bloqueamos
+          batchIds.forEach((id) => { playableMap[id] = true; }); // si falla el chequeo, no bloqueamos
           continue;
         }
         const returned = new Set<string>();
         for (const it of d2.items) {
-          embeddable[it.id] = it.status?.embeddable !== false;
+          const emb = it.status?.embeddable !== false;
+          const ageRestricted = it.contentDetails?.contentRating?.ytRating === 'ytAgeRestricted';
+          const available = it.status?.uploadStatus !== 'rejected' && it.status?.privacyStatus !== 'private';
+          playableMap[it.id] = emb && !ageRestricted && available;
           returned.add(it.id);
         }
         // los que no volvieron están borrados / no disponibles
-        batchIds.forEach((id) => { if (!returned.has(id)) embeddable[id] = false; });
+        batchIds.forEach((id) => { if (!returned.has(id)) playableMap[id] = false; });
       }
 
-      const tracks = raw.map((t) => ({ ...t, embeddable: embeddable[t.videoId] !== false }));
+      const tracks = raw.map((t) => {
+        const ok = playableMap[t.videoId] !== false;
+        return { ...t, embeddable: ok, playable: ok };
+      });
       return NextResponse.json({ type: 'playlist', tracks });
     }
 
@@ -92,7 +100,7 @@ export async function GET(req: NextRequest) {
     if (!videoId) {
       return NextResponse.json({ error: 'No reconocí un video de YouTube en esa URL.' }, { status: 400 });
     }
-    const api = `https://www.googleapis.com/youtube/v3/videos?part=snippet,status&id=${videoId}&key=${key}`;
+    const api = `https://www.googleapis.com/youtube/v3/videos?part=snippet,status,contentDetails&id=${videoId}&key=${key}`;
     const r = await fetch(api);
     const data: any = await r.json();
     if (data.error) {
@@ -102,12 +110,16 @@ export async function GET(req: NextRequest) {
     if (!item) {
       return NextResponse.json({ error: 'Video no encontrado.' }, { status: 404 });
     }
+    const emb = item.status?.embeddable !== false;
+    const ageRestricted = item.contentDetails?.contentRating?.ytRating === 'ytAgeRestricted';
+    const playable = emb && !ageRestricted;
     return NextResponse.json({
       type: 'video',
       videoId,
       title: item.snippet?.title || '',
       artist: cleanArtist(item.snippet?.channelTitle || ''),
-      embeddable: item.status?.embeddable !== false,
+      embeddable: playable,
+      playable,
     });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Error consultando YouTube.' }, { status: 500 });

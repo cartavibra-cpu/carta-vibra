@@ -140,8 +140,9 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       const r = await fetch(`/api/youtube-meta?kind=video&url=${encodeURIComponent(url.trim())}`);
       const data = await r.json();
       if (!r.ok) { setMetaMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
-      setTitle(data.title || ''); setArtist(data.artist || ''); setEmbeddable(data.embeddable !== false);
-      setMetaMsg(data.embeddable === false ? '⚠️ No permite reproducirse embebido' : '✓ Datos cargados');
+      const ok = (data.playable ?? data.embeddable) !== false;
+      setTitle(data.title || ''); setArtist(data.artist || ''); setEmbeddable(ok);
+      setMetaMsg(ok ? '✓ Datos cargados' : '⚠️ Este video no se reproduce embebido (restricción de edad o región). Probá otra versión de la canción.');
     } catch { setMetaMsg('⚠️ Error consultando YouTube'); } finally { setMetaLoading(false); }
   };
 
@@ -174,9 +175,9 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
       const r = await fetch(`/api/youtube-meta?kind=playlist&url=${encodeURIComponent(ytUrl.trim())}`);
       const data = await r.json();
       if (!r.ok) { setYtMsg('⚠️ ' + (data.error || 'No se pudo leer')); return; }
-      const tracks: { videoId: string; title: string; artist: string; embeddable?: boolean }[] = data.tracks || [];
+      const tracks: { videoId: string; title: string; artist: string; embeddable?: boolean; playable?: boolean }[] = data.tracks || [];
       if (tracks.length === 0) { setYtMsg('La playlist no tiene canciones.'); return; }
-      const playable = tracks.filter((t) => t.embeddable !== false);
+      const playable = tracks.filter((t) => (t.playable ?? t.embeddable) !== false);
       const blocked = tracks.length - playable.length;
       if (playable.length === 0) { setYtMsg('⚠️ Ninguna de esas canciones se puede reproducir (embed bloqueado). Probá otra playlist.'); return; }
       const name = ytName.trim() || 'Playlist de YouTube';
