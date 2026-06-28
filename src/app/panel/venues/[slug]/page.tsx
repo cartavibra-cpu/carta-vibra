@@ -72,10 +72,14 @@ export default function VenuePanelPage({ params }: { params: Promise<{ slug: str
     const { data: v } = await sb.from('venue').select('*').eq('slug', slug).single();
     setVenue(v); if (!v) return;
     const { data: pls } = await sb.from('venue_playlist').select('*').eq('venue_id', v.id).order('sort').order('created_at');
-    setPlaylists((pls as Playlist[]) || []);
-    const { data: trk } = await sb.from('catalog_track').select('id,playlist_id').eq('venue_id', v.id);
+    const plList = (pls as Playlist[]) || [];
+    setPlaylists(plList);
+    const ids = plList.map((p) => p.id);
     const c: Record<string, number> = {};
-    (trk as any[] | null)?.forEach((r) => { if (r.playlist_id) c[r.playlist_id] = (c[r.playlist_id] || 0) + 1; });
+    if (ids.length) {
+      const { data: trk } = await sb.from('catalog_track').select('id,playlist_id').in('playlist_id', ids);
+      (trk as any[] | null)?.forEach((r) => { if (r.playlist_id) c[r.playlist_id] = (c[r.playlist_id] || 0) + 1; });
+    }
     setCounts(c);
     QRCode.toDataURL(`/widget/${slug}?mesa=${mesa}`, { width: 400 }).then(setQr);
   };

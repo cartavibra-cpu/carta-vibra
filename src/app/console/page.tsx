@@ -65,6 +65,7 @@ export default function ConsolePage() {
 
   // AutoDJ (relleno aleatorio inteligente cuando no hay votos)
   const autoPoolRef = useRef<string[]>([]);
+  const activePlaylistRef = useRef<string | null>(null);
   const bagRef = useRef<string[]>([]);
   const lastAutoRef = useRef<string | null>(null);
   const autoOnRef = useRef(true);
@@ -358,42 +359,53 @@ export default function ConsolePage() {
     } catch { busyRef.current = false; }
   };
 
+  // Carga el mapa de canciones + el pool del AutoDJ desde la PLAYLIST ACTIVA
+  // (por playlist, no por local → así también suenan las de la biblioteca).
+  const reloadActivePlaylist = async () => {
+    const sb = supa(); const pid = activePlaylistRef.current;
+    if (!sb || !pid) { tracksRef.current = {}; autoPoolRef.current = []; bagRef.current = []; return; }
+    const { data } = await sb.from('catalog_track')
+      .select('id,title,artist,external_id,enabled,is_embeddable').eq('playlist_id', pid);
+    const map: Record<string, Track> = {};
+    const pool: string[] = [];
+    ((data as any[]) || []).forEach((tr) => {
+      map[tr.id] = { id: tr.id, title: tr.title, artist: tr.artist, external_id: tr.external_id };
+      if (tr.external_id && tr.enabled !== false && tr.is_embeddable !== false && !deadRef.current.has(tr.id)) pool.push(tr.id);
+    });
+    tracksRef.current = map;
+    autoPoolRef.current = pool;
+    bagRef.current = [];
+  };
+
   const startConsole = async () => {
     const sb = supa(); const token = tokenRef.current; const venueId = venueRef.current;
     if (!sb || !token || !venueId) return;
     setStarted(true);
 
-    const { data: t } = await sb.from('catalog_track').select('id,title,artist,external_id').eq('venue_id', venueId);
-    const map: Record<string, Track> = {};
-    (t as Track[] | null)?.forEach((tr) => { map[tr.id] = tr; });
-    tracksRef.current = map;
-
-    // AutoDJ: pool con las canciones reproducibles de la playlist ACTIVA.
-    try {
-      const { data: apl } = await sb.from('venue_playlist').select('id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
-      let pool: string[] = [];
-      if ((apl as any)?.id) {
-        const { data: pt } = await sb.from('catalog_track')
-          .select('id,external_id,enabled,is_embeddable').eq('playlist_id', (apl as any).id)
-          .eq('enabled', true).neq('is_embeddable', false);
-        pool = ((pt as any[]) || []).filter((r) => r.external_id).map((r) => r.id as string);
-      }
-      autoPoolRef.current = pool;
-      bagRef.current = [];
-    } catch { autoPoolRef.current = []; bagRef.current = []; }
+    // playlist activa del local + canciones (mapa + pool del AutoDJ)
+    const { data: apl } = await sb.from('venue_playlist').select('id').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    activePlaylistRef.current = (apl as any)?.id ?? null;
+    await reloadActivePlaylist();
 
     await rotate();
     setInterval(rotate, 120000);
 
     await refreshQueue();
     await refreshNow();
-    sb.channel('console-' + venueId)
+    const ch = sb.channel('console-' + venueId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'queue', filter: `venue_id=eq.${venueId}` }, async () => {
         await refreshQueue();
         if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow)
-      .subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow);
+    // en vivo: si agregás/sacás canciones de la playlist activa, la consola se actualiza sola
+    if (activePlaylistRef.current) {
+      ch.on('postgres_changes', { event: '*', schema: 'public', table: 'catalog_track', filter: `playlist_id=eq.${activePlaylistRef.current}` }, async () => {
+        await reloadActivePlaylist();
+        await refreshQueue();
+      });
+    }
+    ch.subscribe();
 
     const onStateChange = (e: any) => {
       if (e.data === window.YT.PlayerState.PLAYING) { applyCC(e.target); }
