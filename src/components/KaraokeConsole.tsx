@@ -46,6 +46,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const [backAvailable, setBackAvailable] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFs, setIsFs] = useState(false);
+  const [pendingPlaylist, setPendingPlaylist] = useState<{ id: string; name: string } | null>(null);
 
   const [showAdd, setShowAdd] = useState(false);
   const [addSinger, setAddSinger] = useState('');
@@ -63,6 +64,9 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const wantRef = useRef<string | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const cmdChRef = useRef<any>(null);
+  // La playlist (catálogo) realmente en uso. La prop es la "ofrecida" — no la
+  // aplicamos sola: preguntamos primero (a prueba de errores), igual que el jukebox.
+  const appliedPidRef = useRef<string | null>(playlistId);
 
   const current = queue.find((s) => s.state === 'singing') || null;
   const waiting = queue.filter((s) => s.state === 'waiting');
@@ -83,9 +87,9 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   };
 
   const loadCatalog = async () => {
-    const sb = supa(); if (!sb || !playlistId) return;
+    const sb = supa(); const pid = appliedPidRef.current; if (!sb || !pid) return;
     const { data } = await sb.from('catalog_track')
-      .select('id,title,artist,external_id').eq('playlist_id', playlistId).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
+      .select('id,title,artist,external_id').eq('playlist_id', pid).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
     setTracks((data as Track[]) || []);
   };
 
@@ -166,6 +170,16 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
     else el.requestFullscreen?.().catch(() => {});
   };
 
+  // El operador acepta el cambio de lista: recargamos SOLO el catálogo (no tocamos
+  // al que está cantando). Si lo rechaza, seguimos con la lista actual.
+  const confirmPlaylist = () => {
+    if (!pendingPlaylist) return;
+    appliedPidRef.current = pendingPlaylist.id;
+    setPendingPlaylist(null);
+    loadCatalog();
+  };
+  const dismissPlaylist = () => setPendingPlaylist(null);
+
   useEffect(() => {
     let cancelled = false;
     loadQueue();
@@ -199,7 +213,27 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
     return () => { cancelled = true; if (sb && ch) sb.removeChannel(ch); if (sb && cmdCh) sb.removeChannel(cmdCh); try { playerRef.current?.destroy?.(); } catch {} };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [venueId, playlistId]);
+  }, [venueId]);
+
+  // Cambio de playlist activa (la consola actualiza la prop). A prueba de errores:
+  // NO cambiamos el catálogo solos — preguntamos. La primera vez se aplica directo.
+  useEffect(() => {
+    if (playlistId === appliedPidRef.current) return;
+    if (appliedPidRef.current === null) { appliedPidRef.current = playlistId; loadCatalog(); return; }
+    let cancelled = false;
+    (async () => {
+      const sb = supa();
+      let name = 'Nueva playlist';
+      if (sb && playlistId) {
+        const { data } = await sb.from('venue_playlist').select('name').eq('id', playlistId).maybeSingle();
+        const n = (data as { name: string } | null)?.name;
+        if (n) name = n;
+      }
+      if (!cancelled) setPendingPlaylist(playlistId ? { id: playlistId, name } : null);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playlistId]);
 
   useEffect(() => {
     wantRef.current = current?.external_id || null;
@@ -282,6 +316,30 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           </span>
         </div>
 
+        {/* aviso de cambio de lista (versión normal, fuera de pantalla completa) */}
+        {pendingPlaylist && !isFs && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+            marginBottom: 18, padding: '14px 18px', borderRadius: 16,
+            border: '1px solid rgba(110,243,178,.4)', background: 'rgba(110,243,178,.08)',
+            boxShadow: '0 0 40px -12px rgba(110,243,178,.45)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <span style={{ fontSize: 22, flexShrink: 0 }}>🔄</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: 'var(--cv-muted)' }}>Activaron otra playlist en el local</div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {pendingPlaylist.name}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 9, flexShrink: 0 }}>
+              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 14px' }} onClick={dismissPlaylist}>Seguir con la actual</button>
+              <button className="cv-btn cv-btn-mint" style={{ fontSize: 13, padding: '9px 16px' }} onClick={confirmPlaylist}>Cambiar ahora</button>
+            </div>
+          </div>
+        )}
+
         <div style={{ flex: 1, display: 'grid', gap: 24, gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', alignItems: 'start' }}>
 
           {/* escenario */}
@@ -311,6 +369,34 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 <div style={{ position: 'absolute', bottom: 80, right: 28, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.42)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px', boxShadow: '0 10px 34px -12px rgba(0,0,0,.6)' }}>
                   <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>ANOTATE EN TU CELULAR · CÓDIGO</div>
                   <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4, textShadow: '0 2px 18px rgba(0,0,0,.85)' }}>{roomCode ?? '—'}</div>
+                </div>
+              )}
+
+              {/* aviso de cambio de lista DENTRO del escenario: visible y clickeable en pantalla completa */}
+              {isFs && pendingPlaylist && (
+                <div
+                  style={{
+                    position: 'absolute', top: 22, left: 22, right: 22, zIndex: 2147483600,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                    padding: '14px 18px', borderRadius: 16,
+                    border: '1px solid rgba(110,243,178,.5)', background: 'rgba(7,6,14,.92)',
+                    boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)',
+                    transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>🔄</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--cv-muted)', textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>Activaron otra playlist en el local</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>
+                        {pendingPlaylist.name}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 9, flexShrink: 0 }}>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 14px' }} onClick={dismissPlaylist}>Seguir con la actual</button>
+                    <button className="cv-btn cv-btn-mint" style={{ fontSize: 13, padding: '9px 16px' }} onClick={confirmPlaylist}>Cambiar ahora</button>
+                  </div>
                 </div>
               )}
 
