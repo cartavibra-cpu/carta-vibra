@@ -4,7 +4,8 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
 import BrandMark from '@/components/BrandMark';
-import { getSkin, frameBg, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
+import { getSkin, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
+import RockolaFrame, { FRAME_SCREEN } from '@/components/RockolaFrame';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -352,22 +353,19 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const controlsOn = controlsVisible && !pendingPlaylist;
   const clean = isFs || viewMode === 'limpio';
   const videoBox: React.CSSProperties = clean
-    ? { position: 'absolute', inset: 0, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', containerType: 'size' }
-    : { position: 'absolute', top: `${sk.screen.top}%`, left: `${sk.screen.left}%`, width: `${sk.screen.width}%`, height: `${sk.screen.height}%`, borderRadius: 'clamp(3px,.5vw,8px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', containerType: 'size' };
-  const frame: React.CSSProperties = clean
-    ? { position: 'absolute', inset: 0, background: '#000' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: `max(100vw, calc(100vh * ${sk.textureAspect}))`, aspectRatio: String(sk.textureAspect), background: frameBg(sk) };
+    ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, background: '#000', overflow: 'hidden', containerType: 'size' }
+    : { ...FRAME_SCREEN, zIndex: 1, borderRadius: '1vh', background: '#000', overflow: 'hidden', containerType: 'size', boxShadow: 'inset 0 0 3vh rgba(0,0,0,.55)' };
 
   return (
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : sk.bgFallback, cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : '#070611', cursor: controlsVisible ? 'default' : 'none' }}
     >
-      {/* MARCO de la rockola (la textura) — visible cuando NO está en pantalla completa */}
-      <div style={frame}>
-        {/* PANTALLA: el video calzado en el hueco (o a pantalla completa) */}
-        <div ref={stageRef} style={videoBox}>
+      {/* MARCO de rockola animado (en código) — va DETRÁS del video, solo en modo marco */}
+      {!clean && <RockolaFrame skin={sk} tone={sk.accent2} />}
+      {/* PANTALLA: el video (a pantalla completa o calzado en el marco) */}
+      <div ref={stageRef} style={videoBox}>
           <div id="yt-karaoke" style={{ width: '100%', height: '100%' }} />
 
           {/* viñeta sutil */}
@@ -505,7 +503,6 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
             </div>
           )}
         </div>
-      </div>
     </main>
   );
 }
