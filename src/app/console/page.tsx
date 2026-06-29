@@ -5,7 +5,7 @@ import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
-import { getSkin, bgWithTexture, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
+import { getSkin, frameBg, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -755,9 +755,12 @@ export default function ConsolePage() {
 
   const sk = getSkin(skin);
   const controlsOn = controlsVisible && !pending;
-  const stageStyle: React.CSSProperties = isFs
-    ? { position: 'absolute', inset: 0, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(84vw, calc(82vh * 16 / 9))', aspectRatio: '16 / 9', borderRadius: 18, border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none' };
+  const videoBox: React.CSSProperties = isFs
+    ? { position: 'absolute', inset: 0, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
+    : { position: 'absolute', top: `${sk.screen.top}%`, left: `${sk.screen.left}%`, width: `${sk.screen.width}%`, height: `${sk.screen.height}%`, borderRadius: 'clamp(3px,.5vw,8px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+  const frame: React.CSSProperties = isFs
+    ? { position: 'absolute', inset: 0 }
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: `min(95vw, calc(93vh * ${sk.textureAspect}))`, aspectRatio: String(sk.textureAspect), background: frameBg(sk) };
 
   return (
     <>
@@ -765,95 +768,98 @@ export default function ConsolePage() {
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: isFs ? '#000' : bgWithTexture(sk), cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: isFs ? '#000' : sk.bgFallback, cursor: controlsVisible ? 'default' : 'none' }}
     >
-      <div ref={stageRef} tabIndex={-1} style={stageStyle}>
-        <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
-        <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
+      {/* MARCO de la rockola (la textura) — visible cuando NO está en pantalla completa */}
+      <div style={frame}>
+        {/* PANTALLA: el video calzado en el hueco (o a pantalla completa) */}
+        <div ref={stageRef} tabIndex={-1} style={videoBox}>
+          <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
+          <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
 
-        {/* viñeta sutil para legibilidad en las esquinas (no una banda) */}
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 58%, rgba(0,0,0,.4) 100%)' }} />
+          {/* viñeta sutil para legibilidad */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
 
-        {/* ARRIBA-IZQUIERDA: sonando ahora */}
-        <div style={{ position: 'absolute', top: 'clamp(12px,1.8vw,20px)', left: 'clamp(12px,1.8vw,20px)', maxWidth: 'min(58%, 520px)', padding: '9px 13px', borderRadius: 13, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: sk.liveColor, boxShadow: `0 0 8px ${sk.liveColor}`, animation: 'cvLive 1.4s ease-in-out infinite', flexShrink: 0 }} />
-            <span className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)' }}>SONANDO AHORA</span>
-            {isAutoNow && <span style={{ fontSize: 9, letterSpacing: '.1em', color: sk.accent2, border: `1px solid ${sk.accent2}`, borderRadius: 999, padding: '1px 6px' }}>AUTODJ</span>}
+          {/* ARRIBA-IZQUIERDA: sonando ahora */}
+          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '60%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: sk.liveColor, boxShadow: `0 0 8px ${sk.liveColor}`, animation: 'cvLive 1.4s ease-in-out infinite', flexShrink: 0 }} />
+              <span className="cv-mono" style={{ fontSize: 'clamp(8px,1.2cqw,13px)', letterSpacing: '.16em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)' }}>SONANDO AHORA</span>
+              {isAutoNow && <span style={{ fontSize: 'clamp(7px,1cqw,11px)', letterSpacing: '.1em', color: sk.accent2, border: `1px solid ${sk.accent2}`, borderRadius: 999, padding: '1px 6px' }}>AUTODJ</span>}
+            </div>
+            <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
-          <div className="cv-wordmark" style={{ fontSize: 'clamp(15px, 1.7vw, 22px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 3, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
-        </div>
 
-        {/* ABAJO-DERECHA: código (chico) */}
-        <div style={{ position: 'absolute', bottom: 'clamp(12px,1.8vw,20px)', right: 'clamp(12px,1.8vw,20px)', textAlign: 'right', padding: '9px 15px', borderRadius: 13, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
-          <div className="cv-mono" style={{ fontSize: 'clamp(9px,.95vw,11px)', letterSpacing: '.2em', color: sk.labelColor, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR</div>
-          <div key={skin} className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(38px, 5vw, 70px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', marginTop: 2, textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
-          <div style={{ marginTop: 4, display: 'flex', justifyContent: 'flex-end', opacity: .85 }}><Waveform n={20} color={sk.waveColor} maxH={13} barW={2.5} gap={3} seed={7} /></div>
-        </div>
+          {/* ABAJO-DERECHA: código (chico) */}
+          <div style={{ position: 'absolute', bottom: '3.5cqh', right: '2.6cqw', textAlign: 'right', padding: '.9cqh 1.5cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+            <div className="cv-mono" style={{ fontSize: 'clamp(8px,1.1cqw,12px)', letterSpacing: '.2em', color: sk.labelColor, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR</div>
+            <div key={skin} className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(22px,5.4cqw,60px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', marginTop: 1, textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+            <div style={{ marginTop: 3, display: 'flex', justifyContent: 'flex-end', opacity: .85 }}><Waveform n={18} color={sk.waveColor} maxH={12} barW={2.5} gap={3} seed={7} /></div>
+          </div>
 
-        {/* ABAJO-IZQUIERDA: co-brand chiquito */}
-        <div style={{ position: 'absolute', bottom: 'clamp(12px,1.8vw,18px)', left: 'clamp(12px,1.8vw,20px)', display: 'flex', alignItems: 'center', gap: 6, opacity: .5, pointerEvents: 'none' }}>
-          <span className="cv-mono" style={{ fontSize: 10, color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>suena en</span><BrandMark size={16} layout="row" />
-        </div>
+          {/* ABAJO-IZQUIERDA: co-brand chiquito */}
+          <div style={{ position: 'absolute', bottom: '3.5cqh', left: '2.6cqw', display: 'flex', alignItems: 'center', gap: 5, opacity: .5, pointerEvents: 'none' }}>
+            <span className="cv-mono" style={{ fontSize: 'clamp(8px,1cqw,11px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>suena en</span><BrandMark size={15} layout="row" />
+          </div>
 
-        {/* aviso de cambio de lista DENTRO del escenario (se ve y se toca en pantalla completa) */}
-        {pending && (
-          <div style={{ position: 'absolute', top: 'clamp(10px,1.6vw,16px)', left: '50%', transform: 'translateX(-50%)', maxWidth: 'min(520px, calc(100% - 32px))', zIndex: 2147483600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '11px 15px', borderRadius: 14, border: `1px solid ${sk.cardBorder}`, background: 'rgba(7,6,14,.94)', boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-              <span style={{ fontSize: 18, flexShrink: 0 }}>🔄</span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 11.5, color: 'var(--cv-muted)' }}>Activaron otra playlist</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pending.name}</div>
+          {/* aviso de cambio de lista (dentro de la pantalla, se ve en fullscreen) */}
+          {pending && (
+            <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', maxWidth: 'min(94%, 520px)', zIndex: 2147483600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 13, border: `1px solid ${sk.cardBorder}`, background: 'rgba(7,6,14,.95)', boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                <span style={{ fontSize: 17, flexShrink: 0 }}>🔄</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 11, color: 'var(--cv-muted)' }}>Activaron otra playlist</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pending.name}</div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px' }} onClick={dismissPending}>Seguir</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 12px', color: sk.accent }} onClick={switchToPending}>Cambiar</button>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '7px 11px' }} onClick={dismissPending}>Seguir</button>
-              <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '7px 13px', color: sk.accent }} onClick={switchToPending}>Cambiar</button>
-            </div>
+          )}
+
+          {/* zona-sensor arriba: revela los controles */}
+          <div onMouseMove={pokeControls} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%', zIndex: 2147483400 }} />
+
+          {/* barra de controles (auto-esconde), arriba-centro */}
+          <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500 }}>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
+            <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
-        )}
 
-        {/* CONTROLES dentro del escenario (para que se vean en pantalla completa) */}
-        {/* zona-sensor arriba: revela los controles (el iframe se traga el mousemove) */}
-        <div onMouseMove={pokeControls} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 80, zIndex: 2147483400 }} />
-
-        {/* barra de controles (auto-esconde), arriba-centro */}
-        <div style={{ position: 'absolute', top: 'clamp(10px,1.6vw,16px)', left: '50%', display: 'flex', alignItems: 'center', gap: 7, padding: '7px 9px', borderRadius: 14, background: 'rgba(7,6,14,.84)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500 }}>
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '7px 11px' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '7px 11px' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '7px 11px' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '7px 11px', opacity: ccOn ? 1 : .55 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
-          <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '7px 11px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-          <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '7px 11px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+          {/* ajustes (popover) */}
+          {showSettings && (
+            <div style={{ position: 'absolute', top: 52, left: '50%', transform: 'translateX(-50%)', width: 320, maxWidth: '94%', zIndex: 2147483550, borderRadius: 16, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(10,10,18,.97)', boxShadow: '0 20px 60px -16px rgba(0,0,0,.8)', padding: '16px 18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
+                <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+              </div>
+              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                {(['neon', 'retro'] as SkinName[]).map((s) => (
+                  <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent}` : '1px solid var(--cv-line)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent : 'var(--cv-muted)' }}>{getSkin(s).label}</button>
+                ))}
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-text-2)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                AutoDJ cuando no hay votos
+              </label>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-muted)', flexWrap: 'wrap' }}>
+                Segundos por canción (0 = completa):
+                <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
+              </label>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
+              <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>
+            </div>
+          )}
         </div>
-
-        {/* ajustes (popover), arriba-centro */}
-        {showSettings && (
-          <div style={{ position: 'absolute', top: 'clamp(52px,5vw,64px)', left: '50%', transform: 'translateX(-50%)', width: 320, maxWidth: 'calc(100% - 28px)', zIndex: 2147483550, borderRadius: 16, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(10,10,18,.97)', boxShadow: '0 20px 60px -16px rgba(0,0,0,.8)', padding: '16px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
-              <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-            </div>
-            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              {(['neon', 'retro'] as SkinName[]).map((s) => (
-                <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent}` : '1px solid var(--cv-line)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent : 'var(--cv-muted)' }}>{getSkin(s).label}</button>
-              ))}
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-text-2)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-              AutoDJ cuando no hay votos
-            </label>
-            <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-muted)', flexWrap: 'wrap' }}>
-              Segundos por canción (0 = completa):
-              <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
-            </label>
-            <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
-            <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>
-          </div>
-        )}
       </div>
     </main>
     </>

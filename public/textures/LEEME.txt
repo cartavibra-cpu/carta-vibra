@@ -1,8 +1,21 @@
-Texturas de fondo de la rockola (modo SIN pantalla completa).
+TEXTURAS DE LA ROCKOLA (modo ambiente de la consola)
+=====================================================
 
-Poné acá los dos archivos con ESTOS nombres exactos:
-  - rockola-neon.jpg   (skin Neón)
-  - rockola-retro.jpg  (skin Retro)
+Acá van los MARCOS de rockola que envuelven el video en la consola
+cuando NO está en pantalla completa. Cada marco tiene un "hueco" 16:9
+en el centro donde se calza el video.
 
-Tamaño recomendado: 2560 x 1440 px (16:9), JPG de buena calidad (~300-600 KB).
-Si todavía no están, la consola muestra un fondo CSS de respaldo (no se rompe nada).
+Archivos actuales (ya incluidos):
+  - rockola-neon.jpg    -> estilo "Neón"  (futurista, cyan/magenta)
+  - rockola-retro.jpg   -> estilo "Retro" (madera/dorado, 1950s)
+
+PARA CAMBIAR UNA TEXTURA:
+  1. Dejá el nuevo archivo con EXACTAMENTE el mismo nombre.
+  2. Recomendado: 2560x1440 (o cualquier 16:9-ish), JPG, fondo oscuro.
+  3. IMPORTANTE: si la nueva textura tiene el hueco de la pantalla en
+     otra posición/tamaño, hay que ajustar las coordenadas en
+     src/lib/skins.ts -> SKINS.<skin>.screen  { top, left, width, height }
+     (son % del marco; "width" manda y el alto se calcula 16:9).
+
+El borde transparente del PNG se aplana sobre negro (#05060d) al
+convertir a JPG, que es el mismo fondo de la consola.
