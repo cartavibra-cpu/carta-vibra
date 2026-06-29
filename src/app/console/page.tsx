@@ -734,8 +734,8 @@ export default function ConsolePage() {
           </div>
         </div>
 
-        {/* aviso: activaron otra playlist en el local */}
-        {pending && (
+        {/* aviso: activaron otra playlist en el local (versión normal, fuera de pantalla completa) */}
+        {pending && !isFs && (
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
             marginBottom: 18, padding: '14px 18px', borderRadius: 16,
@@ -781,6 +781,34 @@ export default function ConsolePage() {
                 <div style={{ position: 'absolute', bottom: 80, right: 28, zIndex: 2147483000, pointerEvents: 'none', textAlign: 'right', background: 'rgba(7,6,14,.42)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 18, padding: '14px 22px', transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform', boxShadow: '0 10px 34px -12px rgba(0,0,0,.6)' }}>
                   <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.2em', color: 'var(--cv-cyan-light)', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR · CÓDIGO</div>
                   <div className="cv-wordmark cv-grad-code" style={{ fontSize: 58, fontWeight: 700, lineHeight: 1, letterSpacing: '.05em', marginTop: 4, textShadow: '0 2px 18px rgba(0,0,0,.85)' }}>{roomCode ?? '—'}</div>
+                </div>
+              )}
+
+              {/* aviso de cambio de lista DENTRO del escenario: así se ve (y se puede tocar) en pantalla completa */}
+              {isFs && pending && (
+                <div
+                  style={{
+                    position: 'absolute', top: 22, left: 22, right: 22, zIndex: 2147483600,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                    padding: '14px 18px', borderRadius: 16,
+                    border: '1px solid rgba(0,212,255,.5)', background: 'rgba(7,6,14,.92)',
+                    boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)',
+                    transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>🔄</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: 'var(--cv-muted)', textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>Activaron otra playlist en el local</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 1px 8px rgba(0,0,0,.9)' }}>
+                        {pending.name}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 9, flexShrink: 0 }}>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 14px' }} onClick={dismissPending}>Seguir con la actual</button>
+                    <button className="cv-btn cv-btn-cyan" style={{ fontSize: 13, padding: '9px 16px' }} onClick={switchToPending}>Cambiar ahora</button>
+                  </div>
                 </div>
               )}
             </div>
