@@ -6,7 +6,6 @@ import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
 import { getSkin, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
-import RockolaFrame, { FRAME_SCREEN } from '@/components/RockolaFrame';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -767,10 +766,10 @@ export default function ConsolePage() {
   // "clean" = video a pantalla completa (sin marco): cuando está en fullscreen del navegador
   // O cuando el modo de vista es 'limpio'. En 'marco' (y sin fullscreen) se ve la rockola.
   const clean = isFs || viewMode === 'limpio';
-  // El video: a pantalla completa (clean) o calzado en la "pantalla" del marco de código (marco).
+  // El video: a pantalla completa (clean/limpio) o grande centrado con su GLOW de color por tema (las "luces").
   const videoBox: React.CSSProperties = clean
-    ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { ...FRAME_SCREEN, zIndex: 1, borderRadius: '1vh', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size', boxShadow: 'inset 0 0 3vh rgba(0,0,0,.55)' };
+    ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(90vw, calc(90vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -780,12 +779,11 @@ export default function ConsolePage() {
       onTouchStart={pokeControls}
       style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : '#070611', cursor: controlsVisible ? 'default' : 'none' }}
     >
-      {/* MARCO de rockola animado (en código) — va DETRÁS del video, solo en modo marco */}
-      {!clean && <RockolaFrame skin={sk} />}
-      {/* PANTALLA: el video (a pantalla completa o calzado en el marco) */}
+      {/* PANTALLA: el video (a pantalla completa o grande con sus luces) */}
       <div ref={stageRef} tabIndex={-1} style={videoBox}>
-          <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1 }}><div id="yt-A" /></div>
-          <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0 }}><div id="yt-B" /></div>
+          {/* pointerEvents:none → YouTube no muestra su nombre/compartir/más-videos al pasar el mouse */}
+          <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1, pointerEvents: 'none' }}><div id="yt-A" /></div>
+          <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, pointerEvents: 'none' }}><div id="yt-B" /></div>
 
           {/* viñeta sutil para legibilidad */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
@@ -840,7 +838,7 @@ export default function ConsolePage() {
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applyView(viewMode === 'marco' ? 'limpio' : 'marco')} title="Marco de rockola / video a pantalla completa">{viewMode === 'marco' ? '▣ Marco' : '▢ Limpio'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applyView(viewMode === 'marco' ? 'limpio' : 'marco')} title="Video con luces / a pantalla completa">{viewMode === 'marco' ? '▣ Luces' : '▢ Limpio'}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
@@ -853,7 +851,7 @@ export default function ConsolePage() {
               </div>
               <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>VISTA EN LA TV</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                <button onClick={() => applyView('marco')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'marco' ? `1px solid ${sk.accent}` : '1px solid var(--cv-line)', background: viewMode === 'marco' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'marco' ? sk.accent : 'var(--cv-muted)' }}>▣ Marco</button>
+                <button onClick={() => applyView('marco')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'marco' ? `1px solid ${sk.accent}` : '1px solid var(--cv-line)', background: viewMode === 'marco' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'marco' ? sk.accent : 'var(--cv-muted)' }}>▣ Luces</button>
                 <button onClick={() => applyView('limpio')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'limpio' ? `1px solid ${sk.accent}` : '1px solid var(--cv-line)', background: viewMode === 'limpio' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'limpio' ? sk.accent : 'var(--cv-muted)' }}>▢ Limpio</button>
               </div>
               <div className="cv-mono" style={{ fontSize: 10.5, lineHeight: 1.4, color: 'var(--cv-mono-2)', marginBottom: 14 }}>{viewMode === 'marco' ? 'la rockola llena la pantalla, video en el centro' : 'el video llena toda la pantalla (más grande)'}</div>
