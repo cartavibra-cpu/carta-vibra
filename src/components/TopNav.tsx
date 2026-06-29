@@ -57,6 +57,7 @@ export default function TopNav() {
         <a href="/panel/playlists" className="cv-mono" style={linkStyle}>{isMobile ? 'Playlists' : 'Mis playlists'}</a>
         <a href="/panel/curadas" className="cv-mono" style={linkStyle}>Curadas</a>
         {isAdmin && <a href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-violet-light)' }}>Admin</a>}
+        {isAdmin && <a href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-violet-light)' }}>Errores</a>}
         <a href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-cyan)' }}>Consola</a>
         <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted-2)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
       </div>

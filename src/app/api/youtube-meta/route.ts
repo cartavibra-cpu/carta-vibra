@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Registra un error del servidor en Supabase (best-effort). Se espera (await)
+// porque en el runtime de Cloudflare el worker puede cortarse tras responder.
+async function logServerError(context: string, message: string, extra?: Record<string, unknown>) {
+  try {
+    const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supaKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supaUrl || !supaKey || !message) return;
+    await fetch(`${supaUrl}/rest/v1/rpc/log_error`, {
+      method: 'POST',
+      headers: { apikey: supaKey, Authorization: `Bearer ${supaKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_context: context, p_message: message, p_extra: extra ?? null }),
+    });
+  } catch { /* el logging nunca debe romper la respuesta */ }
+}
+
 function extractVideoId(input: string): string | null {
   const s = (input || '').trim();
   if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
@@ -77,6 +92,7 @@ export async function GET(req: NextRequest) {
       if (data.error) {
         const reason = data.error?.errors?.[0]?.reason || '';
         if (reason === 'quotaExceeded' || reason === 'dailyLimitExceeded') {
+          await logServerError('api/youtube-meta', 'Cuota de YouTube agotada (búsqueda)', { reason });
           return NextResponse.json({ error: 'quota', message: 'Se acabó la cuota de búsqueda por hoy.' }, { status: 429 });
         }
         return NextResponse.json({ error: data.error.message || 'Error de YouTube' }, { status: 400 });
@@ -185,6 +201,8 @@ export async function GET(req: NextRequest) {
       playable,
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Error consultando YouTube.' }, { status: 500 });
+    const msg = e?.message || 'Error consultando YouTube.';
+    await logServerError('api/youtube-meta', msg, { kind });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
