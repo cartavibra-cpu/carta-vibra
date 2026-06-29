@@ -2,9 +2,16 @@
 import React, { useEffect, useRef } from 'react';
 import Vinyl from '@/components/Vinyl';
 import Waveform from '@/components/Waveform';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const STAGE_BG =
   'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.20), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(0,212,255,.10), transparent 60%), #07060e';
+
+// Contacto — Fran: confirmá que este WhatsApp sea el de Carta Vibra (es el mismo de CartaViva).
+const WHATSAPP = '56979282574';
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, me interesa Carta Vibra para mi local 🎶')}`;
+const EMAIL = 'cartavibra@gmail.com';
+const EMAIL_URL = `mailto:${EMAIL}?subject=${encodeURIComponent('Quiero Carta Vibra en mi local')}`;
 
 function GoogleButton({ onClick, small }: { onClick: () => void; small?: boolean }) {
   return (
@@ -30,19 +37,19 @@ function Eyebrow({ children, color }: { children: React.ReactNode; color?: strin
 }
 
 export default function Landing({ onLogin }: { onLogin: () => void }) {
+  const isMobile = useIsMobile();
+  const vinylSize = isMobile ? 230 : 300;
+
   const glowA = useRef<HTMLDivElement>(null);
   const glowB = useRef<HTMLDivElement>(null);
   const heroContent = useRef<HTMLDivElement>(null);
+  const vinylWrap = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const els = Array.from(document.querySelectorAll('[data-reveal]'));
 
-    if (reduce) {
-      els.forEach((e) => e.classList.add('cv-in'));
-      return;
-    }
-
+    // Las revelaciones (fade-in al hacer scroll) van siempre, aun con reduced-motion off.
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((en) => {
@@ -54,26 +61,54 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       },
       { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
     );
-    els.forEach((e) => io.observe(e));
 
+    if (reduce) {
+      els.forEach((e) => e.classList.add('cv-in'));
+    } else {
+      els.forEach((e) => io.observe(e));
+    }
+
+    // Parallax: combinamos scroll + mouse en un solo rAF para que no se pisen.
+    const sRef = { v: 0 }; // scrollY
+    const mRef = { x: 0, y: 0 }; // mouse normalizado -1..1
     let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (glowA.current) glowA.current.style.transform = `translateY(${y * 0.25}px)`;
-        if (glowB.current) glowB.current.style.transform = `translateY(${y * -0.12}px)`;
-        if (heroContent.current) {
-          heroContent.current.style.transform = `translateY(${y * 0.15}px)`;
-          heroContent.current.style.opacity = String(Math.max(0, 1 - y / 620));
-        }
-        raf = 0;
-      });
+
+    const apply = () => {
+      const y = sRef.v;
+      const mx = mRef.x;
+      const my = mRef.y;
+      if (glowA.current) glowA.current.style.transform = `translate(${mx * -36}px, ${y * 0.25 + my * -36}px)`;
+      if (glowB.current) glowB.current.style.transform = `translate(${mx * 28}px, ${y * -0.12 + my * 28}px)`;
+      if (vinylWrap.current) vinylWrap.current.style.transform = `translate(${mx * 18}px, ${my * 18}px)`;
+      if (heroContent.current) {
+        heroContent.current.style.transform = `translateY(${y * 0.12}px)`;
+        heroContent.current.style.opacity = String(Math.max(0, 1 - y / 640));
+      }
+      raf = 0;
     };
+    const req = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+
+    const onScroll = () => {
+      sRef.v = window.scrollY;
+      req();
+    };
+    const onMouse = (e: MouseEvent) => {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      mRef.x = (e.clientX - cx) / cx;
+      mRef.y = (e.clientY - cy) / cy;
+      req();
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
+    if (!reduce) window.addEventListener('mousemove', onMouse, { passive: true });
+
     return () => {
       io.disconnect();
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('mousemove', onMouse);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
@@ -94,23 +129,38 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
         <div ref={glowB} style={{ position: 'absolute', bottom: '0%', right: '6%', width: 700, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,212,255,.12), transparent 60%)', pointerEvents: 'none' }} />
         <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 44%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
 
-        <div ref={heroContent} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28, padding: '120px 24px 80px', textAlign: 'center' }}>
-          <Vinyl size={196} glow beat />
-          <div className="cv-wordmark" style={{ fontSize: 'clamp(48px, 10vw, 92px)' }}>
-            carta <span className="cv-grad-text">vibra</span>
+        <div ref={heroContent} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 30, padding: '120px 24px 80px', textAlign: 'center' }}>
+          <div ref={vinylWrap} style={{ willChange: 'transform' }}>
+            <Vinyl
+              size={vinylSize}
+              glow
+              beat
+              label={
+                <div style={{ textAlign: 'center', lineHeight: 0.92 }}>
+                  <div className="cv-wordmark" style={{ fontSize: Math.round(vinylSize * 0.083), fontWeight: 600, color: 'var(--cv-text)', letterSpacing: '.01em' }}>
+                    carta
+                  </div>
+                  <div className="cv-wordmark cv-grad-text" style={{ fontSize: Math.round(vinylSize * 0.092), fontWeight: 700, letterSpacing: '.01em' }}>
+                    vibra
+                  </div>
+                </div>
+              }
+            />
           </div>
-          <div style={{ maxWidth: 620 }}>
-            <div className="cv-mono" style={{ fontSize: 14, letterSpacing: '.12em', color: 'var(--cv-muted-2)' }}>
+          <div style={{ maxWidth: 600 }}>
+            <div className="cv-mono" style={{ fontSize: 14, letterSpacing: '.14em', color: 'var(--cv-muted-2)' }}>
               La vibra se elige entre todos.
             </div>
-            <p style={{ marginTop: 14, fontSize: 'clamp(16px, 2.4vw, 19px)', lineHeight: 1.6, color: 'var(--cv-text-2)' }}>
+            <p style={{ marginTop: 14, fontSize: 'clamp(17px, 2.6vw, 21px)', lineHeight: 1.55, color: 'var(--cv-text-2)' }}>
               Tu rockola DJ digital. La música de tu local, elegida por su gente — en vivo, desde el celular.
             </p>
           </div>
           <div className="cv-hero-ctas">
-            <GoogleButton onClick={onLogin} />
-            <a href="#como-funciona" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 24px', textDecoration: 'none' }}>
+            <a href="#como-funciona" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none' }}>
               Ver cómo funciona
+            </a>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 17 }}>💬</span> Escribinos
             </a>
           </div>
         </div>
@@ -278,15 +328,32 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
         </div>
       </section>
 
-      {/* ---------- CTA FINAL + FOOTER ---------- */}
-      <section className="cv-section" style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(900px 500px at 50% 120%, rgba(94,46,255,.14), transparent 60%), #07060e' }}>
-        <div className="cv-container" style={{ textAlign: 'center', maxWidth: 720 }}>
-          <div data-reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 26 }}>
-            <Vinyl size={96} mini />
+      {/* ---------- CONTACTO + FOOTER ---------- */}
+      <section id="contacto" className="cv-section" style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(900px 520px at 50% 120%, rgba(110,243,178,.12), transparent 60%), radial-gradient(800px 500px at 50% -20%, rgba(94,46,255,.12), transparent 60%), #07060e' }}>
+        <div className="cv-container" style={{ textAlign: 'center', maxWidth: 680 }}>
+          <div data-reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
+            <Vinyl size={92} mini />
+            <Eyebrow color="var(--cv-mint)">¿Lo querés en tu local?</Eyebrow>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 600, lineHeight: 1.15 }}>
               Que tu local suene <span className="cv-grad-text">como su gente</span>.
             </h2>
-            <GoogleButton onClick={onLogin} />
+            <p style={{ fontSize: 'clamp(15px, 2.2vw, 17px)', lineHeight: 1.65, color: 'var(--cv-muted)', maxWidth: 520 }}>
+              Te mostramos cómo quedaría andando en tu local y lo dejamos listo. Escribinos y conversamos — sin compromiso.
+            </p>
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6 }}>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '15px 28px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+                <span style={{ fontSize: 18 }}>💬</span> Escribinos por WhatsApp
+              </a>
+              <a href={EMAIL_URL} className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '15px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>✉️</span> {EMAIL}
+              </a>
+            </div>
+
+            <div className="cv-mono" style={{ fontSize: 12.5, letterSpacing: '.04em', color: 'var(--cv-muted-2)', display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', flexShrink: 0 }} />
+              Te responde una persona de verdad, no un robot.
+            </div>
           </div>
         </div>
 
