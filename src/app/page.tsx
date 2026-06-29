@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import Vinyl from '@/components/Vinyl';
+import BrandMark from '@/components/BrandMark';
 import Landing from '@/components/Landing';
 
 const STAGE_BG =
@@ -55,13 +56,10 @@ export default function Home() {
       <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 30%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
       <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 26, padding: 24 }}>
 
-        <Vinyl size={120} glow beat />
+        <BrandMark size={150} glow beat />
 
         <div style={{ textAlign: 'center' }}>
-          <div className="cv-wordmark" style={{ fontSize: 40 }}>
-            carta <span className="cv-grad-text">vibra</span>
-          </div>
-          <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 12 }}>
+          <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>
             {session.user?.email}
           </div>
         </div>

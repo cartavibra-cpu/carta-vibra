@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import BrandMark from '@/components/BrandMark';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
@@ -186,7 +187,7 @@ export default function AdminPage() {
   if (!isAdmin) return (
     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
-        <div className="cv-wordmark" style={{ fontSize: 26, fontWeight: 600, marginBottom: 12 }}>carta <span className="cv-grad-text">vibra</span></div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><BrandMark size={104} /></div>
         <p style={{ fontSize: 15, color: 'var(--cv-text-2)', marginBottom: 18 }}>No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
         <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
       </div>

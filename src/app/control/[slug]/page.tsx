@@ -2,6 +2,7 @@
 import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
+import BrandMark from '@/components/BrandMark';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number };
@@ -188,14 +189,14 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
 
   if (!venue) return shell(
     <div style={{ textAlign: 'center', marginTop: 60 }}>
-      <div className="cv-wordmark" style={{ fontSize: 22, marginBottom: 8 }}>carta <span className="cv-grad-text">vibra</span></div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><BrandMark size={88} /></div>
       <p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>No encontramos el local «{slug}».</p>
     </div>
   );
 
   if (!session) return shell(
     <div style={{ textAlign: 'center', marginTop: 50 }}>
-      <div className="cv-wordmark" style={{ fontSize: 22, marginBottom: 14 }}>carta <span className="cv-grad-text">vibra</span></div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
         <div style={{ fontSize: 30, marginBottom: 8 }}>🔒</div>
         <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Iniciá sesión para controlar tu local</p>
@@ -207,7 +208,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
 
   if (!isOwner) return shell(
     <div style={{ textAlign: 'center', marginTop: 50 }}>
-      <div className="cv-wordmark" style={{ fontSize: 22, marginBottom: 14 }}>carta <span className="cv-grad-text">vibra</span></div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
         <div style={{ fontSize: 30, marginBottom: 8 }}>🚫</div>
         <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Este local no es tuyo</p>
@@ -258,7 +259,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       {/* header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
-          <div className="cv-wordmark" style={{ fontSize: 20 }}>carta <span className="cv-grad-text">vibra</span></div>
+          <BrandMark size={32} layout="row" />
           <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginTop: 2 }}>{venue.name}</div>
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>

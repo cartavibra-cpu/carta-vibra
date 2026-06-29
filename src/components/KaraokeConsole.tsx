@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
+import BrandMark from '@/components/BrandMark';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -274,7 +275,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
         {/* top bar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
-          <div className="cv-wordmark" style={{ fontSize: 22 }}>carta <span className="cv-grad-text">vibra</span></div>
+          <BrandMark size={36} layout="row" />
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 12px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
             <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>KARAOKE EN VIVO</span>

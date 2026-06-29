@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
+import BrandMark from '@/components/BrandMark';
 
 /**
  * Barra de navegación para las pantallas del dueño (panel, panel del local).
@@ -49,8 +50,8 @@ export default function TopNav() {
         borderBottom: '1px solid var(--cv-line)',
       }}
     >
-      <a href="/panel" className="cv-wordmark" style={{ fontSize: isMobile ? 17 : 19, textDecoration: 'none', flexShrink: 0 }}>
-        carta <span className="cv-grad-text">vibra</span>
+      <a href="/panel" style={{ textDecoration: 'none', flexShrink: 0 }}>
+        <BrandMark size={isMobile ? 30 : 34} layout="row" />
       </a>
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 14 : 16, flexWrap: 'wrap', justifyContent: isMobile ? 'space-between' : 'flex-end', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
         <a href="/panel" className="cv-mono" style={linkStyle}>{isMobile ? 'Locales' : 'Mis locales'}</a>

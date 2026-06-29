@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useRef } from 'react';
 import Vinyl from '@/components/Vinyl';
+import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import { useIsMobile } from '@/lib/useIsMobile';
 
@@ -117,8 +118,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
     <main style={{ position: 'relative', background: '#07060e', overflow: 'hidden' }}>
       {/* ---------- NAV ---------- */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'linear-gradient(180deg, rgba(7,6,14,.85), rgba(7,6,14,0))', backdropFilter: 'blur(6px)' }}>
-        <a href="#top" className="cv-wordmark" style={{ fontSize: 20, textDecoration: 'none' }}>
-          carta <span className="cv-grad-text">vibra</span>
+        <a href="#top" style={{ textDecoration: 'none' }}>
+          <BrandMark size={34} layout="row" />
         </a>
         <GoogleButton onClick={onLogin} small />
       </nav>
@@ -131,21 +132,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
 
         <div ref={heroContent} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 30, padding: '120px 24px 80px', textAlign: 'center' }}>
           <div ref={vinylWrap} style={{ willChange: 'transform' }}>
-            <Vinyl
-              size={vinylSize}
-              glow
-              beat
-              label={
-                <div style={{ textAlign: 'center', lineHeight: 0.92 }}>
-                  <div className="cv-wordmark" style={{ fontSize: Math.round(vinylSize * 0.083), fontWeight: 600, color: 'var(--cv-text)', letterSpacing: '.01em' }}>
-                    carta
-                  </div>
-                  <div className="cv-wordmark cv-grad-text" style={{ fontSize: Math.round(vinylSize * 0.092), fontWeight: 700, letterSpacing: '.01em' }}>
-                    vibra
-                  </div>
-                </div>
-              }
-            />
+            <BrandMark size={vinylSize} glow beat />
           </div>
           <div style={{ maxWidth: 600 }}>
             <div className="cv-mono" style={{ fontSize: 14, letterSpacing: '.14em', color: 'var(--cv-muted-2)' }}>
@@ -225,7 +212,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
 
             {/* top bar */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div className="cv-wordmark" style={{ fontSize: 18 }}>carta <span className="cv-grad-text">vibra</span></div>
+              <BrandMark size={28} layout="row" />
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-cyan)', boxShadow: '0 0 12px var(--cv-cyan)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
                 <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>EN VIVO</span>
@@ -317,8 +304,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
           {/* ecosistema */}
           <div data-reveal className="cv-eco" style={{ marginTop: 40 }}>
             <div className="cv-card" style={{ padding: 22 }}>
-              <div className="cv-wordmark" style={{ fontSize: 18 }}>carta <span className="cv-grad-text">vibra</span></div>
-              <p style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 6, lineHeight: 1.6 }}>Noche, neón, movimiento. La energía de tu local cuando suena.</p>
+              <BrandMark size={30} layout="row" />
+              <p style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10, lineHeight: 1.6 }}>Noche, neón, movimiento. La energía de tu local cuando suena.</p>
             </div>
             <div style={{ padding: 22, borderRadius: 16, border: '1px solid rgba(214,167,116,.16)', background: 'linear-gradient(180deg,#16110d,#0e0b08)' }}>
               <div style={{ fontFamily: 'Georgia, serif', fontWeight: 600, fontSize: 19, color: '#ebd9c2' }}>CartaViva</div>
@@ -358,8 +345,10 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
         </div>
 
         <footer style={{ marginTop: 80, paddingTop: 28, borderTop: '1px solid rgba(255,255,255,.07)', textAlign: 'center' }}>
-          <div className="cv-wordmark" style={{ fontSize: 18 }}>carta <span className="cv-grad-text">vibra</span></div>
-          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)', marginTop: 8 }}>La vibra se elige entre todos · Tu rockola DJ digital</div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <BrandMark size={32} layout="row" />
+          </div>
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)', marginTop: 12 }}>La vibra se elige entre todos · Tu rockola DJ digital</div>
         </footer>
       </section>
     </main>

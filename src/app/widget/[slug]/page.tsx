@@ -3,6 +3,7 @@ import { useEffect, useState, use, useCallback } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
+import BrandMark from '@/components/BrandMark';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number; session: string | null };
@@ -234,7 +235,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
 
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div className="cv-wordmark" style={{ fontSize: 18 }}>carta <span className="cv-grad-text">vibra</span></div>
+          <BrandMark size={30} layout="row" />
           {mesa && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted)', border: '1px solid var(--cv-line)', borderRadius: 999, padding: '5px 11px' }}>Mesa {mesa}</span>}
         </div>
 
