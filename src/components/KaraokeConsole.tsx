@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
 
 declare global {
@@ -190,7 +191,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
             else if (e.data === window.YT.PlayerState.PAUSED) { setIsPaused(true); try { cmdChRef.current?.send({ type: 'broadcast', event: 'state', payload: { playing: false } }); } catch {} }
             else if (e.data === window.YT.PlayerState.PLAYING) { setIsPaused(false); try { cmdChRef.current?.send({ type: 'broadcast', event: 'state', payload: { playing: true } }); } catch {} }
           },
-          onError: () => { advance(); },
+          onError: () => { logError('karaoke-reproduccion', new Error('Un video de karaoke no se pudo reproducir'), { externalId: loadedIdRef.current }); advance(); },
         },
       });
     });

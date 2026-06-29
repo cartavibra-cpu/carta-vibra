@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 import { useIsMobile } from '@/lib/useIsMobile';
+import { logError } from '@/lib/logError';
 
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
 const modeLabel = (m: string) => MODE_LABELS[m] || m;
@@ -115,7 +116,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
     setBusy(true);
     const { error } = await sb.rpc('set_active_assignment', { p_assignment: a.id });
     setBusy(false);
-    if (error) { alert('No se pudo activar: ' + error.message); return; }
+    if (error) { alert('No se pudo activar: ' + error.message); logError('panel-activar-playlist', new Error(error.message), { assignmentId: a.id, section: a.section }); return; }
     await load();
   };
 

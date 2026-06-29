@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, use, useCallback } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
@@ -166,7 +167,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     const { error } = await sb.rpc('cast_vote', { p_slug: slug, p_track: trackId, p_mesa: mesa || null, p_session: session });
     if (error) {
       if (error.message.startsWith('PRESENCIA')) { setPresent(false); setMsg('Ingresá el código de la pantalla para votar.'); }
-      else setMsg(error.message);
+      else { setMsg(error.message); logError('widget-voto', new Error(error.message), { trackId }); }
       return;
     }
     setPresent(true); setMsg(null);
@@ -198,7 +199,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     });
     if (error) {
       if (error.message.startsWith('PRESENCIA')) { setPresent(false); setKMsg('Ingresá el código de la pantalla para anotarte.'); }
-      else setKMsg(error.message);
+      else { setKMsg(error.message); logError('widget-karaoke-anotarse', new Error(error.message), { externalId: picked.external_id, title: picked.title }); }
       return;
     }
     setKMsg(`✓ ¡Anotado! Sos el N° ${data?.position ?? '?'} en la fila.`);

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import { logError } from '@/lib/logError';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number };
@@ -145,8 +146,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
   const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
 
-  const advance = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_advance', { p_venue: vid }); } finally { setBusy(false); } };
-  const goBack = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_back', { p_venue: vid }); } finally { setBusy(false); } };
+  const advance = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_advance', { p_venue: vid }); } catch (e) { logError('control-karaoke-siguiente', e); } finally { setBusy(false); } };
+  const goBack = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_back', { p_venue: vid }); } catch (e) { logError('control-karaoke-anterior', e); } finally { setBusy(false); } };
   const removeOne = async (id: string) => { const sb = supa(); if (!sb || !vid) return; await sb.rpc('karaoke_owner_remove', { p_venue: vid, p_id: id }); };
   const moveOne = async (id: string, dir: -1 | 1) => { const sb = supa(); if (!sb || !vid) return; await sb.rpc('karaoke_owner_move', { p_venue: vid, p_id: id, p_dir: dir }); };
 
@@ -173,7 +174,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       p_title: addPicked.title, p_artist: addPicked.artist, p_is_embeddable: addPicked.is_embeddable,
     });
     setAdding(false);
-    if (error) { alert('No se pudo agregar: ' + error.message); return; }
+    if (error) { alert('No se pudo agregar: ' + error.message); logError('control-karaoke-agregar', new Error(error.message), { externalId: addPicked?.external_id, title: addPicked?.title }); return; }
     setAddSinger(''); setAddPicked(null); setAddFilter(''); setAddPasteUrl(''); setAddPasteMsg(null); setShowAdd(false);
   };
 

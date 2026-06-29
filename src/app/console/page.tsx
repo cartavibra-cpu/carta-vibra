@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
+import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
@@ -389,7 +390,7 @@ export default function ConsolePage() {
       pausedRef.current = false; setIsPaused(false);
       playingRef.current = true;
       transitionTo(track.external_id);
-    } catch { busyRef.current = false; }
+    } catch (e) { logError('console-advance', e); busyRef.current = false; }
   };
 
   // Carga el mapa de canciones + el pool del AutoDJ desde la PLAYLIST ACTIVA
@@ -500,6 +501,10 @@ export default function ConsolePage() {
       if (rampRef.current) { clearInterval(rampRef.current); rampRef.current = null; }
       const badId = nowTrackIdRef.current;
       if (badId) {
+        const bad = tracksRef.current[badId];
+        logError('console-reproduccion', new Error('Una canción no se pudo reproducir (jukebox)'), {
+          trackId: badId, title: bad?.title, artist: bad?.artist, externalId: bad?.external_id,
+        });
         deadRef.current.add(badId);
         const sb2 = supa(); const tk = tokenRef.current;
         if (sb2 && tk) { sb2.rpc('console_mark_unplayable', { p_token: tk, p_track: badId }).then(() => { refreshQueue(); }).catch(() => {}); }
