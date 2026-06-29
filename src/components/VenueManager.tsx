@@ -43,6 +43,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
   const [pairCode, setPairCode] = useState('');
   const [pairMsg, setPairMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [consolePaired, setConsolePaired] = useState<boolean | null>(null);
   const isMobile = useIsMobile();
 
   const handlePair = async (e: React.FormEvent) => {
@@ -53,6 +54,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
     if (error) { setPairMsg('❌ ' + error.message); return; }
     setPairMsg(data?.ok ? '✓ Consola vinculada. Mirá la pantalla del local.' : 'Hecho.');
     setPairCode('');
+    if (data?.ok) await load();
   };
 
   const load = async () => {
@@ -88,6 +90,10 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
       setLibrary((lib as LibPlaylist[]) || []);
     }
 
+    // ¿hay una consola vinculada a este local? (para los "Primeros pasos")
+    const { data: dev } = await sb.from('console_device').select('id').eq('venue_id', v.id).limit(1);
+    setConsolePaired((((dev as any[]) || []).length) > 0);
+
     QRCode.toDataURL(`/widget/${slug}?mesa=${mesa}`, { width: 400 }).then(setQr);
   };
 
@@ -100,6 +106,11 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
     library.filter((p) => belongsToSection(p, section) && !assignments.some((a) => a.section === section && a.playlist_id === p.id));
 
   const activeAssignment = assignments.find((a) => a.is_active) || null;
+
+  // Estado de "Primeros pasos": qué falta para que el local esté listo para abrir.
+  const hasPlaylist = !!activeAssignment;
+  const hasConsole = consolePaired === true;
+  const setupDone = hasPlaylist && hasConsole;
 
   const doAssign = async (section: Section, playlistId: string) => {
     if (!playlistId) return;
@@ -156,6 +167,37 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
         <div style={{ marginBottom: 22 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 600 }}>{venue.name}</h1>
           <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {modeLabel(venue.mode)}</div>
+        </div>
+      )}
+
+      {/* Primeros pasos — guía al dueño nuevo. Se esconde sola cuando está todo listo. */}
+      {consolePaired !== null && !setupDone && (
+        <div className="cv-card" style={{ padding: '18px 20px', marginBottom: 20, border: '1px solid rgba(0,212,255,.3)', background: 'linear-gradient(160deg, rgba(94,46,255,.10), rgba(0,212,255,.05))' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
+            <span style={{ fontSize: 18 }}>🚀</span>
+            <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>Primeros pasos</span>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 14px' }}>
+            Dos cositas y tu local queda listo para abrir 👇
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* paso 1: playlist */}
+            <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-mint)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasPlaylist ? '#06121a' : 'transparent' }}>✓</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: hasPlaylist ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasPlaylist ? 'line-through' : 'none' }}>Elegí la música y ponela a sonar</div>
+                {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> más abajo, en <b style={{ color: 'var(--cv-text-2)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-text-2)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <a href="/panel/curadas" style={{ color: 'var(--cv-cyan)' }}>curadas</a>.</div>}
+              </div>
+            </div>
+            {/* paso 2: consola */}
+            <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasConsole ? 'var(--cv-mint)' : 'transparent', border: hasConsole ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasConsole ? '#06121a' : 'transparent' }}>✓</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: hasConsole ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasConsole ? 'line-through' : 'none' }}>Vinculá la pantalla del local</div>
+                {!hasConsole && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>En la pantalla o PC del local, abrí <b style={{ color: 'var(--cv-text-2)' }}>/console</b>. Te da un código de 6 dígitos: escribilo acá abajo en <b style={{ color: 'var(--cv-text-2)' }}>“Vincular consola”</b>.</div>}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

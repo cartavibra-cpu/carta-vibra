@@ -104,30 +104,57 @@ export default function PanelPage() {
           </section>
         )}
 
-        {/* lista de locales desplegables */}
-        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>TUS LOCALES</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {venues.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no tenés locales. Creá el primero con “+ Nuevo local”.</div>}
-          {venues.map((v) => {
-            const open = openSlugs.has(v.slug);
-            return (
-              <div key={v.id} className="cv-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <button onClick={() => toggle(v.slug)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '15px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        {/* Bienvenida para dueño nuevo (sin locales todavía) */}
+        {venues.length === 0 ? (
+          <div className="cv-card" style={{ padding: isMobile ? '28px 20px' : '36px 32px', textAlign: 'center', border: '1px solid rgba(0,212,255,.25)', background: 'linear-gradient(165deg, rgba(94,46,255,.10), rgba(0,212,255,.04))' }}>
+            <div style={{ fontSize: 44, marginBottom: 6 }}>🎶</div>
+            <h2 className="cv-wordmark" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 600, color: 'var(--cv-text)' }}>¡Bienvenido a <span className="cv-grad-text">Carta Vibra</span>!</h2>
+            <p style={{ fontSize: 14.5, color: 'var(--cv-text-2)', lineHeight: 1.6, margin: '12px auto 0', maxWidth: 460 }}>
+              Tus clientes votan la música y cantan karaoke desde el celular, y suena en la pantalla de tu local. Armarlo lleva 2 minutos:
+            </p>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 14, justifyContent: 'center', margin: '22px 0', textAlign: 'left' }}>
+              {[
+                { n: '1', t: 'Creá tu local', d: 'Un nombre y listo.' },
+                { n: '2', t: 'Armá la música', d: 'Una playlist tuya o curada.' },
+                { n: '3', t: 'Vinculá la pantalla', d: 'Abrí /console y emparejá.' },
+              ].map((s) => (
+                <div key={s.n} style={{ flex: 1, display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-line)', borderRadius: 12, padding: '12px 14px' }}>
+                  <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)', flexShrink: 0 }}>{s.n}</span>
                   <div>
-                    <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, color: 'var(--cv-text)' }}>{v.name}</div>
-                    <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{modeLabel(v.mode)} · /{v.slug}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--cv-text)' }}>{s.t}</div>
+                    <div className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono)', marginTop: 2 }}>{s.d}</div>
                   </div>
-                  <span style={{ fontSize: 20, color: 'var(--cv-cyan)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
-                </button>
-                {open && (
-                  <div style={{ padding: '6px 18px 20px', borderTop: '1px solid var(--cv-line)' }}>
-                    <VenueManager slug={v.slug} />
+                </div>
+              ))}
+            </div>
+            <button className="cv-btn cv-btn-cyan" onClick={() => setShowCreate(true)} style={{ fontSize: 15, padding: '12px 26px' }}>+ Crear mi primer local</button>
+          </div>
+        ) : (
+          <>
+            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>TUS LOCALES</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {venues.map((v) => {
+                const open = openSlugs.has(v.slug);
+                return (
+                  <div key={v.id} className="cv-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <button onClick={() => toggle(v.slug)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '15px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+                      <div>
+                        <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, color: 'var(--cv-text)' }}>{v.name}</div>
+                        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{modeLabel(v.mode)} · /{v.slug}</div>
+                      </div>
+                      <span style={{ fontSize: 20, color: 'var(--cv-cyan)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
+                    </button>
+                    {open && (
+                      <div style={{ padding: '6px 18px 20px', borderTop: '1px solid var(--cv-line)' }}>
+                        <VenueManager slug={v.slug} />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
