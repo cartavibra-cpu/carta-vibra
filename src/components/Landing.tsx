@@ -303,18 +303,49 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               { name: 'Tranquilo', meta: '21:30 · 70 BPM', color: '#7B4DFF', title: 'var(--cv-violet-tint)', bg: 'rgba(123,77,255,.07)', bd: 'rgba(123,77,255,.22)', maxH: 42, seed: 11 },
               { name: 'Cálido', meta: '23:10 · 100 BPM', color: '#00D4FF', title: 'var(--cv-cyan-light)', bg: 'rgba(0,212,255,.06)', bd: 'rgba(0,212,255,.22)', maxH: 64, seed: 23 },
               { name: 'Encendido', meta: '01:40 · 128 BPM', color: '#6EF3B2', title: '#6EF3B2', bg: 'rgba(110,243,178,.06)', bd: 'rgba(110,243,178,.24)', maxH: 92, seed: 31 },
-            ].map((r, i) => (
-              <div key={r.name} data-reveal className="cv-thermo-row" style={{ background: r.bg, border: `1px solid ${r.bd}`, borderRadius: 14, padding: '18px 22px', transitionDelay: `${i * 90}ms` }}>
-                <div className="cv-thermo-label">
+            ].map((r, i) => {
+              const label = (
+                <div style={{ flexShrink: 0, ...(isMobile ? {} : { width: 150 }) }}>
                   <div className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: r.title }}>{r.name}</div>
                   <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>{r.meta}</div>
                 </div>
-                <div className="cv-thermo-wave" style={{ flex: 1, minWidth: 0 }}>
-                  <Waveform n={isMobile ? 34 : 54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />
+              );
+              const code = (
+                <div className="cv-wordmark" style={{ fontSize: isMobile ? 30 : 34, fontWeight: 700, letterSpacing: '.04em', color: r.color, flexShrink: 0 }}>4829</div>
+              );
+              const waveEl = <Waveform n={isMobile ? 34 : 54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />;
+              const rowStyle: React.CSSProperties = {
+                background: r.bg,
+                border: `1px solid ${r.bd}`,
+                borderRadius: 14,
+                padding: isMobile ? '16px 18px' : '18px 22px',
+                transitionDelay: `${i * 90}ms`,
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: isMobile ? 12 : 24,
+              };
+              return (
+                <div key={r.name} data-reveal style={rowStyle}>
+                  {isMobile ? (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                        {label}
+                        {code}
+                      </div>
+                      <div style={{ width: '100%', overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>{waveEl}</div>
+                    </>
+                  ) : (
+                    <>
+                      {label}
+                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>{waveEl}</div>
+                      {code}
+                    </>
+                  )}
                 </div>
-                <div className="cv-wordmark" style={{ fontSize: isMobile ? 32 : 34, fontWeight: 700, letterSpacing: '.04em', color: r.color, flexShrink: 0 }}>4829</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
