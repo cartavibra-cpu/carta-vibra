@@ -88,15 +88,31 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     setBackAvailable((count ?? 0) > 0);
   }, []);
 
+  // Re-lee la sección activa (jukebox/karaoke) + el catálogo, sin recargar el local.
+  // Sirve para que el control cambie de modo solo cuando activás otra playlist.
+  const refreshMode = useCallback(async (venueId: string) => {
+    const sb = supa(); if (!sb) return;
+    const { data: asg } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id,section').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    setMode((asg as any)?.section === 'jukebox' ? 'jukebox' : 'karaoke');
+    const plId = (asg as any)?.playlist_id ?? null;
+    if (!plId) { setTracks([]); return; }
+    const { data: t } = await sb.from('catalog_track')
+      .select('id,title,artist,external_id').eq('playlist_id', plId).eq('enabled', true).neq('is_embeddable', false).not('external_id', 'is', null);
+    setTracks((t as Track[]) || []);
+  }, []);
+
   useEffect(() => {
     if (!venue) return;
     loadQueue(venue.id);
     const sb = supa(); if (!sb) return;
     const ch = sb.channel('ctrl-' + venue.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venue.id}` }, () => loadQueue(venue.id))
+      // si activás otra playlist (jukebox ⇄ karaoke), el control cambia de modo solo
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venue.id}` }, () => refreshMode(venue.id))
       .subscribe();
     return () => { sb.removeChannel(ch); };
-  }, [venue, loadQueue]);
+  }, [venue, loadQueue, refreshMode]);
 
   // canal de comandos hacia el PC (broadcast): pausar/reanudar + estado (karaoke y jukebox)
   useEffect(() => {

@@ -50,6 +50,10 @@ export default function ConsolePage() {
   const [copied, setCopied] = useState(false);
   // aviso cuando activás otra playlist en el local (no corta sola)
   const [pending, setPending] = useState<{ playlistId: string; name: string } | null>(null);
+  // id de la playlist activa como ESTADO (no solo ref) para que <KaraokeConsole/>
+  // reaccione cuando cambia la playlist. Y el overlay de transición entre modos.
+  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
+  const [switchingTo, setSwitchingTo] = useState<null | 'jukebox' | 'karaoke'>(null);
 
   const tokenRef = useRef<string | null>(null);
   const venueRef = useRef<string | null>(null);
@@ -80,6 +84,12 @@ export default function ConsolePage() {
   // Auto-sanado: temas que fallan al reproducir se marcan "muertos" para no volver a elegirlos.
   const deadRef = useRef<Set<string>>(new Set());
   const nowTrackIdRef = useRef<string | null>(null);
+
+  // Para alternar jukebox ⇄ karaoke en caliente (sin recargar):
+  const jbChannelRef = useRef<any>(null);                                   // canal jukebox (cola + sonando)
+  const monitorRef = useRef<ReturnType<typeof setInterval> | null>(null);   // monitor de fin de canción
+  const currentSectionRef = useRef<'jukebox' | 'karaoke'>('jukebox');       // modo actual (para detectar el cambio)
+  const switchingToJukeboxRef = useRef(false);                              // bandera: karaoke→jukebox pendiente de arrancar
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
@@ -132,6 +142,17 @@ export default function ConsolePage() {
     window.addEventListener('blur', onBlur);
     return () => window.removeEventListener('blur', onBlur);
   }, [started, karaokeMode]);
+
+  // Al volver de Karaoke a Jukebox, arrancamos el motor jukebox recién cuando los
+  // divs yt-A/yt-B ya se renderizaron. La bandera evita arrancarlo en el inicio
+  // normal (ese caso lo maneja startConsole directamente).
+  useEffect(() => {
+    if (started && !karaokeMode && switchingToJukeboxRef.current) {
+      switchingToJukeboxRef.current = false;
+      startJukeboxEngine();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [karaokeMode, started]);
 
   const resumeSession = async (token: string) => {
     setLoading(true);
@@ -429,24 +450,12 @@ export default function ConsolePage() {
 
   const dismissPending = () => setPending(null);
 
-  const startConsole = async () => {
-    const sb = supa(); const token = tokenRef.current; const venueId = venueRef.current;
-    if (!sb || !token || !venueId) return;
-    setStarted(true);
-
-    // playlist activa del local (desde la ASIGNACIÓN) + sección (jukebox / karaoke)
-    const { data: asg } = await sb.from('venue_playlist_assignment')
-      .select('playlist_id,section').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
-    activePlaylistRef.current = (asg as { playlist_id: string } | null)?.playlist_id ?? null;
-    const section = (asg as { section: string } | null)?.section ?? 'jukebox';
-
-    await rotate();
-    setInterval(rotate, 120000);
-
-    // En modo KARAOKE la pantalla la maneja <KaraokeConsole/> (reproductor por turno).
-    // Salimos antes de montar el motor de jukebox (decks, AutoDJ, votos).
-    if (section === 'karaoke') { setKaraokeMode(true); return; }
-
+  // ===== Motor JUKEBOX (decks, AutoDJ, votos). Se arranca y se destruye en caliente
+  // para alternar con Karaoke sin recargar la página (así se conserva el gesto del
+  // usuario y el audio puede seguir arrancando solo). =====
+  const startJukeboxEngine = async () => {
+    const sb = supa(); const venueId = venueRef.current; if (!sb || !venueId) return;
+    currentRef.current = 'A'; // estado limpio de decks (importante al reiniciar tras karaoke)
     await reloadActivePlaylist();
     await refreshQueue();
     await refreshNow();
@@ -455,10 +464,9 @@ export default function ConsolePage() {
         await refreshQueue();
         if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow)
-      // si activás otra playlist en el local, la consola te avisa (no corta sola)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venueId}` }, checkActiveChange);
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow);
     ch.subscribe();
+    jbChannelRef.current = ch;
     // en vivo: si agregás/sacás canciones de la playlist activa, la consola se actualiza
     // sola (canal aparte porque se re-suscribe al cambiar de playlist).
     subscribeTracks(activePlaylistRef.current);
@@ -517,7 +525,7 @@ export default function ConsolePage() {
     setTimeout(() => { try { stageRef.current?.focus(); } catch {} }, 600);
 
     // monitor: cuando la actual está por terminar, traer la siguiente fundida
-    setInterval(() => {
+    monitorRef.current = setInterval(() => {
       if (busyRef.current || !playingRef.current || pausedRef.current) return;
       const p = decksRef.current[currentRef.current];
       if (!p || !p.getDuration) return;
@@ -528,6 +536,90 @@ export default function ConsolePage() {
       const reachedMax = maxSec > 0 && cur >= maxSec;
       if (nearEnd || reachedMax) advance();
     }, 1000);
+  };
+
+  // Destruye el motor jukebox (al pasar a Karaoke): para los reproductores, limpia
+  // los intervalos y cierra los canales realtime. Es el opuesto de startJukeboxEngine.
+  const teardownJukeboxEngine = () => {
+    if (monitorRef.current) { clearInterval(monitorRef.current); monitorRef.current = null; }
+    if (rampRef.current) { clearInterval(rampRef.current); rampRef.current = null; }
+    if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; }
+    try { decksRef.current.A?.destroy?.(); } catch {}
+    try { decksRef.current.B?.destroy?.(); } catch {}
+    decksRef.current = {};
+    const sb = supa();
+    if (sb && jbChannelRef.current) { try { sb.removeChannel(jbChannelRef.current); } catch {} jbChannelRef.current = null; }
+    if (sb && cmdChRef.current) { try { sb.removeChannel(cmdChRef.current); } catch {} cmdChRef.current = null; }
+    if (tracksChannelRef.current) { try { tracksChannelRef.current.unsubscribe(); } catch {} tracksChannelRef.current = null; }
+    playingRef.current = false; pausedRef.current = false; busyRef.current = false;
+    setIsPaused(false);
+  };
+
+  // Vigía persistente (corre en AMBOS modos). Si cambia la SECCIÓN activa del local
+  // (jukebox ⇄ karaoke), alterna el motor sin recargar, con transición. Si solo
+  // cambió la playlist dentro del mismo modo, conserva el comportamiento de siempre.
+  const onModeWatch = async () => {
+    const sb = supa(); const venueId = venueRef.current; if (!sb || !venueId) return;
+    const { data } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id,section').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    const newPid = (data as { playlist_id: string } | null)?.playlist_id ?? null;
+    const newSection: 'jukebox' | 'karaoke' = ((data as { section: string } | null)?.section === 'karaoke') ? 'karaoke' : 'jukebox';
+
+    if (newSection !== currentSectionRef.current) {
+      // ===== CAMBIO DE MODO → transición fluida, sin recargar =====
+      currentSectionRef.current = newSection;
+      activePlaylistRef.current = newPid;
+      setActivePlaylistId(newPid);
+      setPending(null);
+      setSwitchingTo(newSection);
+      setTimeout(() => setSwitchingTo(null), 1600);
+      if (newSection === 'karaoke') {
+        teardownJukeboxEngine();
+        setKaraokeMode(true);
+      } else {
+        // karaoke → jukebox: el useEffect arranca el motor cuando los divs yt-A/yt-B
+        // ya están en el DOM (después de re-renderizar a la vista jukebox).
+        switchingToJukeboxRef.current = true;
+        setKaraokeMode(false);
+      }
+      return;
+    }
+
+    // ===== Misma sección: cambio de playlist =====
+    if (newSection === 'jukebox') {
+      checkActiveChange(); // muestra el aviso "¿cambiar?" (no corta la canción en curso)
+    } else if (newPid !== activePlaylistRef.current) {
+      // karaoke: cambiar la prop hace que <KaraokeConsole/> se re-inicialice solo
+      activePlaylistRef.current = newPid;
+      setActivePlaylistId(newPid);
+    }
+  };
+
+  const startConsole = async () => {
+    const sb = supa(); const token = tokenRef.current; const venueId = venueRef.current;
+    if (!sb || !token || !venueId) return;
+    setStarted(true);
+
+    // playlist activa del local (desde la ASIGNACIÓN) + sección (jukebox / karaoke)
+    const { data: asg } = await sb.from('venue_playlist_assignment')
+      .select('playlist_id,section').eq('venue_id', venueId).eq('is_active', true).maybeSingle();
+    const pid = (asg as { playlist_id: string } | null)?.playlist_id ?? null;
+    const section: 'jukebox' | 'karaoke' = ((asg as { section: string } | null)?.section === 'karaoke') ? 'karaoke' : 'jukebox';
+    activePlaylistRef.current = pid;
+    setActivePlaylistId(pid);
+    currentSectionRef.current = section;
+
+    await rotate();
+    setInterval(rotate, 120000);
+
+    // vigía persistente del modo (corre en jukebox Y en karaoke)
+    sb.channel('console-mode-' + venueId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venueId}` }, onModeWatch)
+      .subscribe();
+
+    // En modo KARAOKE la pantalla la maneja <KaraokeConsole/> (reproductor por turno).
+    if (section === 'karaoke') { setKaraokeMode(true); return; }
+    await startJukeboxEngine();
   };
 
   // ---------- Error ----------
@@ -599,11 +691,31 @@ export default function ConsolePage() {
   }
 
   // ---------- Consola en vivo ----------
+  // Overlay de transición entre modos (se ve durante el cambio, sin recargar).
+  const accent = switchingTo === 'karaoke' ? 'var(--cv-mint)' : 'var(--cv-cyan)';
+  const switchOverlay = switchingTo ? (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 22, background: '#07060e' }}>
+      <div style={{ fontSize: 66 }}>{switchingTo === 'karaoke' ? '🎤' : '🎵'}</div>
+      <div className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 46px)', fontWeight: 600, color: accent }}>
+        {switchingTo === 'karaoke' ? 'Modo Karaoke' : 'Modo Rockola'}
+      </div>
+      <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.2em', color: 'var(--cv-muted)', textTransform: 'uppercase' }}>cambiando…</div>
+      <div style={{ width: 64, height: 3, borderRadius: 2, background: accent, boxShadow: `0 0 18px ${accent}`, animation: 'cvBreathe 1.2s ease-in-out infinite' }} />
+    </div>
+  ) : null;
+
   if (karaokeMode) {
-    return <KaraokeConsole token={tokenRef.current || ''} venueId={venueRef.current || ''} slug={status?.slug || ''} roomCode={roomCode} playlistId={activePlaylistRef.current} />;
+    return (
+      <>
+        <KaraokeConsole token={tokenRef.current || ''} venueId={venueRef.current || ''} slug={status?.slug || ''} roomCode={roomCode} playlistId={activePlaylistId} />
+        {switchOverlay}
+      </>
+    );
   }
 
   return (
+    <>
+    {switchOverlay}
     <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: 'radial-gradient(1000px 720px at 50% 52%, rgba(0,212,255,.10), transparent 60%), #060810' }}>
       <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.02) 0 1px, transparent 1px 36px)', opacity: 0.4 }} />
       <div style={{ position: 'relative', minHeight: '100vh', padding: '24px 28px', display: 'flex', flexDirection: 'column' }}>
@@ -749,5 +861,6 @@ export default function ConsolePage() {
         </div>
       </div>
     </main>
+    </>
   );
 }
