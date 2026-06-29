@@ -4,7 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
 import BrandMark from '@/components/BrandMark';
-import { getSkin, frameBg, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
+import { getSkin, frameBg, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -51,6 +51,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
   // Vista ambiente (la rockola que se proyecta) — mismo sistema que el jukebox
   const [skin, setSkin] = useState<SkinName>('neon');
+  const [viewMode, setViewMode] = useState<ViewMode>('marco');
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showManage, setShowManage] = useState(false);
@@ -207,7 +208,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
       if (cancelled) return;
       playerRef.current = new YT.Player('yt-karaoke', {
         width: '100%', height: '100%',
-        playerVars: { autoplay: 1, controls: 1, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0 },
+        playerVars: { autoplay: 1, controls: 0, disablekb: 1, rel: 0, modestbranding: 1, playsinline: 1, fs: 0, cc_load_policy: 0, iv_load_policy: 3 },
         events: {
           onReady: () => { readyRef.current = true; syncPlayer(); },
           onStateChange: (e: any) => {
@@ -279,11 +280,17 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
     try {
       const s = localStorage.getItem(SKIN_STORAGE_KEY);
       if (s === 'retro' || s === 'neon') setSkin(s);
+      const v = localStorage.getItem(VIEW_STORAGE_KEY);
+      if (v === 'marco' || v === 'limpio') setViewMode(v);
     } catch {}
   }, []);
   const applySkin = (s: SkinName) => {
     setSkin(s);
     try { localStorage.setItem(SKIN_STORAGE_KEY, s); } catch {}
+  };
+  const applyView = (v: ViewMode) => {
+    setViewMode(v);
+    try { localStorage.setItem(VIEW_STORAGE_KEY, v); } catch {}
   };
 
   // Controles que se auto-esconden (aparecen al mover el mouse / tocar).
@@ -343,18 +350,19 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const sk = getSkin(skin);
   const ac = sk.accent2; // karaoke = color "caliente" del skin (menta en neón, dorado en retro)
   const controlsOn = controlsVisible && !pendingPlaylist;
-  const videoBox: React.CSSProperties = isFs
+  const clean = isFs || viewMode === 'limpio';
+  const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', containerType: 'size' }
     : { position: 'absolute', top: `${sk.screen.top}%`, left: `${sk.screen.left}%`, width: `${sk.screen.width}%`, height: `${sk.screen.height}%`, borderRadius: 'clamp(3px,.5vw,8px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', containerType: 'size' };
-  const frame: React.CSSProperties = isFs
-    ? { position: 'absolute', inset: 0 }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: `min(95vw, calc(93vh * ${sk.textureAspect}))`, aspectRatio: String(sk.textureAspect), background: frameBg(sk) };
+  const frame: React.CSSProperties = clean
+    ? { position: 'absolute', inset: 0, background: '#000' }
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: `max(100vw, calc(100vh * ${sk.textureAspect}))`, aspectRatio: String(sk.textureAspect), background: frameBg(sk) };
 
   return (
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: isFs ? '#000' : sk.bgFallback, cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : sk.bgFallback, cursor: controlsVisible ? 'default' : 'none' }}
     >
       {/* MARCO de la rockola (la textura) — visible cuando NO está en pantalla completa */}
       <div style={frame}>
@@ -432,6 +440,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px' }} onClick={() => setShowManage(true)} title="Gestionar la fila">☰ {waiting.length}</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px' }} onClick={() => applyView(viewMode === 'marco' ? 'limpio' : 'marco')} title="Marco de rockola / video a pantalla completa">{viewMode === 'marco' ? '▣ Marco' : '▢ Limpio'}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
@@ -480,6 +489,12 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
                 <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
+              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>VISTA EN LA TV</div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+                <button onClick={() => applyView('marco')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'marco' ? `1px solid ${ac}` : '1px solid var(--cv-line)', background: viewMode === 'marco' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'marco' ? ac : 'var(--cv-muted)' }}>▣ Marco</button>
+                <button onClick={() => applyView('limpio')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'limpio' ? `1px solid ${ac}` : '1px solid var(--cv-line)', background: viewMode === 'limpio' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'limpio' ? ac : 'var(--cv-muted)' }}>▢ Limpio</button>
+              </div>
+              <div className="cv-mono" style={{ fontSize: 10.5, lineHeight: 1.4, color: 'var(--cv-mono-2)', marginBottom: 14 }}>{viewMode === 'marco' ? 'la rockola llena la pantalla, video en el centro' : 'el video llena toda la pantalla (más grande)'}</div>
               <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 {(['neon', 'retro'] as SkinName[]).map((s) => (
