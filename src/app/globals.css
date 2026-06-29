@@ -207,7 +207,7 @@ html { scroll-behavior: smooth; }
   .cv-section { padding: 64px 0; }
   .cv-steps { grid-template-columns: 1fr; }
   .cv-eco { grid-template-columns: 1fr; }
-  .cv-thermo-row { flex-wrap: wrap; gap: 12px 16px; }
+  .cv-thermo-row { flex-wrap: wrap; gap: 10px 16px; justify-content: space-between; align-items: center; }
   .cv-thermo-label { width: auto; }
   .cv-thermo-row .cv-thermo-wave { order: 3; width: 100%; flex-basis: 100%; }
 }

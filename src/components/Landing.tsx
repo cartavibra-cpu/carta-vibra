@@ -310,9 +310,9 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
                   <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>{r.meta}</div>
                 </div>
                 <div className="cv-thermo-wave" style={{ flex: 1, minWidth: 0 }}>
-                  <Waveform n={isMobile ? 28 : 54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />
+                  <Waveform n={isMobile ? 34 : 54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />
                 </div>
-                <div className="cv-wordmark" style={{ fontSize: 34, fontWeight: 700, letterSpacing: '.04em', color: r.color, flexShrink: 0 }}>4829</div>
+                <div className="cv-wordmark" style={{ fontSize: isMobile ? 32 : 34, fontWeight: 700, letterSpacing: '.04em', color: r.color, flexShrink: 0 }}>4829</div>
               </div>
             ))}
           </div>
