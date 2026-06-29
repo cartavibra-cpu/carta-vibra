@@ -34,6 +34,7 @@
   --cv-grad:       linear-gradient(100deg, #5E2EFF, #00D4FF 52%, #6EF3B2);
   --cv-grad-text:  linear-gradient(102deg, #7B4DFF, #00D4FF 50%, #6EF3B2);
   --cv-grad-code:  linear-gradient(135deg, #7B4DFF 5%, #00D4FF 52%, #6EF3B2 95%);
+  --cv-grad-code-retro: linear-gradient(135deg, #E8743B 5%, #F2B45C 52%, #FFE3A0 95%);
 
   /* Forma */
   --cv-radius:     16px;
@@ -86,6 +87,12 @@ body {
 }
 .cv-grad-code {
   background: var(--cv-grad-code);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.cv-grad-code-retro {
+  background: var(--cv-grad-code-retro);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

@@ -1,0 +1,8 @@
+Texturas de fondo de la rockola (modo SIN pantalla completa).
+
+Poné acá los dos archivos con ESTOS nombres exactos:
+  - rockola-neon.jpg   (skin Neón)
+  - rockola-retro.jpg  (skin Retro)
+
+Tamaño recomendado: 2560 x 1440 px (16:9), JPG de buena calidad (~300-600 KB).
+Si todavía no están, la consola muestra un fondo CSS de respaldo (no se rompe nada).
