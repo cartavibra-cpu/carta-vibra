@@ -14,17 +14,34 @@ const WHATSAPP_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola,
 const EMAIL = 'cartavibra@gmail.com';
 const EMAIL_URL = `mailto:${EMAIL}?subject=${encodeURIComponent('Quiero Carta Vibra en mi local')}`;
 
+function GoogleG({ size }: { size: number }) {
+  return (
+    <span style={{ width: size, height: size, borderRadius: '50%', background: 'conic-gradient(from 0deg,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <span style={{ width: Math.round(size * 0.4), height: Math.round(size * 0.4), borderRadius: '50%', background: '#0b0a14' }} />
+    </span>
+  );
+}
+
 function GoogleButton({ onClick, small }: { onClick: () => void; small?: boolean }) {
+  const isMobile = useIsMobile();
   return (
     <button
       onClick={onClick}
-      className="cv-btn cv-btn-google"
-      style={{ fontSize: small ? 14 : 16, padding: small ? '10px 18px' : '15px 30px' }}
+      className="cv-btn"
+      style={{
+        fontSize: small ? 13.5 : 15,
+        padding: small ? '9px 15px' : '14px 26px',
+        background: 'rgba(255,255,255,.05)',
+        border: '1px solid rgba(0,212,255,.42)',
+        color: 'var(--cv-text)',
+        boxShadow: '0 8px 26px rgba(0,212,255,.12)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        whiteSpace: 'nowrap',
+      }}
     >
-      <span style={{ width: small ? 18 : 22, height: small ? 18 : 22, borderRadius: '50%', background: 'conic-gradient(from 0deg,#EA4335,#FBBC05,#34A853,#4285F4,#EA4335)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ width: small ? 7 : 9, height: small ? 7 : 9, borderRadius: '50%', background: 'var(--cv-text)' }} />
-      </span>
-      Entrar con Google
+      <GoogleG size={small ? 16 : 18} />
+      {small && isMobile ? 'Entrar' : 'Entrar con Google'}
     </button>
   );
 }
@@ -80,7 +97,9 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       const my = mRef.y;
       if (glowA.current) glowA.current.style.transform = `translate(${mx * -36}px, ${y * 0.25 + my * -36}px)`;
       if (glowB.current) glowB.current.style.transform = `translate(${mx * 28}px, ${y * -0.12 + my * 28}px)`;
-      if (vinylWrap.current) vinylWrap.current.style.transform = `translate(${mx * 18}px, ${my * 18}px)`;
+      // El disco flota: parallax por mouse/giroscopio (mx,my) + un arrastre por scroll
+      // (más lento que el texto) para que TENGA parallax también en el celular.
+      if (vinylWrap.current) vinylWrap.current.style.transform = `translate(${mx * 20}px, ${my * 20 - y * 0.07}px)`;
       if (heroContent.current) {
         heroContent.current.style.transform = `translateY(${y * 0.12}px)`;
         heroContent.current.style.opacity = String(Math.max(0, 1 - y / 640));
@@ -102,14 +121,27 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       mRef.y = (e.clientY - cy) / cy;
       req();
     };
+    // Giroscopio: en el celu, inclinar el teléfono mueve el disco (equivalente al mouse).
+    // No pedimos permiso: en iOS 13+ sin permiso simplemente no dispara y queda el
+    // parallax por scroll; en Android funciona directo.
+    const onTilt = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || e.beta == null) return;
+      mRef.x = Math.max(-1, Math.min(1, e.gamma / 26));
+      mRef.y = Math.max(-1, Math.min(1, (e.beta - 45) / 26));
+      req();
+    };
 
     window.addEventListener('scroll', onScroll, { passive: true });
-    if (!reduce) window.addEventListener('mousemove', onMouse, { passive: true });
+    if (!reduce) {
+      window.addEventListener('mousemove', onMouse, { passive: true });
+      window.addEventListener('deviceorientation', onTilt);
+    }
 
     return () => {
       io.disconnect();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('mousemove', onMouse);
+      window.removeEventListener('deviceorientation', onTilt);
       if (raf) cancelAnimationFrame(raf);
     };
   }, []);
@@ -117,9 +149,9 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
   return (
     <main style={{ position: 'relative', background: '#07060e', overflow: 'hidden' }}>
       {/* ---------- NAV ---------- */}
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'linear-gradient(180deg, rgba(7,6,14,.85), rgba(7,6,14,0))', backdropFilter: 'blur(6px)' }}>
-        <a href="#top" style={{ textDecoration: 'none' }}>
-          <BrandMark size={34} layout="row" />
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: isMobile ? '12px 16px' : '16px 24px', background: 'linear-gradient(180deg, rgba(7,6,14,.88), rgba(7,6,14,0))', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
+        <a href="#top" style={{ textDecoration: 'none', flexShrink: 0 }}>
+          <BrandMark size={isMobile ? 30 : 34} layout="row" />
         </a>
         <GoogleButton onClick={onLogin} small />
       </nav>
@@ -143,11 +175,11 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             </p>
           </div>
           <div className="cv-hero-ctas">
-            <a href="#como-funciona" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none' }}>
+            <a href="#como-funciona" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', ...(isMobile ? { width: '100%' } : {}) }}>
               Ver cómo funciona
             </a>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 17 }}>💬</span> Escribinos
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, ...(isMobile ? { width: '100%' } : {}) }}>
+              <span style={{ fontSize: 17 }}>💬</span> Escribinos por WhatsApp
             </a>
           </div>
         </div>
@@ -222,7 +254,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             {/* wave + code */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 240, margin: '12px 0' }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', opacity: 0.85 }}>
-                <Waveform n={76} color="#00D4FF" maxH={210} barW={5} gap={5} notch={9} seed={5} />
+                <Waveform n={isMobile ? 30 : 76} color="#00D4FF" maxH={isMobile ? 150 : 210} barW={5} gap={5} notch={isMobile ? 5 : 9} seed={5} />
               </div>
               <div style={{ position: 'relative', textAlign: 'center' }}>
                 <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.28em', color: 'var(--cv-cyan-light)', marginBottom: 4 }}>CÓDIGO DE SALA</div>
@@ -278,7 +310,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
                   <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>{r.meta}</div>
                 </div>
                 <div className="cv-thermo-wave" style={{ flex: 1, minWidth: 0 }}>
-                  <Waveform n={54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />
+                  <Waveform n={isMobile ? 28 : 54} color={r.color} maxH={r.maxH} barW={3} gap={4} seed={r.seed} />
                 </div>
                 <div className="cv-wordmark" style={{ fontSize: 34, fontWeight: 700, letterSpacing: '.04em', color: r.color, flexShrink: 0 }}>4829</div>
               </div>
@@ -328,16 +360,16 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               Te mostramos cómo quedaría andando en tu local y lo dejamos listo. Escribinos y conversamos — sin compromiso.
             </p>
 
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6 }}>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '15px 28px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 9 }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6, width: '100%', maxWidth: isMobile ? 360 : undefined }}>
+              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '15px 28px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, ...(isMobile ? { width: '100%' } : {}) }}>
                 <span style={{ fontSize: 18 }}>💬</span> Escribinos por WhatsApp
               </a>
-              <a href={EMAIL_URL} className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '15px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 16 }}>✉️</span> {EMAIL}
+              <a href={EMAIL_URL} className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '15px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, maxWidth: '100%', overflow: 'hidden', ...(isMobile ? { width: '100%' } : {}) }}>
+                <span style={{ fontSize: 16, flexShrink: 0 }}>✉️</span> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{EMAIL}</span>
               </a>
             </div>
 
-            <div className="cv-mono" style={{ fontSize: 12.5, letterSpacing: '.04em', color: 'var(--cv-muted-2)', display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <div className="cv-mono" style={{ fontSize: 12.5, letterSpacing: '.04em', color: 'var(--cv-muted-2)', display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 4, maxWidth: '100%' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', flexShrink: 0 }} />
               Te responde una persona de verdad, no un robot.
             </div>
