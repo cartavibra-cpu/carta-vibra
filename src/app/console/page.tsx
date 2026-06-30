@@ -755,15 +755,29 @@ export default function ConsolePage() {
     );
   }
 
-  const sk = getSkin(skin);
+  // sk deriva del TEMA del local (variables CSS de globals.css), no de un skin fijo.
+  // Así el tema elegido en Supabase pinta toda la consola.
+  const skBase = getSkin(skin);
+  const sk = {
+    ...skBase,
+    gradClass: 'cv-grad-theme',
+    cardBg: 'rgba(8,7,16,.42)',
+    cardBorder: 'color-mix(in srgb, var(--cv-accent) 26%, transparent)',
+    accent: 'var(--cv-accent)',
+    accent2: 'var(--cv-accent)',
+    liveColor: 'var(--cv-accent)',
+    waveColor: 'var(--cv-accent)',
+    labelColor: 'color-mix(in srgb, var(--cv-accent) 70%, #ffffff)',
+    textOnVideo: '#ffffff',
+    codeGlow: '0 2px 26px rgba(var(--cv-accent-rgb), .5)',
+    frameBorder: 'color-mix(in srgb, var(--cv-accent) 22%, transparent)',
+    frameGlow: '0 0 0 1px color-mix(in srgb, var(--cv-accent) 16%, transparent), 0 0 70px -16px rgba(var(--cv-accent-rgb), .5)',
+  };
   const controlsOn = controlsVisible && !pending;
   // "clean" = video a pantalla completa: SOLO cuando el botón ⛶ activa el fullscreen real del navegador.
-  // En vista normal (incluido F11) se ven las LUCES: el color del tema llena el fondo y el video va achicado al centro.
   const clean = isFs;
-  // Las "luces": el color del tema (cyan/ámbar) se desvanece desde el centro hacia los bordes, llenando los
-  // costados para que NO se vea el negro de la página. En esos costados (Fase 2) irá el logo + promos del local.
-  const glowRgb = ((h: string) => { const x = h.replace('#', ''); return `${parseInt(x.slice(0, 2), 16)},${parseInt(x.slice(2, 4), 16)},${parseInt(x.slice(4, 6), 16)}`; })(sk.accent);
-  const ambientBg = `radial-gradient(125% 135% at 50% 46%, rgba(${glowRgb},.34) 0%, rgba(${glowRgb},.17) 34%, rgba(${glowRgb},.07) 60%, rgba(${glowRgb},.02) 80%, #070610 100%)`;
+  // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
+  const ambientBg = 'radial-gradient(125% 135% at 50% 46%, rgba(var(--cv-accent-rgb),.34) 0%, rgba(var(--cv-accent-rgb),.17) 34%, rgba(var(--cv-accent-rgb),.07) 60%, rgba(var(--cv-accent-rgb),.02) 80%, var(--cv-bg) 100%)';
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
@@ -805,8 +819,8 @@ export default function ConsolePage() {
           </div>
 
           {/* ABAJO-IZQUIERDA: co-brand chiquito */}
-          <div style={{ position: 'absolute', bottom: '3.5cqh', left: '2.6cqw', display: 'flex', alignItems: 'center', gap: 5, opacity: .5, pointerEvents: 'none' }}>
-            <span className="cv-mono" style={{ fontSize: 'clamp(8px,1cqw,11px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>suena en</span><BrandMark size={15} layout="row" />
+          <div style={{ position: 'absolute', bottom: '3.5cqh', left: '2.6cqw', display: 'flex', alignItems: 'center', gap: 5, opacity: .55, pointerEvents: 'none' }}>
+            <span className="cv-mono" style={{ fontSize: 'clamp(8px,1cqw,11px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>sonando con</span><BrandMark size={15} layout="row" />
           </div>
 
           {/* aviso de cambio de lista (dentro de la pantalla, se ve en fullscreen) */}
