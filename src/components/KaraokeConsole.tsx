@@ -39,7 +39,7 @@ function getYouTubeId(url: string) {
 }
 
 const STAGE_BG =
-  'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(110,243,178,.10), transparent 60%), #07060e';
+  'radial-gradient(1000px 600px at 50% -8%, rgba(var(--cv-accent-rgb),.18), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(var(--cv-accent-rgb),.10), transparent 60%), #070610';
 
 export default function KaraokeConsole({ token, venueId, slug, roomCode, playlistId }: { token: string; venueId: string; slug: string; roomCode: string | null; playlistId: string | null }) {
   const [queue, setQueue] = useState<Signup[]>([]);
@@ -306,24 +306,24 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>AGREGAR CANTANTE</span>
-        <button onClick={() => setShowAdd(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        <button onClick={() => setShowAdd(false)} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.42)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
       </div>
       <input className="cv-input" placeholder="Nombre o apodo" value={addSinger} onChange={(e) => setAddSinger(e.target.value)} style={{ width: '100%', marginBottom: 10 }} />
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
-        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
+        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-mint)' : 'rgba(255,255,255,.6)' }}>Catálogo</button>
+        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-mint)' : 'rgba(255,255,255,.6)' }}>Link</button>
       </div>
       {addPickMode === 'catalog' ? (
         <>
           <input className="cv-input" placeholder="Buscá en el catálogo…" value={addFilter} onChange={(e) => setAddFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 13 }} />
           <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>sin resultados.</div>}
+            {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>sin resultados.</div>}
             {addMatches.map((t) => {
               const sel = addPicked?.external_id === t.external_id;
               return (
                 <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(110,243,178,.10)' : 'rgba(255,255,255,.03)' }}>
-                  <div style={{ fontSize: 13.5, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
-                  {t.artist && <div className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-mono)' }}>{t.artist}</div>}
+                  <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.92)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                  {t.artist && <div className="cv-mono" style={{ fontSize: 10.5, color: 'rgba(255,255,255,.5)' }}>{t.artist}</div>}
                 </button>
               );
             })}
@@ -335,7 +335,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: addPasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
         </>
       )}
-      {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 12, color: 'var(--cv-text-2)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}
+      {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,.85)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}
       <button className="cv-btn cv-btn-mint" onClick={doAdd} disabled={adding || !addSinger.trim() || !addPicked} style={{ width: '100%', marginTop: 12, fontSize: 14, padding: '10px 0', opacity: adding || !addSinger.trim() || !addPicked ? 0.5 : 1 }}>{adding ? 'Agregando…' : 'Agregar a la fila'}</button>
     </>
   );
@@ -411,12 +411,12 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                 <span style={{ fontSize: 17, flexShrink: 0 }}>🔄</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 11, color: 'var(--cv-muted)' }}>Activaron otra playlist</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Activaron otra playlist</div>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pendingPlaylist.name}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px' }} onClick={dismissPlaylist}>Seguir</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px', color: '#fff' }} onClick={dismissPlaylist}>Seguir</button>
                 <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 12px', color: ac }} onClick={confirmPlaylist}>Cambiar</button>
               </div>
             </div>
@@ -427,16 +427,16 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
           {/* barra de controles (auto-esconde), arriba-centro */}
           <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '94%' }}>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', opacity: backAvailable ? 1 : .4 }} onClick={goBack} disabled={!backAvailable} title="Anterior (←)">◀</button>
-            {current && <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>}
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', opacity: backAvailable ? 1 : .4, color: '#fff' }} onClick={goBack} disabled={!backAvailable} title="Anterior (←)">◀</button>
+            {current && <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>}
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px', color: ac, opacity: (!current && waiting.length === 0) ? .4 : 1 }} onClick={advance} disabled={!current && waiting.length === 0} title="Siguiente (→)">{current ? 'Siguiente ▶' : 'Empezar ▶'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px' }} onClick={() => setShowAdd(true)} title="Agregar cantante">➕</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px' }} onClick={() => setShowManage(true)} title="Gestionar la fila">☰ {waiting.length}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px', color: '#fff' }} onClick={() => setShowAdd(true)} title="Agregar cantante">➕</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px', color: '#fff' }} onClick={() => setShowManage(true)} title="Gestionar la fila">☰ {waiting.length}</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px', color: '#fff' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
           {/* AGREGAR CANTANTE (modal) */}
@@ -454,20 +454,20 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
               <div className="cv-card" style={{ width: 460, maxWidth: '100%', maxHeight: '88%', display: 'flex', flexDirection: 'column', padding: '18px 20px', background: 'rgba(12,12,20,.98)' }} onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                   <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: ac }}>FILA DE CANTANTES ({waiting.length})</span>
-                  <button onClick={() => setShowManage(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                  <button onClick={() => setShowManage(false)} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.42)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, overflowY: 'auto' }}>
-                  {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
+                  {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
                   {waiting.map((s, i) => (
-                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-line)' }}>
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.12)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
-                        <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
+                        <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'rgba(255,255,255,.42)' : 'rgba(255,255,255,.6)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
+                        <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'rgba(255,255,255,.42)' : 'rgba(255,255,255,.6)', fontSize: 11, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
                       </div>
-                      <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 700, color: 'var(--cv-muted)', width: 20, flexShrink: 0 }}>{i + 1}</span>
+                      <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,.6)', width: 20, flexShrink: 0 }}>{i + 1}</span>
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
-                        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,.92)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
+                        <div className="cv-mono" style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
                       </div>
                       <button onClick={() => removeOne(s.id)} title="Sacar de la fila" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 16, flexShrink: 0, lineHeight: 1 }}>✕</button>
                     </div>
@@ -481,16 +481,16 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           {showSettings && (
             <div style={{ position: 'absolute', top: 52, left: '50%', transform: 'translateX(-50%)', width: 300, maxWidth: '94%', zIndex: 2147483550, borderRadius: 16, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(10,10,18,.97)', boxShadow: '0 20px 60px -16px rgba(0,0,0,.8)', padding: '16px 18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
-                <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'rgba(255,255,255,.5)' }}>AJUSTES</span>
+                <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.42)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
+              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'rgba(255,255,255,.5)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 {(['neon', 'retro'] as SkinName[]).map((s) => (
-                  <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent2}` : '1px solid var(--cv-line)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent2 : 'var(--cv-muted)' }}>{getSkin(s).label}</button>
+                  <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent2}` : '1px solid rgba(255,255,255,.12)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent2 : 'rgba(255,255,255,.6)' }}>{getSkin(s).label}</button>
                 ))}
               </div>
-              <a href={slug ? `/panel/venues/${slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>
+              <a href={slug ? `/panel/venues/${slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>← Volver al panel</a>
             </div>
           )}
         </div>

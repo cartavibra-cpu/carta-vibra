@@ -24,7 +24,7 @@ export default function Error({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 24,
-        background: 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e',
+        background: 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)',
       }}
     >
       <div style={{ textAlign: 'center', maxWidth: 420 }}>

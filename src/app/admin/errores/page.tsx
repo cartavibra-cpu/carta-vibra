@@ -4,7 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import { useIsMobile } from '@/lib/useIsMobile';
 
-const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), #07060e';
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)';
 
 type ErrRow = {
   id: string;

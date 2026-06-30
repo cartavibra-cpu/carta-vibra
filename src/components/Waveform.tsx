@@ -28,7 +28,7 @@ type WaveformProps = {
  */
 export default function Waveform({
   n = 64,
-  color = '#00D4FF',
+  color = 'var(--cv-accent)',
   maxH = 160,
   barW = 5,
   gap = 4,

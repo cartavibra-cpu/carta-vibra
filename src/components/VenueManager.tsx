@@ -189,7 +189,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* paso 1: playlist */}
             <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
-              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-mint)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasPlaylist ? '#06121a' : 'transparent' }}>✓</span>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-mint)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasPlaylist ? 'var(--cv-on)' : 'transparent' }}>✓</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: hasPlaylist ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasPlaylist ? 'line-through' : 'none' }}>Elegí la música y ponela a sonar</div>
                 {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> más abajo, en <b style={{ color: 'var(--cv-text-2)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-text-2)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <a href="/panel/curadas" style={{ color: 'var(--cv-cyan)' }}>curadas</a>.</div>}
@@ -197,7 +197,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
             </div>
             {/* paso 2: consola */}
             <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
-              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasConsole ? 'var(--cv-mint)' : 'transparent', border: hasConsole ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasConsole ? '#06121a' : 'transparent' }}>✓</span>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasConsole ? 'var(--cv-mint)' : 'transparent', border: hasConsole ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasConsole ? 'var(--cv-on)' : 'transparent' }}>✓</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: hasConsole ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasConsole ? 'line-through' : 'none' }}>Vinculá la pantalla del local</div>
                 {!hasConsole && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>En la pantalla o PC del local, abrí <b style={{ color: 'var(--cv-text-2)' }}>/console</b>. Te da un código de 6 dígitos: escribilo acá abajo en <b style={{ color: 'var(--cv-text-2)' }}>“Vincular consola”</b>.</div>}

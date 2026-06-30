@@ -7,34 +7,41 @@
    ============================================================ */
 
 :root {
-  /* Marca */
-  --cv-violet:        #5E2EFF;
-  --cv-violet-light:  #7B4DFF;   /* solo texto en gradiente (legibilidad) */
-  --cv-cyan:          #00D4FF;
-  --cv-mint:          #6EF3B2;
+  /* ── COMPAT: los tokens viejos ahora APUNTAN a los del tema ──
+     Cada página existente queda conectada al motor de temas sin reescribir
+     cientos de líneas. Se resuelven en cascada (ver "MOTOR DE TEMAS" abajo). */
 
-  /* Superficies */
-  --cv-night:         #07060E;   /* fondo base */
-  --cv-bg-2:          #0A0812;   /* cards / fondo secundario */
-  --cv-surface:       #14101F;   /* superficie elevada */
+  /* Marca → acento del tema */
+  --cv-violet:        var(--cv-accent);
+  --cv-violet-light:  var(--cv-accent);
+  --cv-cyan:          var(--cv-accent);
+  --cv-mint:          var(--cv-accent);
 
-  /* Texto */
-  --cv-text:          #EDEAF5;
-  --cv-text-2:        #CFC9DA;
-  --cv-muted:         #9A93A8;
-  --cv-muted-2:       #8B8499;
-  --cv-mono:          #7F7890;
-  --cv-mono-2:        #6B6478;
+  /* Superficies → tema */
+  --cv-night:         var(--cv-bg);
+  --cv-bg-2:          var(--cv-surf);
+  --cv-surface:       var(--cv-surf);
 
-  /* Acentos */
+  /* Texto → tema (3 niveles: ink / mut / faint) */
+  --cv-text:          var(--cv-ink);
+  --cv-text-2:        var(--cv-mut);
+  --cv-muted:         var(--cv-mut);
+  --cv-muted-2:       var(--cv-faint);
+  --cv-mono:          var(--cv-faint);
+  --cv-mono-2:        var(--cv-faint);
+
+  /* Acentos utilitarios neutros (semánticos, no cambian con el tema) */
   --cv-dot-off:       #3A3548;   /* punto playlist inactiva */
   --cv-warm:          #CC9977;   /* acción borrar */
 
-  /* Gradientes — insignia violeta-forward (creación/juego/música, sin cyan) */
-  --cv-grad:       linear-gradient(100deg, #b14cff, #ff4db0 52%, #ff8a5c);
-  --cv-grad-text:  linear-gradient(102deg, #b14cff, #ff4db0 50%, #ff8a5c);
-  --cv-grad-code:  linear-gradient(135deg, #b14cff 5%, #ff4db0 52%, #ff8a5c 95%);
-  --cv-grad-code-retro: linear-gradient(135deg, #E8743B 5%, #F2B45C 52%, #FFE3A0 95%);
+  /* Gradientes → gradiente del tema (insignia violeta en Vibra por defecto) */
+  --cv-grad:       var(--cv-theme-grad);
+  --cv-grad-text:  var(--cv-theme-grad);
+  --cv-grad-code:  var(--cv-theme-grad);
+  --cv-grad-code-retro: var(--cv-theme-grad);
+
+  /* línea/hairline → tema */
+  --cv-line:       var(--cv-hair);
 
   /* Forma */
   --cv-radius:     16px;
@@ -109,8 +116,8 @@ body {
 
 /* Superficie / tarjeta */
 .cv-card {
-  background: var(--cv-surface);
-  border: 1px solid rgba(255,255,255,.07);
+  background: var(--cv-surf);
+  border: 1px solid var(--cv-hair);
   border-radius: var(--cv-radius);
 }
 
@@ -129,17 +136,17 @@ body {
 }
 .cv-btn:active { transform: scale(.98); }
 .cv-btn-primary {
-  background: var(--cv-grad);
-  color: var(--cv-night);
+  background: var(--cv-accent);
+  color: var(--cv-on);
 }
 .cv-btn-ghost {
   background: transparent;
-  border: 1px solid rgba(255,255,255,.14);
-  color: var(--cv-text-2);
+  border: 1px solid var(--cv-hair);
+  color: var(--cv-mut);
 }
 .cv-btn-google {
-  background: var(--cv-text);
-  color: var(--cv-surface);
+  background: #ffffff;
+  color: #1f1f1f;
   box-shadow: 0 12px 34px rgba(0,0,0,.4);
 }
 
@@ -149,9 +156,9 @@ body {
   align-items: center;
   gap: 10px;
   padding: 9px 18px;
-  border: 1px solid rgba(110,243,178,.4);
+  border: 1px solid rgba(var(--cv-accent-rgb),.4);
   border-radius: 999px;
-  background: rgba(110,243,178,.06);
+  background: rgba(var(--cv-accent-rgb),.06);
 }
 .cv-live-dot {
   width: 9px; height: 9px;
@@ -179,9 +186,9 @@ body {
    v2 · Director's cut — extras (ondas, termómetro, scroll)
    ============================================================ */
 :root {
-  --cv-cyan-light:  #5FE0FF;
-  --cv-violet-tint: #A98BFF;
-  --cv-night-wave:  #060810;
+  --cv-cyan-light:  var(--cv-accent);
+  --cv-violet-tint: var(--cv-accent);
+  --cv-night-wave:  var(--cv-bg);
 }
 
 /* barras de la forma de onda */
@@ -222,8 +229,8 @@ html { scroll-behavior: smooth; }
 }
 
 /* ---- Controles: botón cian, inputs oscuros, botón de voto ---- */
-.cv-btn-cyan { background: var(--cv-cyan); color: var(--cv-night); }
-.cv-btn-mint { background: var(--cv-mint); color: var(--cv-night); }
+.cv-btn-cyan { background: var(--cv-accent); color: var(--cv-on); }
+.cv-btn-mint { background: var(--cv-accent); color: var(--cv-on); }
 
 .cv-input {
   background: var(--cv-bg-2);
@@ -236,14 +243,14 @@ html { scroll-behavior: smooth; }
   outline: none;
   transition: border-color .15s ease;
 }
-.cv-input:focus { border-color: rgba(0,212,255,.5); }
+.cv-input:focus { border-color: rgba(var(--cv-accent-rgb),.5); }
 .cv-input::placeholder { color: var(--cv-mono-2); }
 
 .cv-vote-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
   width: 54px; height: 54px; border-radius: 14px; cursor: pointer; flex-shrink: 0;
-  background: linear-gradient(150deg, rgba(94,46,255,.32), rgba(0,212,255,.18));
-  border: 1px solid rgba(0,212,255,.4);
+  background: rgba(var(--cv-accent-rgb),.16);
+  border: 1px solid rgba(var(--cv-accent-rgb),.42);
   transition: transform .12s ease;
 }
 .cv-vote-btn:active { transform: scale(.94); }
@@ -269,30 +276,30 @@ html { scroll-behavior: smooth; }
   /* default = Vibra */
   --cv-accent:#9b38ff; --cv-accent-rgb:155,56,255;
   --cv-theme-grad:linear-gradient(102deg,#b14cff,#ff4db0 50%,#ff8a5c);
-  --cv-glow:rgba(155,56,255,.5);
+  --cv-glow:rgba(155,56,255,.5); --cv-on:#ffffff;
   --cv-bg:#0a0710; --cv-surf:#14101e; --cv-ink:#f1ecfb;
   --cv-mut:#a99bc0; --cv-faint:#6e6488; --cv-hair:rgba(255,255,255,.08);
 }
 
 /* ─ ELÉCTRICOS ─ */
-[data-cv-theme="vibra"] { --cv-accent:#9b38ff;--cv-accent-rgb:155,56,255;--cv-theme-grad:linear-gradient(102deg,#b14cff,#ff4db0 50%,#ff8a5c);--cv-glow:rgba(155,56,255,.5);--cv-bg:#0a0710;--cv-surf:#14101e;--cv-ink:#f1ecfb;--cv-mut:#a99bc0;--cv-faint:#6e6488;--cv-hair:rgba(255,255,255,.08); }
-[data-cv-theme="cyan"]  { --cv-accent:#16e0ff;--cv-accent-rgb:22,224,255;--cv-theme-grad:linear-gradient(102deg,#6a3cff,#16e0ff 50%,#6ef3b2);--cv-glow:rgba(22,224,255,.5);--cv-bg:#07060e;--cv-surf:#0d0e1a;--cv-ink:#eef0ff;--cv-mut:#9499bd;--cv-faint:#646a93;--cv-hair:rgba(255,255,255,.08); }
-[data-cv-theme="fiesta"]{ --cv-accent:#ff3da6;--cv-accent-rgb:255,61,166;--cv-theme-grad:linear-gradient(102deg,#ff3da6,#7a5cff 52%,#b6f36e);--cv-glow:rgba(255,61,166,.5);--cv-bg:#0a0410;--cv-surf:#150720;--cv-ink:#ffeefb;--cv-mut:#c79ec0;--cv-faint:#946e8d;--cv-hair:rgba(255,255,255,.08); }
+[data-cv-theme="vibra"] { --cv-accent:#9b38ff;--cv-accent-rgb:155,56,255;--cv-theme-grad:linear-gradient(102deg,#b14cff,#ff4db0 50%,#ff8a5c);--cv-glow:rgba(155,56,255,.5);--cv-bg:#0a0710;--cv-surf:#14101e;--cv-ink:#f1ecfb;--cv-mut:#a99bc0;--cv-faint:#6e6488;--cv-hair:rgba(255,255,255,.08); --cv-on:#ffffff; }
+[data-cv-theme="cyan"]  { --cv-accent:#16e0ff;--cv-accent-rgb:22,224,255;--cv-theme-grad:linear-gradient(102deg,#6a3cff,#16e0ff 50%,#6ef3b2);--cv-glow:rgba(22,224,255,.5);--cv-bg:#07060e;--cv-surf:#0d0e1a;--cv-ink:#eef0ff;--cv-mut:#9499bd;--cv-faint:#646a93;--cv-hair:rgba(255,255,255,.08); --cv-on:#06141a; }
+[data-cv-theme="fiesta"]{ --cv-accent:#ff3da6;--cv-accent-rgb:255,61,166;--cv-theme-grad:linear-gradient(102deg,#ff3da6,#7a5cff 52%,#b6f36e);--cv-glow:rgba(255,61,166,.5);--cv-bg:#0a0410;--cv-surf:#150720;--cv-ink:#ffeefb;--cv-mut:#c79ec0;--cv-faint:#946e8d;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0512; }
 
 /* ─ BRASA ─ */
-[data-cv-theme="cobre"] { --cv-accent:#ff8a6b;--cv-accent-rgb:255,138,107;--cv-theme-grad:linear-gradient(102deg,#f4d9b0,#ff8a6b 52%,#e0a85c);--cv-glow:rgba(255,138,107,.5);--cv-bg:#140d0a;--cv-surf:#1c1410;--cv-ink:#f6ece2;--cv-mut:#b8a594;--cv-faint:#8a7868;--cv-hair:rgba(255,255,255,.08); }
-[data-cv-theme="ambar"] { --cv-accent:#ff9a4d;--cv-accent-rgb:255,154,77;--cv-theme-grad:linear-gradient(102deg,#ffc24d,#ff7a4d 52%,#e05a8a);--cv-glow:rgba(255,154,77,.5);--cv-bg:#160b0a;--cv-surf:#1f0f0d;--cv-ink:#fdeee6;--cv-mut:#c0a596;--cv-faint:#93766a;--cv-hair:rgba(255,255,255,.08); }
-[data-cv-theme="vino"]  { --cv-accent:#e0688a;--cv-accent-rgb:224,104,138;--cv-theme-grad:linear-gradient(102deg,#7a1f3a,#e0688a 52%,#e8b04a);--cv-glow:rgba(224,104,138,.5);--cv-bg:#160812;--cv-surf:#1f0c18;--cv-ink:#f7e9ee;--cv-mut:#c2a0ad;--cv-faint:#94707d;--cv-hair:rgba(255,255,255,.08); }
+[data-cv-theme="cobre"] { --cv-accent:#ff8a6b;--cv-accent-rgb:255,138,107;--cv-theme-grad:linear-gradient(102deg,#f4d9b0,#ff8a6b 52%,#e0a85c);--cv-glow:rgba(255,138,107,.5);--cv-bg:#140d0a;--cv-surf:#1c1410;--cv-ink:#f6ece2;--cv-mut:#b8a594;--cv-faint:#8a7868;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0d08; }
+[data-cv-theme="ambar"] { --cv-accent:#ff9a4d;--cv-accent-rgb:255,154,77;--cv-theme-grad:linear-gradient(102deg,#ffc24d,#ff7a4d 52%,#e05a8a);--cv-glow:rgba(255,154,77,.5);--cv-bg:#160b0a;--cv-surf:#1f0f0d;--cv-ink:#fdeee6;--cv-mut:#c0a596;--cv-faint:#93766a;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0d04; }
+[data-cv-theme="vino"]  { --cv-accent:#e0688a;--cv-accent-rgb:224,104,138;--cv-theme-grad:linear-gradient(102deg,#7a1f3a,#e0688a 52%,#e8b04a);--cv-glow:rgba(224,104,138,.5);--cv-bg:#160812;--cv-surf:#1f0c18;--cv-ink:#f7e9ee;--cv-mut:#c2a0ad;--cv-faint:#94707d;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0810; }
 
 /* ─ PENUMBRA ─ */
-[data-cv-theme="tinta"] { --cv-accent:#9a8cff;--cv-accent-rgb:154,140,255;--cv-theme-grad:linear-gradient(102deg,#7a5cff,#a08cff 52%,#d0c2ff);--cv-glow:rgba(154,140,255,.45);--cv-bg:#0d0b16;--cv-surf:#161324;--cv-ink:#ece9f7;--cv-mut:#9b93b3;--cv-faint:#665e82;--cv-hair:rgba(255,255,255,.07); }
-[data-cv-theme="niebla"]{ --cv-accent:#c9a0e0;--cv-accent-rgb:201,160,224;--cv-theme-grad:linear-gradient(102deg,#c9a0e0,#d0a0c8 52%,#e0c0a0);--cv-glow:rgba(201,160,224,.45);--cv-bg:#14121a;--cv-surf:#1c1a24;--cv-ink:#ede9f2;--cv-mut:#a59db0;--cv-faint:#756d80;--cv-hair:rgba(255,255,255,.07); }
-[data-cv-theme="salvia"]{ --cv-accent:#7fcf9f;--cv-accent-rgb:127,207,159;--cv-theme-grad:linear-gradient(102deg,#5aa886,#7fcf9f 52%,#cfe8a0);--cv-glow:rgba(127,207,159,.45);--cv-bg:#0a130f;--cv-surf:#111c16;--cv-ink:#e6f1ea;--cv-mut:#95ad9f;--cv-faint:#6a8074;--cv-hair:rgba(255,255,255,.07); }
+[data-cv-theme="tinta"] { --cv-accent:#9a8cff;--cv-accent-rgb:154,140,255;--cv-theme-grad:linear-gradient(102deg,#7a5cff,#a08cff 52%,#d0c2ff);--cv-glow:rgba(154,140,255,.45);--cv-bg:#0d0b16;--cv-surf:#161324;--cv-ink:#ece9f7;--cv-mut:#9b93b3;--cv-faint:#665e82;--cv-hair:rgba(255,255,255,.07); --cv-on:#0d0b16; }
+[data-cv-theme="niebla"]{ --cv-accent:#c9a0e0;--cv-accent-rgb:201,160,224;--cv-theme-grad:linear-gradient(102deg,#c9a0e0,#d0a0c8 52%,#e0c0a0);--cv-glow:rgba(201,160,224,.45);--cv-bg:#14121a;--cv-surf:#1c1a24;--cv-ink:#ede9f2;--cv-mut:#a59db0;--cv-faint:#756d80;--cv-hair:rgba(255,255,255,.07); --cv-on:#161019; }
+[data-cv-theme="salvia"]{ --cv-accent:#7fcf9f;--cv-accent-rgb:127,207,159;--cv-theme-grad:linear-gradient(102deg,#5aa886,#7fcf9f 52%,#cfe8a0);--cv-glow:rgba(127,207,159,.45);--cv-bg:#0a130f;--cv-surf:#111c16;--cv-ink:#e6f1ea;--cv-mut:#95ad9f;--cv-faint:#6a8074;--cv-hair:rgba(255,255,255,.07); --cv-on:#08130d; }
 
 /* ─ LUZ (claros) ─ */
-[data-cv-theme="lino"]   { --cv-accent:#7a3cff;--cv-accent-rgb:122,60,255;--cv-theme-grad:linear-gradient(102deg,#7a3cff,#d04bb0 52%,#e0764a);--cv-glow:transparent;--cv-bg:#f5f3ee;--cv-surf:#ffffff;--cv-ink:#1b1822;--cv-mut:#6c6678;--cv-faint:#9b96a6;--cv-hair:rgba(0,0,0,.10); }
-[data-cv-theme="crema"]  { --cv-accent:#c4663b;--cv-accent-rgb:196,102,59;--cv-theme-grad:linear-gradient(102deg,#e0975a,#c4663b 52%,#9a4f8a);--cv-glow:transparent;--cv-bg:#f3ebe0;--cv-surf:#fffaf3;--cv-ink:#2a2018;--cv-mut:#7a6e60;--cv-faint:#a89a88;--cv-hair:rgba(0,0,0,.09); }
-[data-cv-theme="algodon"]{ --cv-accent:#9a6cff;--cv-accent-rgb:154,108,255;--cv-theme-grad:linear-gradient(102deg,#b388ff,#e58ad0 52%,#ffb49a);--cv-glow:transparent;--cv-bg:#f6f0f6;--cv-surf:#ffffff;--cv-ink:#2a2333;--cv-mut:#7c7488;--cv-faint:#aaa2b6;--cv-hair:rgba(0,0,0,.08); }
+[data-cv-theme="lino"]   { --cv-accent:#7a3cff;--cv-accent-rgb:122,60,255;--cv-theme-grad:linear-gradient(102deg,#7a3cff,#d04bb0 52%,#e0764a);--cv-glow:transparent;--cv-bg:#f5f3ee;--cv-surf:#ffffff;--cv-ink:#1b1822;--cv-mut:#6c6678;--cv-faint:#9b96a6;--cv-hair:rgba(0,0,0,.10); --cv-on:#ffffff; }
+[data-cv-theme="crema"]  { --cv-accent:#c4663b;--cv-accent-rgb:196,102,59;--cv-theme-grad:linear-gradient(102deg,#e0975a,#c4663b 52%,#9a4f8a);--cv-glow:transparent;--cv-bg:#f3ebe0;--cv-surf:#fffaf3;--cv-ink:#2a2018;--cv-mut:#7a6e60;--cv-faint:#a89a88;--cv-hair:rgba(0,0,0,.09); --cv-on:#fffaf3; }
+[data-cv-theme="algodon"]{ --cv-accent:#9a6cff;--cv-accent-rgb:154,108,255;--cv-theme-grad:linear-gradient(102deg,#b388ff,#e58ad0 52%,#ffb49a);--cv-glow:transparent;--cv-bg:#f6f0f6;--cv-surf:#ffffff;--cv-ink:#2a2333;--cv-mut:#7c7488;--cv-faint:#aaa2b6;--cv-hair:rgba(0,0,0,.08); --cv-on:#ffffff; }
 
 /* ───────── Wordmark vivo: carta <vibra/> en Syne con la Onda ───────── */
 .cv-wm {

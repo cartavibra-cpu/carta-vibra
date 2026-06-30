@@ -8,7 +8,7 @@ type Track = { id: string; title: string; artist: string | null; external_id: st
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number };
 type Picked = { external_id: string; title: string; artist: string; is_embeddable: boolean };
 
-const BG = 'radial-gradient(520px 420px at 50% -5%, rgba(110,243,178,.16), transparent 62%), #07060e';
+const BG = 'radial-gradient(520px 420px at 50% -5%, rgba(110,243,178,.16), transparent 62%), var(--cv-bg)';
 
 function getYouTubeId(url: string) {
   try {
@@ -281,7 +281,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
             <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>AJUSTES</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, cursor: 'pointer' }}>
-              <input type="checkbox" checked={jbAutoDj} onChange={(e) => jbSetAutoDj(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#00D4FF' }} />
+              <input type="checkbox" checked={jbAutoDj} onChange={(e) => jbSetAutoDj(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
               <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>AutoDJ cuando no hay votos</span>
             </label>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>

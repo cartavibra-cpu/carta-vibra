@@ -23,7 +23,7 @@ const TYPES: { key: string; label: string; color: string; sub: string }[] = [
   { key: 'dj_pro', label: 'DJ Pro', color: 'var(--cv-violet-light)', sub: 'archivos propios · pronto' },
 ];
 
-const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(0,212,255,.09), transparent 60%), #07060e';
+const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(0,212,255,.09), transparent 60%), var(--cv-bg)';
 
 export default function PlaylistsPage() {
   const isMobile = useIsMobile();
@@ -360,7 +360,7 @@ export default function PlaylistsPage() {
                             ) : (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto', paddingRight: 6 }}>
                                 {tracks.length > 8 && (
-                                  <div className="cv-mono" style={{ position: 'sticky', top: 0, zIndex: 1, background: '#14101F', fontSize: 11, color: 'var(--cv-mono-2)', padding: '0 0 6px', textAlign: 'right' }}>{tracks.length} canciones · scrolleá adentro</div>
+                                  <div className="cv-mono" style={{ position: 'sticky', top: 0, zIndex: 1, background: 'var(--cv-surf)', fontSize: 11, color: 'var(--cv-mono-2)', padding: '0 0 6px', textAlign: 'right' }}>{tracks.length} canciones · scrolleá adentro</div>
                                 )}
                                 {tracks.map((tr, i) => (
                                   <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.05)' }}>

@@ -11,7 +11,7 @@ type Track = { id: string; title: string; artist: string | null; external_id: st
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number; session: string | null };
 type Picked = { external_id: string; title: string; artist: string; is_embeddable: boolean };
 
-const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(94,46,255,.22), transparent 62%), #07060e';
+const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(94,46,255,.22), transparent 62%), var(--cv-bg)';
 
 function getSession(): string {
   if (typeof window === 'undefined') return '';
@@ -44,7 +44,7 @@ function MiniEq() {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 26 }}>
       {delays.map((d, i) => (
-        <div key={i} style={{ width: 4, height: '100%', borderRadius: 2, transformOrigin: 'bottom', background: 'linear-gradient(180deg,#6EF3B2,#00D4FF)', animation: `cvEq ${(0.7 + i * 0.07).toFixed(2)}s ease-in-out infinite`, animationDelay: `${d}s` }} />
+        <div key={i} style={{ width: 4, height: '100%', borderRadius: 2, transformOrigin: 'bottom', background: 'linear-gradient(180deg, rgba(var(--cv-accent-rgb),.55), var(--cv-accent))', animation: `cvEq ${(0.7 + i * 0.07).toFixed(2)}s ease-in-out infinite`, animationDelay: `${d}s` }} />
       ))}
     </div>
   );

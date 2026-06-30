@@ -6,7 +6,7 @@ import Waveform from '@/components/Waveform';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const STAGE_BG =
-  'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.20), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(0,212,255,.10), transparent 60%), #07060e';
+  'radial-gradient(1000px 600px at 50% -8%, rgba(var(--cv-accent-rgb),.20), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(var(--cv-accent-rgb),.10), transparent 60%), var(--cv-bg)';
 
 // Contacto — Fran: confirmá que este WhatsApp sea el de Carta Vibra (es el mismo de CartaViva).
 const WHATSAPP = '56979282574';
@@ -147,7 +147,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
   }, []);
 
   return (
-    <main style={{ position: 'relative', background: '#07060e', overflow: 'hidden' }}>
+    <main style={{ position: 'relative', background: 'var(--cv-bg)', overflow: 'hidden' }}>
       {/* ---------- NAV ---------- */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: isMobile ? '12px 16px' : '16px 24px', background: 'linear-gradient(180deg, rgba(7,6,14,.88), rgba(7,6,14,0))', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
         <a href="#top" style={{ textDecoration: 'none', flexShrink: 0 }}>
@@ -175,10 +175,10 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             </p>
           </div>
           <div className="cv-hero-ctas">
-            <a href="#como-funciona" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', ...(isMobile ? { width: '100%' } : {}) }}>
+            <a href="#como-funciona" className="cv-btn cv-btn-primary" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', ...(isMobile ? { width: '100%' } : {}) }}>
               Ver cómo funciona
             </a>
-            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, ...(isMobile ? { width: '100%' } : {}) }}>
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, ...(isMobile ? { width: '100%' } : {}) }}>
               <span style={{ fontSize: 17 }}>💬</span> Escribinos por WhatsApp
             </a>
           </div>
@@ -239,7 +239,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 4.5vw, 42px)', fontWeight: 600, marginTop: 14 }}>Una sola onda. Se ve de lejos.</h2>
           </div>
 
-          <div data-reveal style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(0,212,255,.14)', background: 'radial-gradient(1000px 720px at 50% 52%, rgba(0,212,255,.16), transparent 60%), #060810', padding: '40px 28px 28px' }}>
+          <div data-reveal style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(var(--cv-accent-rgb),.16)', background: 'radial-gradient(1000px 720px at 50% 52%, rgba(var(--cv-accent-rgb),.16), transparent 60%), var(--cv-bg)', padding: '40px 28px 28px' }}>
             <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.022) 0 1px, transparent 1px 36px)', opacity: 0.4 }} />
 
             {/* top bar */}
@@ -254,7 +254,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             {/* wave + code */}
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 240, margin: '12px 0' }}>
               <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)', opacity: 0.85 }}>
-                <Waveform n={isMobile ? 30 : 76} color="#00D4FF" maxH={isMobile ? 150 : 210} barW={5} gap={5} notch={isMobile ? 5 : 9} seed={5} />
+                <Waveform n={isMobile ? 30 : 76} color="var(--cv-accent)" maxH={isMobile ? 150 : 210} barW={5} gap={5} notch={isMobile ? 5 : 9} seed={5} />
               </div>
               <div style={{ position: 'relative', textAlign: 'center' }}>
                 <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.28em', color: 'var(--cv-cyan-light)', marginBottom: 4 }}>CÓDIGO DE SALA</div>
@@ -300,8 +300,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {[
-              { name: 'Tranquilo', meta: '21:30 · 70 BPM', color: '#7B4DFF', title: 'var(--cv-violet-tint)', bg: 'rgba(123,77,255,.07)', bd: 'rgba(123,77,255,.22)', maxH: 42, seed: 11 },
-              { name: 'Cálido', meta: '23:10 · 100 BPM', color: '#00D4FF', title: 'var(--cv-cyan-light)', bg: 'rgba(0,212,255,.06)', bd: 'rgba(0,212,255,.22)', maxH: 64, seed: 23 },
+              { name: 'Tranquilo', meta: '21:30 · 70 BPM', color: '#7B4DFF', title: '#A98BFF', bg: 'rgba(123,77,255,.07)', bd: 'rgba(123,77,255,.22)', maxH: 42, seed: 11 },
+              { name: 'Cálido', meta: '23:10 · 100 BPM', color: '#00D4FF', title: '#5FE0FF', bg: 'rgba(0,212,255,.06)', bd: 'rgba(0,212,255,.22)', maxH: 64, seed: 23 },
               { name: 'Encendido', meta: '01:40 · 128 BPM', color: '#6EF3B2', title: '#6EF3B2', bg: 'rgba(110,243,178,.06)', bd: 'rgba(110,243,178,.24)', maxH: 92, seed: 31 },
             ].map((r, i) => {
               const label = (
@@ -379,7 +379,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ---------- CONTACTO + FOOTER ---------- */}
-      <section id="contacto" className="cv-section" style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(900px 520px at 50% 120%, rgba(110,243,178,.12), transparent 60%), radial-gradient(800px 500px at 50% -20%, rgba(94,46,255,.12), transparent 60%), #07060e' }}>
+      <section id="contacto" className="cv-section" style={{ position: 'relative', overflow: 'hidden', background: 'radial-gradient(900px 520px at 50% 120%, rgba(var(--cv-accent-rgb),.12), transparent 60%), radial-gradient(800px 500px at 50% -20%, rgba(var(--cv-accent-rgb),.10), transparent 60%), var(--cv-bg)' }}>
         <div className="cv-container" style={{ textAlign: 'center', maxWidth: 680 }}>
           <div data-reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
             <Vinyl size={92} mini />
