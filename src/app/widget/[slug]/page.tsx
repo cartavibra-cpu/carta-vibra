@@ -5,6 +5,7 @@ import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
 import { applyCvTheme } from '@/lib/theme';
+import { cleanName } from '@/lib/profanity';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number; session: string | null };
@@ -59,6 +60,8 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   const [nowId, setNowId] = useState<string | null>(null);
   const [present, setPresent] = useState(false);
   const [code, setCode] = useState('');
+  const [wantName, setWantName] = useState(false);
+  const [voterName, setVoterName] = useState('');
   const [mesa, setMesa] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -160,7 +163,14 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
 
   const redeem = async () => {
     const sb = supa(); if (!sb || !venue) return;
-    const { error } = await sb.rpc('redeem_room_code', { p_slug: slug, p_code: code.trim(), p_session: session, p_mesa: mesa || null });
+    // Nombre opcional (solo jukebox; el karaoke usa el nombre del cantante aparte).
+    let p_name: string | null = null;
+    if (mode === 'jukebox' && wantName) {
+      const chk = cleanName(voterName);
+      if (!chk.ok) { setMsg(chk.reason || 'Nombre inválido.'); return; }
+      p_name = voterName.trim();
+    }
+    const { error } = await sb.rpc('redeem_room_code', { p_slug: slug, p_code: code.trim(), p_session: session, p_mesa: mesa || null, p_name });
     if (error) { setMsg(error.message); return; }
     setPresent(true); setMsg(mode === 'karaoke' ? '¡Listo! Ya podés anotarte.' : '¡Listo! Ya podés votar.'); setCode('');
   };
@@ -392,11 +402,19 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
             {!present && (
               <div className="cv-card" style={{ marginTop: 18, padding: 16 }}>
                 <p style={{ fontSize: 14, color: 'var(--cv-text-2)', marginBottom: 12, lineHeight: 1.5 }}>Para votar, ingresá el código que aparece en la pantalla del local:</p>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
-                    style={{ width: 120, textAlign: 'center', fontSize: 22, letterSpacing: '.3em', fontFamily: 'var(--cv-font-display)' }} />
-                  <button className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '0 22px' }} onClick={redeem}>Validar</button>
+                <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
+                  style={{ width: '100%', textAlign: 'center', fontSize: 24, letterSpacing: '.34em', fontFamily: 'var(--cv-font-display)', marginBottom: 16 }} />
+
+                <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 9 }}>¿CÓMO QUERÉS APARECER?</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => { setWantName(false); setMsg(null); }} style={{ flex: 1, fontSize: 13.5, fontWeight: 600, padding: '10px 0', borderRadius: 10, cursor: 'pointer', border: !wantName ? '1px solid rgba(255,255,255,.42)' : '1px solid var(--cv-line)', background: !wantName ? 'rgba(255,255,255,.08)' : 'transparent', color: !wantName ? 'var(--cv-text)' : 'var(--cv-muted)' }}>😎 Anónimo</button>
+                  <button onClick={() => { setWantName(true); setMsg(null); }} style={{ flex: 1, fontSize: 13.5, fontWeight: 600, padding: '10px 0', borderRadius: 10, cursor: 'pointer', border: wantName ? '1px solid rgba(255,255,255,.42)' : '1px solid var(--cv-line)', background: wantName ? 'rgba(255,255,255,.08)' : 'transparent', color: wantName ? 'var(--cv-text)' : 'var(--cv-muted)' }}>✍️ Con mi nombre</button>
                 </div>
+                {wantName && (
+                  <input className="cv-input" placeholder="Tu nombre o apodo" maxLength={24} value={voterName} onChange={(e) => setVoterName(e.target.value)} style={{ width: '100%', marginTop: 10, fontSize: 16 }} />
+                )}
+
+                <button className="cv-btn cv-btn-cyan" style={{ width: '100%', fontSize: 15, padding: '12px 0', marginTop: 16 }} onClick={redeem}>Validar y entrar</button>
               </div>
             )}
 
