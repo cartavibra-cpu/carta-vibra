@@ -3,6 +3,7 @@ import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
+import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number };
@@ -35,6 +36,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [mode, setMode] = useState<'jukebox' | 'karaoke'>('karaoke');
   const [jbSeconds, setJbSeconds] = useState(0);
   const [jbAutoDj, setJbAutoDj] = useState(true);
+  const [theme, setTheme] = useState('vibra');
+  const [energyOn, setEnergyOn] = useState(true);
   const cmdChRef = useRef<any>(null);
 
   const [showAdd, setShowAdd] = useState(false);
@@ -63,9 +66,12 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
 
   const loadVenue = useCallback(async () => {
     const sb = supa(); if (!sb) return;
-    const { data: v } = await sb.from('venue').select('id,owner,name,slug').eq('slug', slug).maybeSingle();
+    const { data: v } = await sb.from('venue').select('id,owner,name,slug,theme,settings').eq('slug', slug).maybeSingle();
     setVenue(v); setVenueLoaded(true);
     if (!v) return;
+    applyCvTheme((v as { theme?: string }).theme);
+    setTheme((v as { theme?: string }).theme || 'vibra');
+    setEnergyOn((v as { settings?: { energy?: boolean } }).settings?.energy !== false);
     const { data: asg } = await sb.from('venue_playlist_assignment')
       .select('playlist_id,section').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
     setMode((asg as any)?.section === 'jukebox' ? 'jukebox' : 'karaoke');
@@ -128,6 +134,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         if (typeof s.playing === 'boolean') setPcPlaying(s.playing);
         if (typeof s.seconds === 'number') setJbSeconds(s.seconds);
         if (typeof s.autodj === 'boolean') setJbAutoDj(s.autodj);
+        if (typeof s.theme === 'string') { applyCvTheme(s.theme); setTheme(s.theme); }
+        if (typeof s.energy === 'boolean') setEnergyOn(s.energy);
       });
     cmdChRef.current = cmd;
     cmd.subscribe((status: string) => {
@@ -146,6 +154,16 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const jbPlayPause = () => { jbSend({ cmd: 'playpause' }); setPcPlaying((v) => !v); };
   const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
   const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
+
+  // Apariencia de la pantalla del local: paleta + termómetro (guarda en el local + avisa al PC).
+  const pickTheme = (t: string) => {
+    setTheme(t); applyCvTheme(t); jbSend({ cmd: 'theme', value: t });
+    const sb = supa(); if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
+  };
+  const setEnergy = (v: boolean) => {
+    setEnergyOn(v); jbSend({ cmd: 'energy', value: v });
+    const sb = supa(); if (sb && vid) (async () => { try { await sb.rpc('set_venue_energy', { p_venue: vid, p_on: v }); } catch {} })();
+  };
 
   const advance = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_advance', { p_venue: vid }); } catch (e) { logError('control-karaoke-siguiente', e); } finally { setBusy(false); } };
   const goBack = async () => { const sb = supa(); if (!sb || !vid || busy) return; setBusy(true); try { await sb.rpc('karaoke_owner_back', { p_venue: vid }); } catch (e) { logError('control-karaoke-anterior', e); } finally { setBusy(false); } };
@@ -266,6 +284,23 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)', boxShadow: mode === 'jukebox' ? '0 0 10px var(--cv-cyan)' : '0 0 10px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
           <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)' }}>CONTROL EN VIVO</span>
         </span>
+      </div>
+
+      {/* apariencia de la pantalla del local: paleta + termómetro */}
+      <div className="cv-card" style={{ padding: '16px 18px', marginBottom: 12 }}>
+        <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>PALETA DE LA PANTALLA</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 7 }}>
+          {CV_THEME_META.map((t) => (
+            <button key={t.id} onClick={() => pickTheme(t.id)} title={t.name} style={{ height: 36, borderRadius: 9, cursor: 'pointer', background: t.grad, border: theme === t.id ? '2px solid var(--cv-text)' : '2px solid var(--cv-line)', boxShadow: theme === t.id ? '0 0 10px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
+          ))}
+        </div>
+        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 9 }}>cambia el color de la pantalla del local al toque.</div>
+        <div style={{ height: 1, background: 'var(--cv-line)', margin: '14px 0' }} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+          <input type="checkbox" checked={energyOn} onChange={(e) => setEnergy(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
+          <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Mostrar termómetro de energía <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(rockola)</span></span>
+        </label>
+        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 6, marginLeft: 28 }}>apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
       </div>
 
       {mode === 'jukebox' ? (

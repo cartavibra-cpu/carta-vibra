@@ -60,7 +60,6 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   const [nowId, setNowId] = useState<string | null>(null);
   const [present, setPresent] = useState(false);
   const [code, setCode] = useState('');
-  const [wantName, setWantName] = useState(false);
   const [voterName, setVoterName] = useState('');
   const [mesa, setMesa] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
@@ -163,9 +162,9 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
 
   const redeem = async () => {
     const sb = supa(); if (!sb || !venue) return;
-    // Nombre opcional (solo jukebox; el karaoke usa el nombre del cantante aparte).
+    // Nombre opcional (solo jukebox): si lo escribió, se usa; vacío = anónimo.
     let p_name: string | null = null;
-    if (mode === 'jukebox' && wantName) {
+    if (mode === 'jukebox' && voterName.trim()) {
       const chk = cleanName(voterName);
       if (!chk.ok) { setMsg(chk.reason || 'Nombre inválido.'); return; }
       p_name = voterName.trim();
@@ -405,13 +404,11 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
                   style={{ width: '100%', textAlign: 'center', fontSize: 24, letterSpacing: '.34em', fontFamily: 'var(--cv-font-display)', marginBottom: 16 }} />
 
-                <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 9 }}>¿CÓMO QUERÉS APARECER?</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => { setWantName(false); setMsg(null); }} style={{ flex: 1, fontSize: 13.5, fontWeight: 600, padding: '10px 0', borderRadius: 10, cursor: 'pointer', border: !wantName ? '1px solid rgba(255,255,255,.42)' : '1px solid var(--cv-line)', background: !wantName ? 'rgba(255,255,255,.08)' : 'transparent', color: !wantName ? 'var(--cv-text)' : 'var(--cv-muted)' }}>😎 Anónimo</button>
-                  <button onClick={() => { setWantName(true); setMsg(null); }} style={{ flex: 1, fontSize: 13.5, fontWeight: 600, padding: '10px 0', borderRadius: 10, cursor: 'pointer', border: wantName ? '1px solid rgba(255,255,255,.42)' : '1px solid var(--cv-line)', background: wantName ? 'rgba(255,255,255,.08)' : 'transparent', color: wantName ? 'var(--cv-text)' : 'var(--cv-muted)' }}>✍️ Con mi nombre</button>
-                </div>
-                {wantName && (
-                  <input className="cv-input" placeholder="Tu nombre o apodo" maxLength={24} value={voterName} onChange={(e) => setVoterName(e.target.value)} style={{ width: '100%', marginTop: 10, fontSize: 16 }} />
+                {mode === 'jukebox' && (
+                  <>
+                    <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 9 }}>TU NOMBRE <span style={{ color: 'var(--cv-mono)' }}>(OPCIONAL)</span></div>
+                    <input className="cv-input" placeholder="Dejalo vacío para votar anónimo" maxLength={24} value={voterName} onChange={(e) => setVoterName(e.target.value)} style={{ width: '100%', fontSize: 16 }} />
+                  </>
                 )}
 
                 <button className="cv-btn cv-btn-cyan" style={{ width: '100%', fontSize: 15, padding: '12px 0', marginTop: 16 }} onClick={redeem}>Validar y entrar</button>

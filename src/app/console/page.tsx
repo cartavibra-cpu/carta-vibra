@@ -5,7 +5,7 @@ import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
-import { applyCvTheme } from '@/lib/theme';
+import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
 import QRCode from 'qrcode';
 
 declare global {
@@ -114,6 +114,11 @@ export default function ConsolePage() {
   const [energyPct, setEnergyPct] = useState(0);
   const [voteRate, setVoteRate] = useState(0);
   const voteTimesRef = useRef<number[]>([]);
+  // Tema actual del local (pa el selector en consola y pa sincronizar con el control).
+  const [curTheme, setCurTheme] = useState<string>('vibra');
+  const themeRef = useRef<string>('vibra');
+  const energyOnRef = useRef(true);
+  const applyEnergy = (v: boolean) => { energyOnRef.current = v; setEnergyOn(v); };
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
@@ -245,10 +250,17 @@ export default function ConsolePage() {
     return () => clearInterval(id);
   }, []);
 
-  // ¿Mostrar el termómetro de energía? Se elige acá en la consola (queda guardado en este equipo).
+  // El termómetro vive en el local (settings.energy, default sí). Lo prende/apaga la consola o el control.
   useEffect(() => {
-    try { const v = localStorage.getItem('cv-energy'); if (v !== null) setEnergyOn(v === '1'); } catch {}
-  }, []);
+    const vid = (status as { venue_id?: string } | null)?.venue_id;
+    if (!vid) return;
+    const sb = supa(); if (!sb) return;
+    (async () => {
+      const { data } = await sb.from('venue').select('settings').eq('id', vid).single();
+      const s = (data as { settings?: { energy?: boolean } } | null)?.settings;
+      applyEnergy(s?.energy !== false);
+    })();
+  }, [status]);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -322,6 +334,7 @@ export default function ConsolePage() {
       if (data.paired) {
         tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false);
         applyCvTheme(data.theme);
+        themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra');
         localStorage.removeItem('console_pairing_code');
       } else {
         // Mantener el MISMO código entre recargas en vez de generar uno nuevo cada vez.
@@ -354,7 +367,7 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_status', { p_token: token });
       if (error) throw error;
       setStatus(data); setLoading(false);
-      if (data.paired) { venueRef.current = data.venue_id; applyCvTheme(data.theme); localStorage.removeItem('console_pairing_code'); }
+      if (data.paired) { venueRef.current = data.venue_id; applyCvTheme(data.theme); themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra'); localStorage.removeItem('console_pairing_code'); }
       else setTimeout(() => pollStatus(token), 2000);
     } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
   };
@@ -487,7 +500,20 @@ export default function ConsolePage() {
 
   // Avisa al control del celular el estado actual (play/pausa, segundos, AutoDJ).
   const broadcastJbState = () => {
-    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current } }); } catch {}
+    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current, theme: themeRef.current, energy: energyOnRef.current } }); } catch {}
+  };
+
+  // Cambiar la paleta desde la consola: aplica en vivo, guarda en el local y avisa al control.
+  const changeTheme = (t: string) => {
+    applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState();
+    const sb = supa(); const vid = venueRef.current;
+    if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
+  };
+  // Prender/apagar el termómetro: guarda en el local y avisa al control.
+  const toggleEnergy = (v: boolean) => {
+    applyEnergy(v); broadcastJbState();
+    const sb = supa(); const vid = venueRef.current;
+    if (sb && vid) (async () => { try { await sb.rpc('set_venue_energy', { p_venue: vid, p_on: v }); } catch {} })();
   };
 
   // Funde el deck actual hacia el otro deck reproduciendo videoId
@@ -639,6 +665,8 @@ export default function ConsolePage() {
       else if (c.cmd === 'playpause') togglePlayPause();
       else if (c.cmd === 'seconds') { const n = Math.max(0, parseInt(c.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; broadcastJbState(); }
       else if (c.cmd === 'autodj') { const v = !!c.value; setAutoOn(v); autoOnRef.current = v; broadcastJbState(); }
+      else if (c.cmd === 'theme') { const t = String(c.value || 'vibra'); applyCvTheme(t); themeRef.current = t; setCurTheme(t); }
+      else if (c.cmd === 'energy') { applyEnergy(!!c.value); }
       else if (c.cmd === 'hello') broadcastJbState();
     }).subscribe();
     cmdChRef.current = cmdCh;
@@ -1008,10 +1036,17 @@ export default function ConsolePage() {
               </label>
               <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'rgba(255,255,255,.85)', cursor: 'pointer' }}>
-                <input type="checkbox" checked={energyOn} onChange={(e) => { setEnergyOn(e.target.checked); try { localStorage.setItem('cv-energy', e.target.checked ? '1' : '0'); } catch {} }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
                 Mostrar termómetro de energía de la sala
               </label>
               <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,.4)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
+              <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'rgba(255,255,255,.5)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
+                {CV_THEME_META.map((t) => (
+                  <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 30, borderRadius: 8, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid #ffffff' : '2px solid rgba(255,255,255,.12)', boxShadow: curTheme === t.id ? '0 0 8px rgba(255,255,255,.25)' : 'none' }} />
+                ))}
+              </div>
               <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(255,255,255,.6)', flexWrap: 'wrap' }}>
                 Segundos por canción (0 = completa):
