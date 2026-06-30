@@ -45,7 +45,7 @@ export default function ConsolePage() {
   const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
-  const [feed, setFeed] = useState<{ name: string | null; title: string }[]>([]);
+  const [feed, setFeed] = useState<{ id: string; name: string | null; title: string }[]>([]);
   const [tIdx, setTIdx] = useState(0);
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
@@ -135,7 +135,11 @@ export default function ConsolePage() {
     let alive = true;
     const pull = async () => {
       const { data } = await sb.rpc('recent_votes', { p_slug: slug, p_limit: 14 });
-      if (alive && Array.isArray(data)) setFeed(data as { name: string | null; title: string }[]);
+      if (!alive || !Array.isArray(data)) return;
+      // Solo votos de canciones que están en la playlist activa de ahora.
+      const rows = (data as { id: string; name: string | null; title: string }[])
+        .filter((r) => tracksRef.current[r.id]);
+      setFeed(rows);
     };
     pull();
     const id = setInterval(pull, 5000);
