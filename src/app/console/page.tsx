@@ -5,7 +5,7 @@ import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
-import { getSkin, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
+import { getSkin, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -59,7 +59,6 @@ export default function ConsolePage() {
 
   // Vista ambiente (la rockola que se proyecta)
   const [skin, setSkin] = useState<SkinName>('neon');
-  const [viewMode, setViewMode] = useState<ViewMode>('marco');
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,19 +119,12 @@ export default function ConsolePage() {
     try {
       const s = localStorage.getItem(SKIN_STORAGE_KEY);
       if (s === 'retro' || s === 'neon') setSkin(s);
-      const v = localStorage.getItem(VIEW_STORAGE_KEY);
-      if (v === 'marco' || v === 'limpio') setViewMode(v);
     } catch {}
   }, []);
 
   const applySkin = (s: SkinName) => {
     setSkin(s);
     try { localStorage.setItem(SKIN_STORAGE_KEY, s); } catch {}
-  };
-
-  const applyView = (v: ViewMode) => {
-    setViewMode(v);
-    try { localStorage.setItem(VIEW_STORAGE_KEY, v); } catch {}
   };
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
@@ -763,13 +755,17 @@ export default function ConsolePage() {
 
   const sk = getSkin(skin);
   const controlsOn = controlsVisible && !pending;
-  // "clean" = video a pantalla completa (sin marco): cuando está en fullscreen del navegador
-  // O cuando el modo de vista es 'limpio'. En 'marco' (y sin fullscreen) se ve la rockola.
-  const clean = isFs || viewMode === 'limpio';
-  // El video: a pantalla completa (clean/limpio) o grande centrado con su GLOW de color por tema (las "luces").
+  // "clean" = video a pantalla completa: SOLO cuando el botón ⛶ activa el fullscreen real del navegador.
+  // En vista normal (incluido F11) se ven las LUCES: el color del tema llena el fondo y el video va achicado al centro.
+  const clean = isFs;
+  // Las "luces": el color del tema (cyan/ámbar) se desvanece desde el centro hacia los bordes, llenando los
+  // costados para que NO se vea el negro de la página. En esos costados (Fase 2) irá el logo + promos del local.
+  const glowRgb = ((h: string) => { const x = h.replace('#', ''); return `${parseInt(x.slice(0, 2), 16)},${parseInt(x.slice(2, 4), 16)},${parseInt(x.slice(4, 6), 16)}`; })(sk.accent);
+  const ambientBg = `radial-gradient(125% 135% at 50% 46%, rgba(${glowRgb},.34) 0%, rgba(${glowRgb},.17) 34%, rgba(${glowRgb},.07) 60%, rgba(${glowRgb},.02) 80%, #070610 100%)`;
+  // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(90vw, calc(90vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(74vw, calc(78vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -777,7 +773,7 @@ export default function ConsolePage() {
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : '#070611', cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : ambientBg, cursor: controlsVisible ? 'default' : 'none' }}
     >
       {/* PANTALLA: el video (a pantalla completa o grande con sus luces) */}
       <div ref={stageRef} tabIndex={-1} style={videoBox}>
@@ -787,6 +783,7 @@ export default function ConsolePage() {
 
           {/* viñeta sutil para legibilidad */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
+
 
           {/* ARRIBA-IZQUIERDA: sonando ahora */}
           <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '60%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
@@ -838,7 +835,6 @@ export default function ConsolePage() {
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applyView(viewMode === 'marco' ? 'limpio' : 'marco')} title="Video con luces / a pantalla completa">{viewMode === 'marco' ? '▣ Luces' : '▢ Limpio'}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
@@ -849,12 +845,6 @@ export default function ConsolePage() {
                 <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
                 <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>VISTA EN LA TV</div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                <button onClick={() => applyView('marco')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'marco' ? `1px solid ${sk.accent}` : '1px solid var(--cv-line)', background: viewMode === 'marco' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'marco' ? sk.accent : 'var(--cv-muted)' }}>▣ Luces</button>
-                <button onClick={() => applyView('limpio')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'limpio' ? `1px solid ${sk.accent}` : '1px solid var(--cv-line)', background: viewMode === 'limpio' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'limpio' ? sk.accent : 'var(--cv-muted)' }}>▢ Limpio</button>
-              </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, lineHeight: 1.4, color: 'var(--cv-mono-2)', marginBottom: 14 }}>{viewMode === 'marco' ? 'la rockola llena la pantalla, video en el centro' : 'el video llena toda la pantalla (más grande)'}</div>
               <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 {(['neon', 'retro'] as SkinName[]).map((s) => (

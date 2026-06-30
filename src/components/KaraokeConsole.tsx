@@ -4,7 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
 import BrandMark from '@/components/BrandMark';
-import { getSkin, SKIN_STORAGE_KEY, VIEW_STORAGE_KEY, type SkinName, type ViewMode } from '@/lib/skins';
+import { getSkin, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -51,7 +51,6 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
   // Vista ambiente (la rockola que se proyecta) — mismo sistema que el jukebox
   const [skin, setSkin] = useState<SkinName>('neon');
-  const [viewMode, setViewMode] = useState<ViewMode>('marco');
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showManage, setShowManage] = useState(false);
@@ -280,17 +279,11 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
     try {
       const s = localStorage.getItem(SKIN_STORAGE_KEY);
       if (s === 'retro' || s === 'neon') setSkin(s);
-      const v = localStorage.getItem(VIEW_STORAGE_KEY);
-      if (v === 'marco' || v === 'limpio') setViewMode(v);
     } catch {}
   }, []);
   const applySkin = (s: SkinName) => {
     setSkin(s);
     try { localStorage.setItem(SKIN_STORAGE_KEY, s); } catch {}
-  };
-  const applyView = (v: ViewMode) => {
-    setViewMode(v);
-    try { localStorage.setItem(VIEW_STORAGE_KEY, v); } catch {}
   };
 
   // Controles que se auto-esconden (aparecen al mover el mouse / tocar).
@@ -350,19 +343,22 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const sk = getSkin(skin);
   const ac = sk.accent2; // karaoke = color "caliente" del skin (menta en neón, dorado en retro)
   const controlsOn = controlsVisible && !pendingPlaylist;
-  const clean = isFs || viewMode === 'limpio';
+  // "clean" = video a pantalla completa: SOLO con el botón ⛶ (fullscreen real). F11/normal muestra las luces.
+  const clean = isFs;
   // Las "luces" del karaoke: glow del color del modo (mint en neón, oro en retro = accent2).
   const _l = sk.accent2.replace('#', '');
   const _lrgb = `${parseInt(_l.slice(0, 2), 16)},${parseInt(_l.slice(2, 4), 16)},${parseInt(_l.slice(4, 6), 16)}`;
+  // El color del tema se desvanece desde el centro hacia los bordes y llena los costados (no se ve el negro de la página).
+  const ambientBg = `radial-gradient(125% 135% at 50% 46%, rgba(${_lrgb},.34) 0%, rgba(${_lrgb},.17) 34%, rgba(${_lrgb},.07) 60%, rgba(${_lrgb},.02) 80%, #070610 100%)`;
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', containerType: 'size' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(90vw, calc(90vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid rgba(${_lrgb},.22)`, boxShadow: `0 0 0 1px rgba(${_lrgb},.18), 0 0 60px -14px rgba(${_lrgb},.5)`, background: '#000', overflow: 'hidden', containerType: 'size' };
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(74vw, calc(78vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid rgba(${_lrgb},.22)`, boxShadow: `0 0 0 1px rgba(${_lrgb},.18), 0 0 60px -14px rgba(${_lrgb},.5)`, background: '#000', overflow: 'hidden', containerType: 'size' };
 
   return (
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : '#070611', cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : ambientBg, cursor: controlsVisible ? 'default' : 'none' }}
     >
       {/* PANTALLA: el video (a pantalla completa o grande con sus luces) */}
       <div ref={stageRef} style={videoBox}>
@@ -371,6 +367,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
           {/* viñeta sutil */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
+
 
           {!current ? (
             /* SIN cantante: invitación + código grande al centro (no hay video que mirar) */
@@ -439,7 +436,6 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px' }} onClick={() => setShowManage(true)} title="Gestionar la fila">☰ {waiting.length}</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px' }} onClick={() => applyView(viewMode === 'marco' ? 'limpio' : 'marco')} title="Video con luces / a pantalla completa">{viewMode === 'marco' ? '▣ Luces' : '▢ Limpio'}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
@@ -488,12 +484,6 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                 <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
                 <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
               </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>VISTA EN LA TV</div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                <button onClick={() => applyView('marco')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'marco' ? `1px solid ${ac}` : '1px solid var(--cv-line)', background: viewMode === 'marco' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'marco' ? ac : 'var(--cv-muted)' }}>▣ Luces</button>
-                <button onClick={() => applyView('limpio')} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: viewMode === 'limpio' ? `1px solid ${ac}` : '1px solid var(--cv-line)', background: viewMode === 'limpio' ? 'rgba(255,255,255,.06)' : 'transparent', color: viewMode === 'limpio' ? ac : 'var(--cv-muted)' }}>▢ Limpio</button>
-              </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, lineHeight: 1.4, color: 'var(--cv-mono-2)', marginBottom: 14 }}>{viewMode === 'marco' ? 'la rockola llena la pantalla, video en el centro' : 'el video llena toda la pantalla (más grande)'}</div>
               <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
                 {(['neon', 'retro'] as SkinName[]).map((s) => (

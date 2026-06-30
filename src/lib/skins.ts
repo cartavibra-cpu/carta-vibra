@@ -86,9 +86,3 @@ export function frameBg(skin: Skin): string {
 }
 
 export const SKIN_STORAGE_KEY = 'cv_console_skin';
-
-// Modo de presentación de la consola en la TV:
-//  - 'marco'  : la rockola (textura) llena la pantalla, el video va en el hueco (~59% del ancho)
-//  - 'limpio' : el video llena toda la pantalla, código en la esquina (máximo tamaño)
-export type ViewMode = 'marco' | 'limpio';
-export const VIEW_STORAGE_KEY = 'cv_console_view';
