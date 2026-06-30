@@ -773,6 +773,11 @@ export default function ConsolePage() {
   const clean = isFs;
   // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
   const ambientBg = 'radial-gradient(125% 135% at 50% 46%, rgba(var(--cv-accent-rgb),.34) 0%, rgba(var(--cv-accent-rgb),.17) 34%, rgba(var(--cv-accent-rgb),.07) 60%, rgba(var(--cv-accent-rgb),.02) 80%, var(--cv-bg) 100%)';
+  // "Lo que viene": la cola (ya ordenada por votos) con sus títulos resueltos.
+  const upcoming = queue
+    .map((q) => ({ votes: q.votes, tr: tracksRef.current[q.track_id] }))
+    .filter((q): q is { votes: number; tr: Track } => !!q.tr)
+    .slice(0, 4);
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
@@ -797,7 +802,7 @@ export default function ConsolePage() {
 
 
           {/* ARRIBA-IZQUIERDA: sonando ahora */}
-          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '60%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '50%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: sk.liveColor, boxShadow: `0 0 8px ${sk.liveColor}`, animation: 'cvLive 1.4s ease-in-out infinite', flexShrink: 0 }} />
               <span className="cv-mono" style={{ fontSize: 'clamp(8px,1.2cqw,13px)', letterSpacing: '.16em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)' }}>SONANDO AHORA</span>
@@ -805,6 +810,20 @@ export default function ConsolePage() {
             </div>
             <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
+
+          {/* ARRIBA-DERECHA: lo que viene (la cola, por votos) */}
+          {upcoming.length > 0 && (
+            <div style={{ position: 'absolute', top: '3.5cqh', right: '2.6cqw', maxWidth: '34%', minWidth: '17%', padding: '.9cqh 1.2cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+              <div className="cv-mono" style={{ fontSize: 'clamp(8px,1.1cqw,12px)', letterSpacing: '.18em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)', marginBottom: '.7cqh' }}>LO QUE VIENE</div>
+              {upcoming.map((u, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '.7cqw', marginTop: i === 0 ? 0 : '.5cqh' }}>
+                  <span className="cv-wordmark" style={{ fontSize: 'clamp(10px,1.5cqw,18px)', fontWeight: 700, color: sk.accent, lineHeight: 1, minWidth: '1.8cqw', textAlign: 'right', flexShrink: 0, textShadow: `0 0 10px rgba(var(--cv-accent-rgb),.45)` }}>{u.votes}</span>
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: sk.accent, opacity: .5, flexShrink: 0 }} />
+                  <span className="cv-wordmark" style={{ fontSize: 'clamp(10px,1.5cqw,18px)', fontWeight: 600, color: sk.textOnVideo, lineHeight: 1.15, textShadow: '0 1px 6px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.tr.title}</span>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* ABAJO-DERECHA: invitación — QR + código */}
           <div style={{ position: 'absolute', bottom: '3.5cqh', right: '2.6cqw', display: 'flex', alignItems: 'center', gap: '1cqw', padding: '.9cqh 1.4cqw', borderRadius: 12, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
