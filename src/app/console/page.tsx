@@ -95,23 +95,21 @@ function EnergyMeter({ pct, rate, mode }: { pct: number; rate: number; mode: 'ba
     );
   }
 
-  // mode === 'bar': barra de nivel vertical que llena TODO el alto disponible
+  // mode === 'bar': termómetro GORDO de nivel, con presencia, que llena la columna y se ve de lejos
   return (
     <div style={{ ...card, height: '100%', display: 'flex', flexDirection: 'column' }}>
       {title}
-      <div style={{ display: 'flex', gap: 18, flex: 1, minHeight: 0, marginTop: 16 }}>
-        <div style={{ position: 'relative', width: 'clamp(18px,1.5vw,26px)', borderRadius: 999, background: 'color-mix(in srgb, var(--cv-ink) 8%, transparent)', border: '1px solid var(--cv-hair)', overflow: 'hidden', flexShrink: 0 }}>
-          <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fillPct + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 24px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.6s cubic-bezier(.4,0,.2,1)' }} />
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, margin: '8px 0 16px' }}>
+        <span className="cv-wordmark" style={{ fontSize: 'clamp(40px,4.6vw,80px)', fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 0.85 }}>{rate}</span>
+        <div>
+          <div style={{ fontSize: 'clamp(8px,.64vw,11px)', fontWeight: 700, letterSpacing: '.13em', color: 'color-mix(in srgb, var(--cv-ink) 50%, transparent)', textTransform: 'uppercase' }}>votos/min</div>
+          <div style={{ fontSize: 'clamp(11px,.85vw,15px)', fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-accent)', textTransform: 'uppercase', marginTop: 3 }}>{word}</div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
-          <span style={{ fontSize: 'clamp(9px,.72vw,12px)', fontWeight: 700, letterSpacing: '.12em', color: 'color-mix(in srgb, var(--cv-ink) 60%, transparent)', textTransform: 'uppercase' }}>caliente</span>
-          <div>
-            <div className="cv-wordmark" style={{ fontSize: 'clamp(30px,2.6vw,46px)', fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{rate}</div>
-            <div style={{ fontSize: 'clamp(8px,.64vw,11px)', fontWeight: 700, letterSpacing: '.13em', color: 'color-mix(in srgb, var(--cv-ink) 45%, transparent)', textTransform: 'uppercase', marginTop: 3 }}>votos/min</div>
-            <div style={{ fontSize: 'clamp(10px,.78vw,13px)', fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', textTransform: 'uppercase', marginTop: 10 }}>{word}</div>
-          </div>
-          <span style={{ fontSize: 'clamp(9px,.72vw,12px)', fontWeight: 700, letterSpacing: '.12em', color: 'color-mix(in srgb, var(--cv-ink) 40%, transparent)', textTransform: 'uppercase' }}>tranqui</span>
-        </div>
+      </div>
+      <div style={{ position: 'relative', flex: 1, minHeight: 0, borderRadius: 18, background: 'color-mix(in srgb, var(--cv-ink) 8%, transparent)', border: '1px solid var(--cv-hair)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fillPct + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 38px rgba(var(--cv-accent-rgb),.55)', transition: 'height 1.6s cubic-bezier(.4,0,.2,1)' }} />
+        <span style={{ position: 'absolute', top: 14, left: 0, right: 0, textAlign: 'center', fontSize: 'clamp(9px,.72vw,13px)', fontWeight: 700, letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-ink) 50%, transparent)', textTransform: 'uppercase' }}>caliente</span>
+        <span style={{ position: 'absolute', bottom: 14, left: 0, right: 0, textAlign: 'center', fontSize: 'clamp(9px,.72vw,13px)', fontWeight: 700, letterSpacing: '.16em', color: 'rgba(255,255,255,.78)', textShadow: '0 1px 6px rgba(0,0,0,.5)', textTransform: 'uppercase' }}>tranqui</span>
       </div>
     </div>
   );
@@ -988,13 +986,13 @@ export default function ConsolePage() {
 
 
           {/* ARRIBA-IZQUIERDA: sonando ahora */}
-          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '60%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '42%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: 'rgba(8,7,16,.82)', border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', boxShadow: '0 6px 20px -8px rgba(0,0,0,.7)', pointerEvents: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: sk.liveColor, boxShadow: `0 0 8px ${sk.liveColor}`, animation: 'cvLive 1.4s ease-in-out infinite', flexShrink: 0 }} />
-              <span className="cv-mono" style={{ fontSize: 'clamp(8px,1.2cqw,13px)', letterSpacing: '.16em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)' }}>SONANDO AHORA</span>
-              {isAutoNow && <span style={{ fontSize: 'clamp(7px,1cqw,11px)', letterSpacing: '.1em', color: sk.accent2, border: `1px solid ${sk.accent2}`, borderRadius: 999, padding: '1px 6px' }}>AUTODJ</span>}
+              <span className="cv-mono" style={{ fontSize: 'clamp(8px,1.2cqw,13px)', letterSpacing: '.16em', color: sk.labelColor }}>SONANDO AHORA</span>
+              {isAutoNow && <span style={{ fontSize: 'clamp(6px,.9cqw,10px)', letterSpacing: '.1em', color: 'color-mix(in srgb, var(--cv-accent) 65%, transparent)', border: '1px solid color-mix(in srgb, var(--cv-accent) 38%, transparent)', borderRadius: 999, padding: '1px 6px', opacity: .85 }}>AUTODJ</span>}
             </div>
-            <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
+            <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
 
           {/* ABAJO-CENTRO: ticker social (solo en pantalla completa; en vista normal va al costado) */}
@@ -1062,7 +1060,9 @@ export default function ConsolePage() {
 
           {/* ajustes (popover) */}
           {showSettings && (
-            <div style={{ position: 'absolute', top: 52, left: '50%', transform: 'translateX(-50%)', width: 320, maxWidth: '94%', zIndex: 2147483550, borderRadius: 16, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(10,10,18,.97)', boxShadow: '0 20px 60px -16px rgba(0,0,0,.8)', padding: '16px 18px' }}>
+            <>
+              <div onClick={() => setShowSettings(false)} style={{ position: 'absolute', inset: 0, zIndex: 2147483540, background: 'rgba(0,0,0,.5)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', cursor: 'pointer' }} />
+              <div style={{ position: 'absolute', top: 52, left: '50%', transform: 'translateX(-50%)', width: 320, maxWidth: '94%', zIndex: 2147483550, borderRadius: 16, border: '1px solid rgba(255,255,255,.1)', background: 'rgba(10,10,18,.98)', boxShadow: '0 20px 60px -16px rgba(0,0,0,.8)', padding: '16px 18px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'rgba(255,255,255,.5)' }}>AJUSTES</span>
                 <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.42)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
@@ -1092,6 +1092,7 @@ export default function ConsolePage() {
               <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
               <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>← Volver al panel</a>
             </div>
+            </>
           )}
         </div>
 
