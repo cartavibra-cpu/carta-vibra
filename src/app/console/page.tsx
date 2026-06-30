@@ -36,10 +36,10 @@ function ConsoleVinyl({ size, name }: { size: number; name: string }) {
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
           background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
-      <div style={{ position: 'absolute', inset: '30%', borderRadius: '50%',
+      <div style={{ position: 'absolute', inset: '30%', borderRadius: '50%', overflow: 'hidden',
         background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)', border: '1px solid var(--cv-hair)',
-        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8%' }}>
-        <span className="cv-wordmark cv-grad-theme" style={{ fontSize: Math.max(11, Math.round(size * 0.085)), fontWeight: 800, lineHeight: 0.95, textAlign: 'center', letterSpacing: '-.01em' }}>{name}</span>
+        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 6%' }}>
+        <span className="cv-wordmark cv-grad-theme" style={{ fontSize: Math.max(10, Math.round(size * 0.092 * Math.min(1, 6 / Math.max(name.length, 6)))), fontWeight: 800, lineHeight: 1, textAlign: 'center', letterSpacing: '-.01em', wordBreak: 'break-word', maxWidth: '100%' }}>{name}</span>
       </div>
     </div>
   );
@@ -50,7 +50,7 @@ function ConsoleVinyl({ size, name }: { size: number; name: string }) {
  *  El local lo puede apagar (entonces gira el vinilo en su lugar). */
 function EnergyMeter({ pct, rate }: { pct: number; rate: number }) {
   const profile = [0.5, 0.78, 1.0, 0.62, 0.88, 0.54, 0.96, 0.68, 0.82, 0.58];
-  const amp = 0.34 + 0.66 * Math.min(1, pct / 100);
+  const amp = 0.6 + 0.4 * Math.min(1, pct / 100);
   const word = pct > 66 ? 'caliente' : pct > 33 ? 'sube' : 'tranqui';
   return (
     <div style={{ background: 'rgba(8,7,16,.42)', border: '1px solid color-mix(in srgb, var(--cv-accent) 24%, transparent)', borderRadius: 16, padding: 'clamp(14px,1.1vw,18px)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}>
@@ -65,7 +65,7 @@ function EnergyMeter({ pct, rate }: { pct: number; rate: number }) {
           <div key={i} style={{
             flex: 1,
             height: Math.round((0.26 + 0.74 * b) * 100 * amp) + '%',
-            minHeight: 5,
+            minHeight: 8,
             borderRadius: 999,
             background: 'linear-gradient(to top, var(--cv-accent), color-mix(in srgb, var(--cv-accent) 45%, transparent))',
             transformOrigin: 'bottom',
@@ -925,7 +925,7 @@ export default function ConsolePage() {
   // "clean" = video a pantalla completa: SOLO cuando el botón ⛶ activa el fullscreen real del navegador.
   const clean = isFs;
   // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
-  const ambientBg = 'radial-gradient(125% 135% at 50% 46%, rgba(var(--cv-accent-rgb),.34) 0%, rgba(var(--cv-accent-rgb),.17) 34%, rgba(var(--cv-accent-rgb),.07) 60%, rgba(var(--cv-accent-rgb),.02) 80%, var(--cv-bg) 100%)';
+  const ambientBg = 'repeating-radial-gradient(circle at 50% 46%, rgba(150,150,170,.05) 0 1px, transparent 1px 13px), radial-gradient(80% 95% at 50% -8%, rgba(var(--cv-accent-rgb),.40), transparent 56%), radial-gradient(64% 82% at 50% 110%, rgba(var(--cv-accent-rgb),.34), transparent 56%), var(--cv-bg)';
   const tickerItem = ticker;
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
@@ -1075,7 +1075,7 @@ export default function ConsolePage() {
             <div style={{ position: 'absolute', right: 'clamp(20px,3vw,56px)', top: '50%', transform: 'translateY(-50%)', width: 'clamp(200px,18vw,300px)', display: 'flex', flexDirection: 'column', gap: 14, zIndex: 2, pointerEvents: 'none' }}>
               <div style={{ background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, borderRadius: 16, padding: 'clamp(14px,1.1vw,18px)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}>
                 <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 6 }}>CÓDIGO DE SALA</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4.4vw,68px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '.02em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4.4vw,68px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 13 }}>
                   {widgetQr && <div style={{ background: '#fff', padding: 7, borderRadius: 9, lineHeight: 0, flexShrink: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(54px,5vw,76px)', height: 'clamp(54px,5vw,76px)', display: 'block' }} /></div>}
                   <div className="cv-mono" style={{ fontSize: 'clamp(8px,.68vw,11px)', letterSpacing: '.13em', color: sk.labelColor, lineHeight: 1.5 }}>VOTÁ LA<br />PRÓXIMA DESDE<br />TU CELULAR</div>
@@ -1093,10 +1093,10 @@ export default function ConsolePage() {
           </>
         )}
 
-        {/* STANDBY EN PAUSA: el vinilo del local es el protagonista. Tocá para reanudar. */}
-        {isPaused && (
-          <div onClick={togglePlayPause} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: 'pointer',
-            background: 'radial-gradient(130% 130% at 50% 42%, rgba(var(--cv-accent-rgb),.30) 0%, rgba(var(--cv-accent-rgb),.12) 38%, transparent 70%), var(--cv-bg)',
+        {/* STANDBY EN PAUSA: aparece/desaparece con el MISMO fade que la música (~.54s). */}
+        <div onClick={isPaused ? togglePlayPause : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: isPaused ? 'pointer' : 'default',
+            opacity: isPaused ? 1 : 0, pointerEvents: isPaused ? 'auto' : 'none', transition: 'opacity .54s ease',
+            background: ambientBg,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'clamp(30px,4.5vh,56px)', padding: '4vh 4vw' }}>
 
             <div style={{ position: 'absolute', top: 'clamp(20px,4vh,44px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.5)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
@@ -1109,7 +1109,7 @@ export default function ConsolePage() {
               <ConsoleVinyl size={240} name={status?.name || 'tu local'} />
               <div style={{ textAlign: 'left' }}>
                 <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 4 }}>CÓDIGO DE SALA</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(90px,15vw,220px)', fontWeight: 700, lineHeight: 0.8, letterSpacing: '-.01em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(90px,15vw,220px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
               </div>
             </div>
 
@@ -1136,7 +1136,6 @@ export default function ConsolePage() {
               </div>
             )}
           </div>
-        )}
     </main>
     </>
   );
