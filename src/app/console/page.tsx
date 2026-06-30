@@ -51,41 +51,52 @@ function ConsoleVinyl({ size, name }: { size: number; name: string }) {
   );
 }
 
-/** Termómetro de energía estilo ECUALIZADOR. En sonando va alto/vertical; en pausa,
- *  bajo/horizontal. Las barras son un espectro del gradiente del tema. */
+/** Termómetro de energía = barra de NIVEL que se llena con el ritmo de votos (votos/min).
+ *  No finge ir al ritmo de la música: es un medidor honesto. Vertical/alto en sonando,
+ *  horizontal en pausa. Pintado con el gradiente del tema. */
 function EnergyMeter({ pct, rate, tall = false }: { pct: number; rate: number; tall?: boolean }) {
-  const profile = tall
-    ? [0.45, 0.7, 1.0, 0.6, 0.86, 0.52, 0.96, 0.64, 0.82, 0.56, 0.9, 0.62]
-    : [0.5, 0.78, 1.0, 0.62, 0.88, 0.54, 0.96, 0.68, 0.82, 0.58];
-  const amp = 0.6 + 0.4 * Math.min(1, pct / 100);
   const word = pct > 66 ? 'caliente' : pct > 33 ? 'sube' : 'tranqui';
-  const barH = tall ? 'clamp(190px,36vh,380px)' : 'clamp(56px,8vh,92px)';
+  const fillPct = Math.max(3, Math.min(100, pct));
+  const card: React.CSSProperties = {
+    background: 'color-mix(in srgb, var(--cv-surf) 90%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)',
+    borderRadius: 18, padding: 'clamp(16px,1.3vw,22px)',
+    backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+  };
+  const title = (
+    <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-accent) 70%, #ffffff)', textTransform: 'uppercase' }}>Energía de la sala</div>
+  );
+  if (tall) {
+    return (
+      <div style={card}>
+        {title}
+        <div style={{ display: 'flex', gap: 16, height: 'clamp(210px,40vh,400px)', marginTop: 16 }}>
+          <div style={{ position: 'relative', width: 'clamp(16px,1.4vw,24px)', borderRadius: 999, background: 'color-mix(in srgb, var(--cv-ink) 8%, transparent)', border: '1px solid var(--cv-hair)', overflow: 'hidden', flexShrink: 0 }}>
+            <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: fillPct + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 22px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.6s cubic-bezier(.4,0,.2,1)' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 'clamp(9px,.7vw,11px)', fontWeight: 700, letterSpacing: '.12em', color: 'color-mix(in srgb, var(--cv-ink) 60%, transparent)', textTransform: 'uppercase' }}>caliente</span>
+            <div>
+              <div className="cv-wordmark" style={{ fontSize: 'clamp(28px,2.4vw,42px)', fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{rate}</div>
+              <div style={{ fontSize: 'clamp(8px,.62vw,10px)', fontWeight: 700, letterSpacing: '.13em', color: 'color-mix(in srgb, var(--cv-ink) 45%, transparent)', textTransform: 'uppercase', marginTop: 2 }}>votos/min</div>
+              <div style={{ fontSize: 'clamp(9px,.72vw,12px)', fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', textTransform: 'uppercase', marginTop: 8 }}>{word}</div>
+            </div>
+            <span style={{ fontSize: 'clamp(9px,.7vw,11px)', fontWeight: 700, letterSpacing: '.12em', color: 'color-mix(in srgb, var(--cv-ink) 40%, transparent)', textTransform: 'uppercase' }}>tranqui</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div style={{ background: 'color-mix(in srgb, var(--cv-surf) 90%, transparent)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)', borderRadius: 18, padding: 'clamp(15px,1.2vw,20px)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
-      <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-accent) 70%, #ffffff)', marginBottom: 6, textTransform: 'uppercase' }}>Energía de la sala</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 14 }}>
+    <div style={card}>
+      {title}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '9px 0 12px' }}>
         <span className="cv-wordmark" style={{ fontSize: 'clamp(22px,2vw,34px)', fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{rate}</span>
         <span style={{ fontSize: 'clamp(7px,.6vw,9px)', fontWeight: 700, letterSpacing: '.13em', color: 'color-mix(in srgb, var(--cv-ink) 55%, transparent)', textTransform: 'uppercase' }}>votos/min</span>
         <span style={{ marginLeft: 'auto', fontSize: 'clamp(8px,.7vw,11px)', fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', textTransform: 'uppercase' }}>{word}</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 'clamp(4px,.5vw,7px)', height: barH }}>
-        {profile.map((b, i) => (
-          <div key={i} style={{
-            flex: 1,
-            height: Math.round((0.26 + 0.74 * b) * 100 * amp) + '%',
-            minHeight: 8,
-            borderRadius: 999,
-            backgroundImage: 'var(--cv-theme-grad)',
-            backgroundSize: '900% 100%',
-            backgroundPosition: `${Math.round((i / (profile.length - 1)) * 100)}% 0`,
-            backgroundRepeat: 'no-repeat',
-            transformOrigin: 'bottom',
-            animation: `cvEq ${(0.85 + (i % 4) * 0.24).toFixed(2)}s ease-in-out infinite`,
-            animationDelay: `${(i * 0.08).toFixed(2)}s`,
-            boxShadow: '0 0 12px rgba(var(--cv-accent-rgb),.45)',
-            opacity: 0.95,
-          }} />
-        ))}
+      <div style={{ position: 'relative', height: 'clamp(15px,1.5vh,22px)', borderRadius: 999, background: 'color-mix(in srgb, var(--cv-ink) 8%, transparent)', border: '1px solid var(--cv-hair)', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: fillPct + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 18px rgba(var(--cv-accent-rgb),.6)', transition: 'width 1.6s cubic-bezier(.4,0,.2,1)' }} />
       </div>
     </div>
   );
@@ -941,7 +952,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(64vw, calc(72vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(66vw, calc(82vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -1072,8 +1083,8 @@ export default function ConsolePage() {
         {/* COSTADOS (vista normal, no fullscreen): centrados en cada franja, sin tapar el video */}
         {!clean && (
           <>
-            {/* RAIL IZQUIERDO: termómetro vertical/alto; si está apagado, el vinilo del local */}
-            <div style={{ position: 'absolute', left: 'calc(25% - min(64vw, 72vh * 16 / 9) / 4 - 140px)', top: '50%', transform: 'translateY(-50%)', width: 280, zIndex: 2, pointerEvents: 'none' }}>
+            {/* RAIL IZQUIERDO: pegado al borde izquierdo del video. Medidor de nivel alto, o el vinilo */}
+            <div style={{ position: 'absolute', right: 'calc(50% + min(66vw, 82vh * 16 / 9) / 2 + 26px)', top: '50%', transform: 'translateY(-50%)', width: 'clamp(220px,19vw,308px)', zIndex: 2, pointerEvents: 'none' }}>
               {energyOn
                 ? <EnergyMeter pct={energyPct} rate={voteRate} tall />
                 : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
@@ -1082,13 +1093,13 @@ export default function ConsolePage() {
                   </div>}
             </div>
 
-            {/* RAIL DERECHO: código + QR + ticker, centrado en la franja derecha */}
-            <div style={{ position: 'absolute', right: 'calc(25% - min(64vw, 72vh * 16 / 9) / 4 - 140px)', top: '50%', transform: 'translateY(-50%)', width: 280, display: 'flex', flexDirection: 'column', gap: 16, zIndex: 2, pointerEvents: 'none' }}>
+            {/* RAIL DERECHO: pegado al borde derecho del video. Código + QR + ticker */}
+            <div style={{ position: 'absolute', left: 'calc(50% + min(66vw, 82vh * 16 / 9) / 2 + 26px)', top: '50%', transform: 'translateY(-50%)', width: 'clamp(220px,19vw,308px)', display: 'flex', flexDirection: 'column', gap: 16, zIndex: 2, pointerEvents: 'none' }}>
               <div style={{ background: 'color-mix(in srgb, var(--cv-surf) 90%, transparent)', border: `1px solid ${sk.cardBorder}`, borderRadius: 18, padding: 'clamp(16px,1.3vw,22px)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
                 <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 6 }}>CÓDIGO DE SALA</div>
                 <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(46px,5vw,78px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginTop: 15 }}>
-                  {widgetQr && <div style={{ background: '#fff', padding: 8, borderRadius: 10, lineHeight: 0, flexShrink: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(64px,6vw,88px)', height: 'clamp(64px,6vw,88px)', display: 'block' }} /></div>}
+                  {widgetQr && <div style={{ background: '#fff', padding: 8, borderRadius: 10, lineHeight: 0, flexShrink: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(72px,7vw,98px)', height: 'clamp(72px,7vw,98px)', display: 'block' }} /></div>}
                   <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.13em', color: sk.labelColor, lineHeight: 1.5 }}>VOTÁ LA<br />PRÓXIMA DESDE<br />TU CELULAR</div>
                 </div>
               </div>
