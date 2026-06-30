@@ -5,8 +5,8 @@ import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
-import { getSkin, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
 import { applyCvTheme } from '@/lib/theme';
+import QRCode from 'qrcode';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -41,6 +41,7 @@ export default function ConsolePage() {
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [widgetQr, setWidgetQr] = useState('');
   const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
@@ -59,7 +60,6 @@ export default function ConsolePage() {
   const [switchingTo, setSwitchingTo] = useState<null | 'jukebox' | 'karaoke'>(null);
 
   // Vista ambiente (la rockola que se proyecta)
-  const [skin, setSkin] = useState<SkinName>('neon');
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -115,18 +115,15 @@ export default function ConsolePage() {
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
-  // Skin de la vista ambiente: la recordamos por dispositivo (Fase B: por local).
+  // QR escaneable que lleva al widget del local (votar desde el cel).
   useEffect(() => {
-    try {
-      const s = localStorage.getItem(SKIN_STORAGE_KEY);
-      if (s === 'retro' || s === 'neon') setSkin(s);
-    } catch {}
-  }, []);
-
-  const applySkin = (s: SkinName) => {
-    setSkin(s);
-    try { localStorage.setItem(SKIN_STORAGE_KEY, s); } catch {}
-  };
+    const slug = status?.slug;
+    if (!slug || typeof window === 'undefined') { setWidgetQr(''); return; }
+    const url = `${window.location.origin}/widget/${slug}`;
+    QRCode.toDataURL(url, { margin: 1, width: 240, color: { dark: '#0b0a12', light: '#ffffff' } })
+      .then(setWidgetQr)
+      .catch(() => setWidgetQr(''));
+  }, [status?.slug]);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -757,9 +754,7 @@ export default function ConsolePage() {
 
   // sk deriva del TEMA del local (variables CSS de globals.css), no de un skin fijo.
   // Así el tema elegido en Supabase pinta toda la consola.
-  const skBase = getSkin(skin);
   const sk = {
-    ...skBase,
     gradClass: 'cv-grad-theme',
     cardBg: 'rgba(8,7,16,.42)',
     cardBorder: 'color-mix(in srgb, var(--cv-accent) 26%, transparent)',
@@ -811,11 +806,18 @@ export default function ConsolePage() {
             <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
 
-          {/* ABAJO-DERECHA: código (chico) */}
-          <div style={{ position: 'absolute', bottom: '3.5cqh', right: '2.6cqw', textAlign: 'right', padding: '.9cqh 1.5cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
-            <div className="cv-mono" style={{ fontSize: 'clamp(8px,1.1cqw,12px)', letterSpacing: '.2em', color: sk.labelColor, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR</div>
-            <div key={skin} className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(22px,5.4cqw,60px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', marginTop: 1, textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
-            <div style={{ marginTop: 3, display: 'flex', justifyContent: 'flex-end', opacity: .85 }}><Waveform n={18} color={sk.waveColor} maxH={12} barW={2.5} gap={3} seed={7} /></div>
+          {/* ABAJO-DERECHA: invitación — QR + código */}
+          <div style={{ position: 'absolute', bottom: '3.5cqh', right: '2.6cqw', display: 'flex', alignItems: 'center', gap: '1cqw', padding: '.9cqh 1.4cqw', borderRadius: 12, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+            {widgetQr && (
+              <div style={{ background: '#fff', padding: '.55cqh', borderRadius: 8, lineHeight: 0, flexShrink: 0 }}>
+                <img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(38px,5.6cqw,72px)', height: 'clamp(38px,5.6cqw,72px)', display: 'block' }} />
+              </div>
+            )}
+            <div style={{ textAlign: 'right' }}>
+              <div className="cv-mono" style={{ fontSize: 'clamp(8px,1.1cqw,12px)', letterSpacing: '.2em', color: sk.labelColor, textShadow: '0 1px 6px rgba(0,0,0,.9)' }}>VOTÁ EN TU CELULAR</div>
+              <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(22px,5.4cqw,60px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.04em', marginTop: 1, textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+              <div style={{ marginTop: 3, display: 'flex', justifyContent: 'flex-end', opacity: .85 }}><Waveform n={18} color={sk.waveColor} maxH={12} barW={2.5} gap={3} seed={7} /></div>
+            </div>
           </div>
 
           {/* ABAJO-IZQUIERDA: co-brand chiquito */}
@@ -850,7 +852,6 @@ export default function ConsolePage() {
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 10px' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
           </div>
 
@@ -860,12 +861,6 @@ export default function ConsolePage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mono)' }}>AJUSTES</span>
                 <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-              </div>
-              <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mono)', marginBottom: 8 }}>ESTILO DE LA ROCKOLA</div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-                {(['neon', 'retro'] as SkinName[]).map((s) => (
-                  <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent}` : '1px solid var(--cv-line)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent : 'var(--cv-muted)' }}>{getSkin(s).label}</button>
-                ))}
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-text-2)', cursor: 'pointer' }}>
                 <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
