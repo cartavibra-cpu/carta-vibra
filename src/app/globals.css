@@ -56,6 +56,7 @@
 @keyframes cvEq      { 0%,100%{transform:scaleY(0.22);} 50%{transform:scaleY(1);} }
 @keyframes cvLive    { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.25;transform:scale(.7);} }
 @keyframes cvBreathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.015);} }
+@keyframes cvFadeIn  { from{opacity:0;transform:translateY(3px);} to{opacity:1;transform:none;} }
 @keyframes cvWave    { 0%{transform:scale(.8);opacity:.55;} 100%{transform:scale(1.75);opacity:0;} }
 @keyframes cvBubble  { 0%{transform:translateX(-50%) translateY(0);opacity:0;} 14%{opacity:.85;} 86%{opacity:.85;} 100%{transform:translateX(-50%) translateY(-66vh);opacity:0;} }
 

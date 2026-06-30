@@ -45,6 +45,8 @@ export default function ConsolePage() {
   const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
+  const [feed, setFeed] = useState<{ name: string | null; title: string }[]>([]);
+  const [tIdx, setTIdx] = useState(0);
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
@@ -124,6 +126,27 @@ export default function ConsolePage() {
       .then(setWidgetQr)
       .catch(() => setWidgetQr(''));
   }, [status?.slug]);
+
+  // Ticker social: lee recent_votes cada 5s y rota cada 3.6s.
+  useEffect(() => {
+    const slug = status?.slug;
+    if (!slug) { setFeed([]); return; }
+    const sb = supa(); if (!sb) return;
+    let alive = true;
+    const pull = async () => {
+      const { data } = await sb.rpc('recent_votes', { p_slug: slug, p_limit: 14 });
+      if (alive && Array.isArray(data)) setFeed(data as { name: string | null; title: string }[]);
+    };
+    pull();
+    const id = setInterval(pull, 5000);
+    return () => { alive = false; clearInterval(id); };
+  }, [status?.slug]);
+
+  useEffect(() => {
+    if (feed.length < 2) return;
+    const id = setInterval(() => setTIdx((i) => i + 1), 3600);
+    return () => clearInterval(id);
+  }, [feed.length]);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -773,11 +796,7 @@ export default function ConsolePage() {
   const clean = isFs;
   // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
   const ambientBg = 'radial-gradient(125% 135% at 50% 46%, rgba(var(--cv-accent-rgb),.34) 0%, rgba(var(--cv-accent-rgb),.17) 34%, rgba(var(--cv-accent-rgb),.07) 60%, rgba(var(--cv-accent-rgb),.02) 80%, var(--cv-bg) 100%)';
-  // "Lo que viene": la cola (ya ordenada por votos) con sus títulos resueltos.
-  const upcoming = queue
-    .map((q) => ({ votes: q.votes, tr: tracksRef.current[q.track_id] }))
-    .filter((q): q is { votes: number; tr: Track } => !!q.tr)
-    .slice(0, 4);
+  const tickerItem = feed.length ? feed[tIdx % feed.length] : null;
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
@@ -802,7 +821,7 @@ export default function ConsolePage() {
 
 
           {/* ARRIBA-IZQUIERDA: sonando ahora */}
-          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '50%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '3.5cqh', left: '2.6cqw', maxWidth: '60%', padding: '.9cqh 1.4cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: sk.liveColor, boxShadow: `0 0 8px ${sk.liveColor}`, animation: 'cvLive 1.4s ease-in-out infinite', flexShrink: 0 }} />
               <span className="cv-mono" style={{ fontSize: 'clamp(8px,1.2cqw,13px)', letterSpacing: '.16em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)' }}>SONANDO AHORA</span>
@@ -811,17 +830,15 @@ export default function ConsolePage() {
             <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
 
-          {/* ARRIBA-DERECHA: lo que viene (la cola, por votos) */}
-          {upcoming.length > 0 && (
-            <div style={{ position: 'absolute', top: '3.5cqh', right: '2.6cqw', maxWidth: '34%', minWidth: '17%', padding: '.9cqh 1.2cqw', borderRadius: 10, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
-              <div className="cv-mono" style={{ fontSize: 'clamp(8px,1.1cqw,12px)', letterSpacing: '.18em', color: sk.labelColor, textShadow: '0 1px 4px rgba(0,0,0,.9)', marginBottom: '.7cqh' }}>LO QUE VIENE</div>
-              {upcoming.map((u, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '.7cqw', marginTop: i === 0 ? 0 : '.5cqh' }}>
-                  <span className="cv-wordmark" style={{ fontSize: 'clamp(10px,1.5cqw,18px)', fontWeight: 700, color: sk.accent, lineHeight: 1, minWidth: '1.8cqw', textAlign: 'right', flexShrink: 0, textShadow: `0 0 10px rgba(var(--cv-accent-rgb),.45)` }}>{u.votes}</span>
-                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: sk.accent, opacity: .5, flexShrink: 0 }} />
-                  <span className="cv-wordmark" style={{ fontSize: 'clamp(10px,1.5cqw,18px)', fontWeight: 600, color: sk.textOnVideo, lineHeight: 1.15, textShadow: '0 1px 6px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.tr.title}</span>
-                </div>
-              ))}
+          {/* ABAJO-CENTRO: ticker social (quién votó qué) */}
+          {tickerItem && (
+            <div style={{ position: 'absolute', bottom: '3.6cqh', left: '50%', transform: 'translateX(-50%)', maxWidth: '36%', display: 'flex', alignItems: 'center', gap: '.7cqw', padding: '.7cqh 1.3cqw', borderRadius: 999, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: sk.accent, boxShadow: `0 0 8px ${sk.accent}`, flexShrink: 0 }} />
+              <span key={tIdx} className="cv-mono" style={{ fontSize: 'clamp(9px,1.25cqw,15px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)', overflow: 'hidden', textOverflow: 'ellipsis', animation: 'cvFadeIn .55s ease' }}>
+                {tickerItem.name
+                  ? <><b style={{ color: sk.accent, fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</>
+                  : <>alguien votó <b style={{ fontWeight: 600 }}>{tickerItem.title}</b></>}
+              </span>
             </div>
           )}
 
