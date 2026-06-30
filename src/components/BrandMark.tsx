@@ -2,13 +2,24 @@
 import React from 'react';
 import Vinyl from './Vinyl';
 
+/** "vibra" con la Onda (cada letra anima con su delay). */
+function Vibra({ still = false }: { still?: boolean }) {
+  return (
+    <span className="vibra">
+      {['v', 'i', 'b', 'r', 'a'].map((c, i) => (
+        <span key={i} className="ch" style={{ ['--i' as string]: i } as React.CSSProperties}>
+          {c}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 /**
  * Logo oficial de Carta Vibra: el disco vivo SIEMPRE presente.
  * - layout="stack" (default): el wordmark "carta vibra" va DENTRO del disco.
- *   Para splash, login, headers con aire (legible de ~80px para arriba).
- * - layout="row": disco chico + wordmark al lado. Para barras finitas / navs,
- *   donde el nombre adentro sería ilegible. El disco igual ancla la identidad.
- * Las cifras escalan con el tamaño del disco.
+ * - layout="row": disco chico + wordmark vivo (Syne + Onda) al lado. Para navs.
+ * El color del wordmark sigue el tema activo (--cv-theme-grad).
  */
 export default function BrandMark({
   size = 200,
@@ -28,15 +39,16 @@ export default function BrandMark({
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(size * 0.3), ...style }}>
         <Vinyl size={size} mini />
-        <span className="cv-wordmark" style={{ fontSize: font, fontWeight: 600, letterSpacing: '.005em', lineHeight: 1, whiteSpace: 'nowrap' }}>
-          carta <span className="cv-grad-text">vibra</span>
+        <span className="cv-wm" style={{ fontSize: font }}>
+          <span className="carta">carta</span>
+          <Vibra />
         </span>
       </span>
     );
   }
 
-  const cartaSize = Math.round(size * 0.078);
-  const vibraSize = Math.round(size * 0.094);
+  const cartaSize = Math.round(size * 0.082);
+  const vibraSize = Math.round(size * 0.10);
   return (
     <Vinyl
       size={size}
@@ -45,10 +57,10 @@ export default function BrandMark({
       style={style}
       label={
         <div style={{ textAlign: 'center', lineHeight: 0.92 }}>
-          <div className="cv-wordmark" style={{ fontWeight: 600, fontSize: cartaSize, letterSpacing: '.01em', color: 'var(--cv-text)' }}>
+          <div className="cv-wordmark" style={{ fontWeight: 700, fontSize: cartaSize, letterSpacing: '.005em', color: 'var(--cv-ink)' }}>
             carta
           </div>
-          <div className="cv-wordmark cv-grad-text" style={{ fontWeight: 700, fontSize: vibraSize, letterSpacing: '.01em' }}>
+          <div className="cv-wordmark cv-grad-theme" style={{ fontWeight: 800, fontSize: vibraSize, letterSpacing: '.005em' }}>
             vibra
           </div>
         </div>

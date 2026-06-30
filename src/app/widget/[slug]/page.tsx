@@ -4,6 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
+import { applyCvTheme } from '@/lib/theme';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number; session: string | null };
@@ -88,6 +89,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     const { data: v } = await sb.from('venue').select('*').eq('slug', slug).single();
     setVenue(v);
     if (!v) return;
+    applyCvTheme((v as { theme?: string }).theme);
     const { data: asg } = await sb.from('venue_playlist_assignment')
       .select('playlist_id,section').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
     const plId = (asg as { playlist_id: string; section: string } | null)?.playlist_id ?? null;

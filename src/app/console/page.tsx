@@ -6,6 +6,7 @@ import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
 import { getSkin, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
+import { applyCvTheme } from '@/lib/theme';
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -198,6 +199,7 @@ export default function ConsolePage() {
       if (error) { localStorage.removeItem('console_device_token'); return startPairing(); }
       if (data.paired) {
         tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false);
+        applyCvTheme(data.theme);
         localStorage.removeItem('console_pairing_code');
       } else {
         // Mantener el MISMO código entre recargas en vez de generar uno nuevo cada vez.
@@ -230,7 +232,7 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_status', { p_token: token });
       if (error) throw error;
       setStatus(data); setLoading(false);
-      if (data.paired) { venueRef.current = data.venue_id; localStorage.removeItem('console_pairing_code'); }
+      if (data.paired) { venueRef.current = data.venue_id; applyCvTheme(data.theme); localStorage.removeItem('console_pairing_code'); }
       else setTimeout(() => pollStatus(token), 2000);
     } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
   };
