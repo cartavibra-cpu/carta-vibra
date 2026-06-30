@@ -45,8 +45,10 @@ export default function ConsolePage() {
   const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
-  const [feed, setFeed] = useState<{ id: string; name: string | null; title: string }[]>([]);
-  const [tIdx, setTIdx] = useState(0);
+  const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
+  const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevVotesRef = useRef<string[]>([]);
+  const tickerSeededRef = useRef(false);
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
@@ -127,30 +129,40 @@ export default function ConsolePage() {
       .catch(() => setWidgetQr(''));
   }, [status?.slug]);
 
-  // Ticker social: lee recent_votes cada 5s y rota cada 3.6s.
+  // Ticker social EFÍMERO: detecta el voto nuevo y lo muestra unos segundos; después
+  // desaparece (no cicla). Compara la lectura actual con la previa (diff de
+  // multiconjunto) — robusto sin importar el orden que devuelva recent_votes.
   useEffect(() => {
     const slug = status?.slug;
-    if (!slug) { setFeed([]); return; }
+    if (!slug) { setTicker(null); prevVotesRef.current = []; tickerSeededRef.current = false; return; }
     const sb = supa(); if (!sb) return;
     let alive = true;
     const pull = async () => {
       const { data } = await sb.rpc('recent_votes', { p_slug: slug, p_limit: 14 });
       if (!alive || !Array.isArray(data)) return;
-      // Solo votos de canciones que están en la playlist activa de ahora.
       const rows = (data as { id: string; name: string | null; title: string }[])
         .filter((r) => tracksRef.current[r.id]);
-      setFeed(rows);
+      const sigs = rows.map((r) => `${r.name || ''}|${r.title}`);
+      // primera lectura: solo fija la base, no muestra los votos viejos de golpe
+      if (!tickerSeededRef.current) { prevVotesRef.current = sigs; tickerSeededRef.current = true; return; }
+      const prevCount: Record<string, number> = {};
+      prevVotesRef.current.forEach((x) => { prevCount[x] = (prevCount[x] || 0) + 1; });
+      let newIdx = -1;
+      for (let i = 0; i < sigs.length; i++) {
+        if ((prevCount[sigs[i]] || 0) > 0) prevCount[sigs[i]]--;
+        else { newIdx = i; break; }
+      }
+      prevVotesRef.current = sigs;
+      if (newIdx >= 0) {
+        setTicker({ name: rows[newIdx].name || null, title: rows[newIdx].title });
+        if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
+        tickerTimerRef.current = setTimeout(() => setTicker(null), 6000);
+      }
     };
     pull();
-    const id = setInterval(pull, 5000);
-    return () => { alive = false; clearInterval(id); };
+    const id = setInterval(pull, 3500);
+    return () => { alive = false; clearInterval(id); if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current); };
   }, [status?.slug]);
-
-  useEffect(() => {
-    if (feed.length < 2) return;
-    const id = setInterval(() => setTIdx((i) => i + 1), 3600);
-    return () => clearInterval(id);
-  }, [feed.length]);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -741,7 +753,7 @@ export default function ConsolePage() {
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 600 }}>{status.name}</h1>
             <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Consola lista para {status.slug}</p>
           </div>
-          <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(110,243,178,.5)' }} onClick={startConsole}>
+          <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(var(--cv-accent-rgb),.5)' }} onClick={startConsole}>
             ▶ Iniciar sesión musical
           </button>
           <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
@@ -800,7 +812,7 @@ export default function ConsolePage() {
   const clean = isFs;
   // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
   const ambientBg = 'radial-gradient(125% 135% at 50% 46%, rgba(var(--cv-accent-rgb),.34) 0%, rgba(var(--cv-accent-rgb),.17) 34%, rgba(var(--cv-accent-rgb),.07) 60%, rgba(var(--cv-accent-rgb),.02) 80%, var(--cv-bg) 100%)';
-  const tickerItem = feed.length ? feed[tIdx % feed.length] : null;
+  const tickerItem = ticker;
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
@@ -838,7 +850,7 @@ export default function ConsolePage() {
           {tickerItem && (
             <div style={{ position: 'absolute', bottom: '3.6cqh', left: '50%', transform: 'translateX(-50%)', maxWidth: '36%', display: 'flex', alignItems: 'center', gap: '.7cqw', padding: '.7cqh 1.3cqw', borderRadius: 999, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: sk.accent, boxShadow: `0 0 8px ${sk.accent}`, flexShrink: 0 }} />
-              <span key={tIdx} className="cv-mono" style={{ fontSize: 'clamp(9px,1.25cqw,15px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)', overflow: 'hidden', textOverflow: 'ellipsis', animation: 'cvFadeIn .55s ease' }}>
+              <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(9px,1.25cqw,15px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)', overflow: 'hidden', textOverflow: 'ellipsis', animation: 'cvFadeIn .55s ease' }}>
                 {tickerItem.name
                   ? <><b style={{ color: sk.accent, fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</>
                   : <>alguien votó <b style={{ fontWeight: 600 }}>{tickerItem.title}</b></>}

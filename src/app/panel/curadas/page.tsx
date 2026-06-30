@@ -5,7 +5,7 @@ import TopNav from '@/components/TopNav';
 import BrandMark from '@/components/BrandMark';
 import { useIsMobile } from '@/lib/useIsMobile';
 
-const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)';
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
 
 type Template = { id: string; name: string; description: string | null; mood: string | null };
 type Track = { id: string; title: string; artist: string | null; external_id: string | null; is_embeddable: boolean | null };
@@ -194,7 +194,7 @@ export default function CuradasPage() {
                     {modalTracks.map((tr, i) => {
                       const active = previewId === tr.external_id;
                       return (
-                        <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(0,212,255,.10)' : 'transparent', border: active ? '1px solid rgba(0,212,255,.3)' : '1px solid transparent' }}>
+                        <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', border: active ? '1px solid rgba(var(--cv-accent-rgb),.3)' : '1px solid transparent' }}>
                           <button onClick={() => tr.external_id && setPreviewId(tr.external_id)} disabled={!tr.external_id}
                             style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', border: '1px solid var(--cv-line)', background: active ? 'var(--cv-cyan)' : 'rgba(255,255,255,.04)', color: active ? 'var(--cv-on)' : 'var(--cv-cyan)', cursor: tr.external_id ? 'pointer' : 'default', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {active ? '♪' : '▶'}

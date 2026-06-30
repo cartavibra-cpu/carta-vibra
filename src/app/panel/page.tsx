@@ -6,7 +6,7 @@ import VenueManager from '@/components/VenueManager';
 import BrandMark from '@/components/BrandMark';
 import { useIsMobile } from '@/lib/useIsMobile';
 
-const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)';
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
 const modeLabel = (m: string) => MODE_LABELS[m] || m;
 
@@ -89,7 +89,7 @@ export default function PanelPage() {
 
         {/* crear local */}
         {showCreate && (
-          <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 24, border: '1px solid rgba(0,212,255,.25)' }}>
+          <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 24, border: '1px solid rgba(var(--cv-accent-rgb),.25)' }}>
             <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 14 }}>CREAR UN LOCAL NUEVO</div>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <input className="cv-input" placeholder="Nombre del local" value={name} onChange={(e) => setName(e.target.value)} />
@@ -107,7 +107,7 @@ export default function PanelPage() {
 
         {/* Bienvenida para dueño nuevo (sin locales todavía) */}
         {venues.length === 0 ? (
-          <div className="cv-card" style={{ padding: isMobile ? '28px 20px' : '36px 32px', textAlign: 'center', border: '1px solid rgba(0,212,255,.25)', background: 'linear-gradient(165deg, rgba(94,46,255,.10), rgba(0,212,255,.04))' }}>
+          <div className="cv-card" style={{ padding: isMobile ? '28px 20px' : '36px 32px', textAlign: 'center', border: '1px solid rgba(var(--cv-accent-rgb),.25)', background: 'linear-gradient(165deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.04))' }}>
             <div style={{ fontSize: 44, marginBottom: 6 }}>🎶</div>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 600, color: 'var(--cv-text)' }}>¡Bienvenido a <span className="cv-grad-text">Carta Vibra</span>!</h2>
             <p style={{ fontSize: 14.5, color: 'var(--cv-text-2)', lineHeight: 1.6, margin: '12px auto 0', maxWidth: 460 }}>

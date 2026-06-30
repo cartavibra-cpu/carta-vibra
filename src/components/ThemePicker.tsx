@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
-import { CV_THEME_META, CV_THEME_FAMILIES, isCvTheme, type CvTheme } from '@/lib/theme';
+import { CV_THEME_META, isCvTheme, type CvTheme } from '@/lib/theme';
 
 /** "vibra" con la onda, para el preview. */
 function Vibra() {
@@ -50,6 +50,7 @@ export default function ThemePicker({ venueId, current }: { venueId: string; cur
       </p>
 
       {/* PREVIEW EN VIVO (tema acotado a esta caja) */}
+      <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-mono)', fontWeight: 700, marginBottom: 7 }}>VISTA PREVIA · TU PANTALLA EN VIVO</div>
       <div
         data-cv-theme={theme}
         style={{
@@ -74,39 +75,32 @@ export default function ThemePicker({ venueId, current }: { venueId: string; cur
 
       {err && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-warm)', marginBottom: 12 }}>No se pudo guardar: {err}</div>}
 
-      {/* SWATCHES por familia */}
-      {CV_THEME_FAMILIES.map((fam) => (
-        <div key={fam} style={{ marginBottom: 14 }}>
-          <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.16em', color: 'var(--cv-mono)', fontWeight: 700, marginBottom: 8 }}>{fam.toUpperCase()}</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
-            {CV_THEME_META.filter((t) => t.family === fam).map((t) => {
-              const on = t.id === theme;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => pick(t.id)}
-                  disabled={saving}
-                  style={{
-                    textAlign: 'left', cursor: saving ? 'default' : 'pointer', padding: 0, overflow: 'hidden',
-                    borderRadius: 11, background: 'var(--cv-surface)',
-                    border: on ? '1px solid var(--cv-cyan)' : '1px solid var(--cv-line)',
-                    boxShadow: on ? '0 0 22px -8px rgba(0,212,255,.5)' : 'none',
-                    transition: 'transform .15s ease, border-color .15s ease',
-                  }}
-                >
-                  <div style={{ height: 38, background: t.grad, position: 'relative' }}>
-                    {on && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: 12, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.5)' }}>✓</span>}
-                  </div>
-                  <div style={{ padding: '8px 10px 9px' }}>
-                    <div className="cv-wordmark" style={{ fontSize: 14, fontWeight: 700, color: 'var(--cv-text)' }}>{t.name}</div>
-                    <div className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-muted-2)', marginTop: 1 }}>{t.story}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      {/* SWATCHES compactos (todos juntos; la familia/historia va en el tooltip) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))', gap: 8 }}>
+        {CV_THEME_META.map((t) => {
+          const on = t.id === theme;
+          return (
+            <button
+              key={t.id}
+              onClick={() => pick(t.id)}
+              disabled={saving}
+              title={`${t.name} · ${t.story}`}
+              style={{
+                cursor: saving ? 'default' : 'pointer', padding: 4, overflow: 'hidden',
+                borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 5,
+                background: on ? 'rgba(var(--cv-accent-rgb),.10)' : 'var(--cv-surface)',
+                border: on ? '1.5px solid var(--cv-accent)' : '1px solid var(--cv-line)',
+                transition: 'transform .12s ease, border-color .15s ease, background .15s ease',
+              }}
+            >
+              <div style={{ height: 28, borderRadius: 7, background: t.grad, position: 'relative' }}>
+                {on && <span style={{ position: 'absolute', top: 3, right: 6, fontSize: 11, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.6)' }}>✓</span>}
+              </div>
+              <span className="cv-wordmark" style={{ fontSize: 12.5, fontWeight: 700, textAlign: 'center', lineHeight: 1, color: on ? 'var(--cv-accent)' : 'var(--cv-text)' }}>{t.name}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

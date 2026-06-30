@@ -23,7 +23,7 @@ const TYPES: { key: string; label: string; color: string; sub: string }[] = [
   { key: 'dj_pro', label: 'DJ Pro', color: 'var(--cv-violet-light)', sub: 'archivos propios · pronto' },
 ];
 
-const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(0,212,255,.09), transparent 60%), var(--cv-bg)';
+const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(var(--cv-accent-rgb),.09), transparent 60%), var(--cv-bg)';
 
 export default function PlaylistsPage() {
   const isMobile = useIsMobile();
@@ -345,7 +345,7 @@ export default function PlaylistsPage() {
                             </form>
 
                             {/* importar playlist entera */}
-                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', margin: '0 0 16px', padding: '12px 14px', borderRadius: 10, background: 'rgba(0,212,255,.04)', border: '1px dashed rgba(0,212,255,.22)' }}>
+                            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', margin: '0 0 16px', padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--cv-accent-rgb),.04)', border: '1px dashed rgba(var(--cv-accent-rgb),.22)' }}>
                               <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.1em', color: 'var(--cv-cyan-light)', width: '100%' }}>¿UNA PLAYLIST ENTERA? PEGÁ EL LINK DE LA PLAYLIST DE YOUTUBE</span>
                               <input className="cv-input" style={{ flex: '2 1 220px', padding: '10px 12px' }} placeholder="https://youtube.com/playlist?list=…" value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} />
                               <button type="button" onClick={() => importPlaylistInto(p)} disabled={ytLoading} className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '10px 18px', opacity: ytLoading ? 0.6 : 1 }}>{ytLoading ? 'Importando…' : 'Importar todas'}</button>

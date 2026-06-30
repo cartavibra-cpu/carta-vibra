@@ -32,9 +32,9 @@ function GoogleButton({ onClick, small }: { onClick: () => void; small?: boolean
         fontSize: small ? 13.5 : 15,
         padding: small ? '9px 15px' : '14px 26px',
         background: 'rgba(255,255,255,.05)',
-        border: '1px solid rgba(0,212,255,.42)',
+        border: '1px solid rgba(var(--cv-accent-rgb),.42)',
         color: 'var(--cv-text)',
-        boxShadow: '0 8px 26px rgba(0,212,255,.12)',
+        boxShadow: '0 8px 26px rgba(var(--cv-accent-rgb),.12)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
         whiteSpace: 'nowrap',
@@ -158,8 +158,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
 
       {/* ---------- HERO ---------- */}
       <section id="top" style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: STAGE_BG }}>
-        <div ref={glowA} style={{ position: 'absolute', top: '-10%', left: '50%', width: 900, height: 600, transform: 'translateX(-50%)', marginLeft: '-450px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(94,46,255,.18), transparent 60%)', pointerEvents: 'none' }} />
-        <div ref={glowB} style={{ position: 'absolute', bottom: '0%', right: '6%', width: 700, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,212,255,.12), transparent 60%)', pointerEvents: 'none' }} />
+        <div ref={glowA} style={{ position: 'absolute', top: '-10%', left: '50%', width: 900, height: 600, transform: 'translateX(-50%)', marginLeft: '-450px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(var(--cv-accent-rgb),.18), transparent 60%)', pointerEvents: 'none' }} />
+        <div ref={glowB} style={{ position: 'absolute', bottom: '0%', right: '6%', width: 700, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(var(--cv-accent-rgb),.12), transparent 60%)', pointerEvents: 'none' }} />
         <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 44%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
 
         <div ref={heroContent} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 30, padding: '120px 24px 80px', textAlign: 'center' }}>
@@ -209,7 +209,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ---------- CÓMO FUNCIONA ---------- */}
-      <section id="como-funciona" className="cv-section" style={{ background: 'linear-gradient(180deg, transparent, rgba(94,46,255,.05), transparent)' }}>
+      <section id="como-funciona" className="cv-section" style={{ background: 'linear-gradient(180deg, transparent, rgba(var(--cv-accent-rgb),.05), transparent)' }}>
         <div className="cv-container">
           <div data-reveal style={{ textAlign: 'center', marginBottom: 44 }}>
             <Eyebrow>Cómo funciona</Eyebrow>
@@ -258,7 +258,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               </div>
               <div style={{ position: 'relative', textAlign: 'center' }}>
                 <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.28em', color: 'var(--cv-cyan-light)', marginBottom: 4 }}>CÓDIGO DE SALA</div>
-                <div className="cv-wordmark cv-grad-code" style={{ fontSize: 'clamp(64px, 13vw, 150px)', fontWeight: 700, lineHeight: 0.9, letterSpacing: '.03em', textShadow: '0 0 70px rgba(0,212,255,.3)' }}>4829</div>
+                <div className="cv-wordmark cv-grad-code" style={{ fontSize: 'clamp(64px, 13vw, 150px)', fontWeight: 700, lineHeight: 0.9, letterSpacing: '.03em', textShadow: '0 0 70px rgba(var(--cv-accent-rgb),.3)' }}>4829</div>
               </div>
             </div>
 
@@ -268,7 +268,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             </div>
 
             {/* ticker */}
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px 22px', borderTop: '1px solid rgba(0,212,255,.14)', paddingTop: 16 }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: '10px 22px', borderTop: '1px solid rgba(var(--cv-accent-rgb),.14)', paddingTop: 16 }}>
               {[['Borderline', 47], ['Tek It', 41], ['Flashing Lights', 33]].map(([t, v], i) => (
                 <React.Fragment key={t as string}>
                   {i > 0 && <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#3a4658' }} />}
@@ -287,7 +287,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       </section>
 
       {/* ---------- TERMÓMETRO ---------- */}
-      <section className="cv-section" style={{ background: 'linear-gradient(180deg, transparent, rgba(0,212,255,.04), transparent)' }}>
+      <section className="cv-section" style={{ background: 'linear-gradient(180deg, transparent, rgba(var(--cv-accent-rgb),.04), transparent)' }}>
         <div className="cv-container">
           <div data-reveal style={{ marginBottom: 36 }}>
             <Eyebrow>El color late con la sala</Eyebrow>

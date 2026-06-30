@@ -6,7 +6,7 @@ import BrandMark from '@/components/BrandMark';
 import Landing from '@/components/Landing';
 
 const STAGE_BG =
-  'radial-gradient(1000px 600px at 50% -8%, rgba(94,46,255,.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(0,212,255,.1), transparent 60%), var(--cv-bg)';
+  'radial-gradient(1000px 600px at 50% -8%, rgba(var(--cv-accent-rgb),.2), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(var(--cv-accent-rgb),.1), transparent 60%), var(--cv-bg)';
 
 export default function Home() {
   const [session, setSession] = useState<any>(null);

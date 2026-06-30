@@ -4,7 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import { useIsMobile } from '@/lib/useIsMobile';
 
-const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)';
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
 
 type ErrRow = {
   id: string;
@@ -115,7 +115,7 @@ export default function ErroresPage() {
               <button key={c} onClick={() => setFilter(c)} className="cv-mono"
                 style={{ fontSize: 12, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
                   border: filter === c ? '1px solid var(--cv-cyan)' : '1px solid var(--cv-line)',
-                  background: filter === c ? 'rgba(0,212,255,.10)' : 'transparent',
+                  background: filter === c ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent',
                   color: filter === c ? 'var(--cv-cyan)' : 'var(--cv-muted)' }}>{c}</button>
             ))}
           </div>
@@ -138,7 +138,7 @@ export default function ErroresPage() {
                     <span style={{ marginTop: 2, fontSize: 14, color: 'var(--cv-cyan)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
-                        <span className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.08em', color: 'var(--cv-cyan-light)', border: '1px solid rgba(0,212,255,.3)', borderRadius: 999, padding: '1px 8px' }}>{r.context || '—'}</span>
+                        <span className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.08em', color: 'var(--cv-cyan-light)', border: '1px solid rgba(var(--cv-accent-rgb),.3)', borderRadius: 999, padding: '1px 8px' }}>{r.context || '—'}</span>
                         {r.venue_slug && <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-muted-2)' }}>/{r.venue_slug}</span>}
                         <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-mono)' }}>{timeAgo(r.created_at)}</span>
                       </div>

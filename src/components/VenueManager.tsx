@@ -178,7 +178,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
 
       {/* Primeros pasos — guía al dueño nuevo. Se esconde sola cuando está todo listo. */}
       {consolePaired !== null && !setupDone && (
-        <div className="cv-card" style={{ padding: '18px 20px', marginBottom: 20, border: '1px solid rgba(0,212,255,.3)', background: 'linear-gradient(160deg, rgba(94,46,255,.10), rgba(0,212,255,.05))' }}>
+        <div className="cv-card" style={{ padding: '18px 20px', marginBottom: 20, border: '1px solid rgba(var(--cv-accent-rgb),.3)', background: 'linear-gradient(160deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.05))' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
             <span style={{ fontSize: 18 }}>🚀</span>
             <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>Primeros pasos</span>
@@ -237,7 +237,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
           La que <b style={{ color: 'var(--cv-mint)' }}>está sonando</b> es la que ven y votan los clientes — solo una a la vez.
         </p>
 
-        <div style={{ marginBottom: 16, padding: '11px 14px', borderRadius: 12, background: 'rgba(110,243,178,.06)', border: '1px solid rgba(110,243,178,.2)' }}>
+        <div style={{ marginBottom: 16, padding: '11px 14px', borderRadius: 12, background: 'rgba(var(--cv-accent-rgb),.06)', border: '1px solid rgba(var(--cv-accent-rgb),.2)' }}>
           <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted)' }}>SONANDO AHORA</span>
           <div style={{ fontSize: 15.5, fontWeight: 700, color: activeAssignment ? 'var(--cv-text)' : 'var(--cv-mono)', marginTop: 3 }}>
             {activeAssignment ? `${activeAssignment.name}  ·  ${activeAssignment.section === 'karaoke' ? 'Karaoke' : 'Jukebox'}` : 'Ninguna playlist activa'}
@@ -262,8 +262,8 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                 {items.map((a, idx) => (
                   <div key={a.id} style={{
                     display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
-                    background: a.is_active ? 'rgba(110,243,178,.08)' : 'rgba(255,255,255,.02)',
-                    border: a.is_active ? '1px solid rgba(110,243,178,.35)' : '1px solid var(--cv-line)',
+                    background: a.is_active ? 'rgba(var(--cv-accent-rgb),.08)' : 'rgba(255,255,255,.02)',
+                    border: a.is_active ? '1px solid rgba(var(--cv-accent-rgb),.35)' : '1px solid var(--cv-line)',
                   }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <button onClick={() => move(a, -1)} disabled={busy || idx === 0} title="Subir"

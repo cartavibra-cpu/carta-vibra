@@ -5,7 +5,7 @@ import TopNav from '@/components/TopNav';
 import BrandMark from '@/components/BrandMark';
 import { useIsMobile } from '@/lib/useIsMobile';
 
-const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(94,46,255,.12), transparent 60%), var(--cv-bg)';
+const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
 
 function getYouTubeId(url: string) {
   try {
@@ -207,7 +207,7 @@ export default function AdminPage() {
         </div>
 
         {/* crear */}
-        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 22, border: '1px solid rgba(0,212,255,.25)' }}>
+        <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 22, border: '1px solid rgba(var(--cv-accent-rgb),.25)' }}>
           {sub('CREAR PLAYLIST NUEVA')}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input className="cv-input" style={inputStyle} placeholder="Nombre (ej: Previa Latina)" value={newName} onChange={(e) => setNewName(e.target.value)} />
@@ -222,7 +222,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
           {templates.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no creaste ninguna.</div>}
           {templates.map((t) => (
-            <div key={t.id} className="cv-card" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, ...(selected?.id === t.id ? { border: '1px solid rgba(0,212,255,.35)' } : {}) }}>
+            <div key={t.id} className="cv-card" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, ...(selected?.id === t.id ? { border: '1px solid rgba(var(--cv-accent-rgb),.35)' } : {}) }}>
               <div style={{ minWidth: 0 }}>
                 <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>{t.name}</span>
                 <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>

@@ -11,7 +11,7 @@ type Track = { id: string; title: string; artist: string | null; external_id: st
 type Signup = { id: string; singer: string; title: string | null; artist: string | null; external_id: string | null; state: string; sort: number; session: string | null };
 type Picked = { external_id: string; title: string; artist: string; is_embeddable: boolean };
 
-const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(94,46,255,.22), transparent 62%), var(--cv-bg)';
+const STAGE_BG = 'radial-gradient(520px 420px at 50% -5%, rgba(var(--cv-accent-rgb),.22), transparent 62%), var(--cv-bg)';
 
 function getSession(): string {
   if (typeof window === 'undefined') return '';
@@ -284,11 +284,11 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 {/* selector de canción */}
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   <button onClick={() => { setPickMode('catalog'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'catalog' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
                   <button onClick={() => { setPickMode('search'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'search' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'search' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'search' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Buscar</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'search' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'search' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'search' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Buscar</button>
                   <button onClick={() => { setPickMode('paste'); setPicked(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'paste' ? 'rgba(110,243,178,.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
                 </div>
 
                 {pickMode === 'catalog' ? (
@@ -300,7 +300,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                         const sel = picked?.external_id === t.external_id;
                         return (
                           <button key={t.id} onClick={() => setPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })}
-                            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(110,243,178,.10)' : 'rgba(255,255,255,.03)' }}>
+                            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
                             <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
                             {t.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{t.artist}</div>}
                           </button>
@@ -326,7 +326,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                           const sel = picked?.external_id === res.videoId;
                           return (
                             <button key={res.videoId} onClick={() => setPicked({ external_id: res.videoId, title: res.title, artist: res.artist, is_embeddable: true })}
-                              style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(110,243,178,.10)' : 'rgba(255,255,255,.03)' }}>
+                              style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
                               <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{res.title}</div>
                               {res.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{res.artist}</div>}
                             </button>
@@ -343,7 +343,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 )}
 
                 {picked && (
-                  <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(110,243,178,.08)', border: '1px solid rgba(110,243,178,.3)' }}>
+                  <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(var(--cv-accent-rgb),.08)', border: '1px solid rgba(var(--cv-accent-rgb),.3)' }}>
                     <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-mint)' }}>VAS A CANTAR</div>
                     <div style={{ fontSize: 14, color: 'var(--cv-text)', marginTop: 2 }}>{picked.title}{picked.artist ? ` — ${picked.artist}` : ''}</div>
                   </div>
@@ -365,7 +365,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 const mine = s.session === session;
                 const singing = s.state === 'singing';
                 return (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, background: singing ? 'rgba(0,212,255,.10)' : mine ? 'rgba(110,243,178,.08)' : 'rgba(255,255,255,.03)', border: singing ? '1px solid rgba(0,212,255,.35)' : mine ? '1px solid rgba(110,243,178,.3)' : '1px solid rgba(255,255,255,.06)' }}>
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, background: singing ? 'rgba(var(--cv-accent-rgb),.10)' : mine ? 'rgba(var(--cv-accent-rgb),.08)' : 'rgba(255,255,255,.03)', border: singing ? '1px solid rgba(var(--cv-accent-rgb),.35)' : mine ? '1px solid rgba(var(--cv-accent-rgb),.3)' : '1px solid rgba(255,255,255,.06)' }}>
                     <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, color: singing ? 'var(--cv-cyan)' : mine ? 'var(--cv-mint)' : 'var(--cv-muted)', width: 22, flexShrink: 0 }}>{singing ? '♪' : i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -389,7 +389,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
           /* ════════ MODO JUKEBOX (votación) ════════ */
           <>
             {/* sonando ahora */}
-            <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(150deg, rgba(94,46,255,.18), rgba(0,212,255,.06))', border: '1px solid rgba(255,255,255,.10)', borderRadius: 18, padding: 14 }}>
+            <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(150deg, rgba(var(--cv-accent-rgb),.18), rgba(var(--cv-accent-rgb),.06))', border: '1px solid rgba(255,255,255,.10)', borderRadius: 18, padding: 14 }}>
               <Vinyl size={56} mini />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>SONANDO AHORA</div>
