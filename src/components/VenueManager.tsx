@@ -4,6 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { logError } from '@/lib/logError';
+import ThemePicker from '@/components/ThemePicker';
 
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
 const modeLabel = (m: string) => MODE_LABELS[m] || m;
@@ -169,6 +170,11 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
           <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {modeLabel(venue.mode)}</div>
         </div>
       )}
+
+      {/* Tema del local — elige la personalidad de la pantalla y la carta */}
+      <div className="cv-card" style={{ padding: '20px 22px', marginBottom: 20 }}>
+        <ThemePicker venueId={venue.id} current={venue.theme} />
+      </div>
 
       {/* Primeros pasos — guía al dueño nuevo. Se esconde sola cuando está todo listo. */}
       {consolePaired !== null && !setupDone && (
