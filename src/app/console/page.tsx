@@ -141,6 +141,8 @@ export default function ConsolePage() {
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
+  const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
+  const votanteIdRef = useRef(0);
   const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevVotesRef = useRef<string[]>([]);
   const tickerSeededRef = useRef(false);
@@ -253,9 +255,10 @@ export default function ConsolePage() {
       const prevCount: Record<string, number> = {};
       prevVotesRef.current.forEach((x) => { prevCount[x] = (prevCount[x] || 0) + 1; });
       let newIdx = -1; let newCount = 0;
+      const newRows: { id: string; name: string | null; title: string }[] = [];
       for (let i = 0; i < sigs.length; i++) {
         if ((prevCount[sigs[i]] || 0) > 0) prevCount[sigs[i]]--;
-        else { if (newIdx < 0) newIdx = i; newCount++; }
+        else { if (newIdx < 0) newIdx = i; newCount++; newRows.push(rows[i]); }
       }
       prevVotesRef.current = sigs;
       if (newCount > 0) { const t = Date.now(); for (let k = 0; k < newCount; k++) voteTimesRef.current.push(t); }
@@ -263,6 +266,11 @@ export default function ConsolePage() {
         setTicker({ name: rows[newIdx].name || null, title: rows[newIdx].title });
         if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
         tickerTimerRef.current = setTimeout(() => setTicker(null), 6000);
+        const born = Date.now();
+        setVotantes((prev) => {
+          const added = newRows.map((r) => ({ id: ++votanteIdRef.current, name: r.name || null, title: r.title, born }));
+          return [...added.reverse(), ...prev].slice(0, 4);
+        });
       }
     };
     pull();
@@ -282,6 +290,18 @@ export default function ConsolePage() {
     };
     calc();
     const id = setInterval(calc, 2500);
+    return () => clearInterval(id);
+  }, []);
+
+  // Limpia los votantes flotantes después de ~6.5s (cuando termina su animación de aparecer→subir→desvanecer).
+  useEffect(() => {
+    const id = setInterval(() => {
+      setVotantes((prev) => {
+        const now = Date.now();
+        const next = prev.filter((v) => now - v.born < 6500);
+        return next.length === prev.length ? prev : next;
+      });
+    }, 900);
     return () => clearInterval(id);
   }, []);
 
@@ -964,8 +984,8 @@ export default function ConsolePage() {
   const tickerItem = ticker;
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
-    ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(64vw, calc(80vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
+    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 14, border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -973,10 +993,53 @@ export default function ConsolePage() {
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', background: clean ? '#000' : ambientBg, cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: clean ? '#000' : ambientBg, cursor: controlsVisible ? 'default' : 'none' }}
     >
-      {/* PANTALLA: el video (a pantalla completa o grande con sus luces) */}
-      <div ref={stageRef} tabIndex={-1} style={videoBox}>
+      <style>{`@keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}`}</style>
+
+      {/* HEADER: identidad del local */}
+      {!clean && (
+        <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 'clamp(16px,2.4vh,26px) clamp(22px,3vw,40px)', position: 'relative', zIndex: 3 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
+          <span className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.5vw,22px)', fontWeight: 700, color: 'var(--cv-ink)', letterSpacing: '-.01em' }}>{status?.name || 'Tu local'}</span>
+          <span className="cv-mono" style={{ fontSize: 'clamp(8px,.72vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: 'var(--cv-mut)' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
+        </header>
+      )}
+
+      {/* ESCENARIO: una sola superficie · medidor | video | código+votantes */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: clean ? 0 : '0 clamp(20px,3vw,44px)' }}>
+        <div style={clean
+          ? { width: '100%', height: '100%' }
+          : { display: 'grid', gridTemplateColumns: 'minmax(180px,230px) minmax(0,1fr) minmax(248px,310px)', gap: 'clamp(18px,2.4vw,36px)', alignItems: 'center', width: '100%', maxWidth: 1680 }}>
+
+          {/* IZQUIERDA: medidor vertical finito (flotando) o el disco si está apagado */}
+          {!clean && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+              {energyOn ? (
+                <div style={{ display: 'flex', gap: 13, height: 'clamp(160px,25vh,210px)', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>caliente</span>
+                    <span>
+                      <span className="cv-wordmark" style={{ fontSize: 22, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span><br />
+                      <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
+                  </div>
+                  <div style={{ position: 'relative', width: 16, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
+                    <div style={{ width: '100%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 18px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.7s cubic-bezier(.4,0,.2,1)', height: Math.max(3, Math.min(100, energyPct)) + '%' }} />
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 11, padding: '6px 0' }}>
+                  <ConsoleVinyl size={120} name={status?.name || 'tu local'} />
+                  <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>en carta vibra</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PANTALLA: el video */}
+          <div ref={stageRef} tabIndex={-1} style={videoBox}>
           {/* pointerEvents:none → YouTube no muestra su nombre/compartir/más-videos al pasar el mouse */}
           <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1, pointerEvents: 'none' }}><div id="yt-A" /></div>
           <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, pointerEvents: 'none' }}><div id="yt-B" /></div>
@@ -1096,46 +1159,39 @@ export default function ConsolePage() {
           )}
         </div>
 
-        {/* COSTADOS (vista normal, no fullscreen): tarjetas con el ALTO del video, pegadas pero sin salirse */}
-        {!clean && (
-          <>
-            {/* RAIL IZQUIERDO: barra de nivel que llena todo el alto (o el vinilo si está apagado) */}
-            <div style={{ position: 'absolute', left: 'max(24px, 50% - min(64vw, 80vh * 16 / 9) / 2 - 22px - 300px)', top: '50%', transform: 'translateY(-50%)', width: 300, height: 'min(64vw * 9 / 16, 80vh)', zIndex: 2, pointerEvents: 'none' }}>
-              {energyOn
-                ? <EnergyMeter pct={energyPct} rate={voteRate} mode="bar" />
-                : <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'color-mix(in srgb, var(--cv-surf) 90%, transparent)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)', borderRadius: 18, backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
-                    <ConsoleVinyl size={220} name={status?.name || 'tu local'} />
-                    <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,10px)', letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-accent) 60%, #ffffff)' }}>EN CARTA VIBRA</span>
-                  </div>}
-            </div>
-
-            {/* RAIL DERECHO: código grande + QR + ticker, repartidos a lo alto del video */}
-            <div style={{ position: 'absolute', right: 'max(24px, 50% - min(64vw, 80vh * 16 / 9) / 2 - 22px - 300px)', top: '50%', transform: 'translateY(-50%)', width: 300, height: 'min(64vw * 9 / 16, 80vh)', zIndex: 2, pointerEvents: 'none' }}>
-              <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'color-mix(in srgb, var(--cv-surf) 90%, transparent)', border: `1px solid ${sk.cardBorder}`, borderRadius: 18, padding: 'clamp(18px,1.5vw,26px)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
-                <div>
-                  <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 8 }}>CÓDIGO DE SALA</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(56px,6.6vw,108px)', fontWeight: 700, lineHeight: 0.92, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
+          {/* DERECHA: tarjeta código + QR, y DEBAJO los votantes flotantes (aparecen → suben → se desvanecen) */}
+          {!clean && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'center' }}>
+              <div style={{ background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', borderRadius: 16, padding: 17 }}>
+                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 9 }}>Código de sala</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4vw,56px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '-.01em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 13 }}>
+                  {widgetQr && <div style={{ width: 'clamp(64px,6vw,84px)', height: 'clamp(64px,6vw,84px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
+                  <div className="cv-mono" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-                  {widgetQr && <div style={{ background: '#fff', padding: 10, borderRadius: 12, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(116px,11vw,168px)', height: 'clamp(116px,11vw,168px)', display: 'block' }} /></div>}
-                  <div className="cv-mono" style={{ fontSize: 'clamp(9px,.8vw,13px)', letterSpacing: '.14em', color: sk.labelColor, lineHeight: 1.6, textAlign: 'center' }}>VOTÁ LA PRÓXIMA<br />DESDE TU CELULAR</div>
-                </div>
-                {tickerItem ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'color-mix(in srgb, var(--cv-surf) 86%, transparent)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '11px 16px' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: sk.accent, boxShadow: `0 0 8px ${sk.accent}`, flexShrink: 0 }} />
-                    <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(10px,.85vw,14px)', color: sk.textOnVideo, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', animation: 'cvFadeIn .55s ease' }}>
-                      {tickerItem.name ? <><b style={{ color: sk.accent, fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</> : <>alguien votó <b>{tickerItem.title}</b></>}
-                    </span>
+              </div>
+              {/* VOTANTES flotantes */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+                {votantes.map((v) => (
+                  <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 9, maxWidth: '100%', background: 'rgba(var(--cv-accent-rgb),.11)', border: '1px solid rgba(var(--cv-accent-rgb),.24)', borderRadius: 999, padding: '9px 15px', fontSize: 14, color: 'var(--cv-ink)', whiteSpace: 'nowrap', animation: 'cvVotante 6.5s ease forwards' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.name}</b> votó {v.title}</> : <>alguien votó <b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.title}</b></>}</span>
                   </div>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, opacity: .55 }}>
-                    <BrandMark size={15} layout="row" />
-                  </div>
-                )}
+                ))}
               </div>
             </div>
-          </>
-        )}
+          )}
+
+        </div>{/* grilla */}
+      </div>{/* escenario */}
+
+      {/* FOOTER: marca */}
+      {!clean && (
+        <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'clamp(12px,2vh,20px) clamp(22px,3vw,40px)', position: 'relative', zIndex: 3 }}>
+          <span className="cv-wordmark" style={{ fontSize: 'clamp(13px,1.1vw,15px)', fontWeight: 700, color: 'var(--cv-mut)', opacity: .75 }}>carta <span className="cv-grad-theme">vibra</span></span>
+          <span style={{ fontSize: 11, color: 'var(--cv-mut)', opacity: .45 }}>tu rocola social</span>
+        </footer>
+      )}
 
         {/* STANDBY EN PAUSA: aparece/desaparece con el MISMO fade que la música (~.54s). */}
         <div onClick={isPaused ? togglePlayPause : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: isPaused ? 'pointer' : 'default',
