@@ -233,17 +233,10 @@ export default function ConsolePage() {
     return () => clearInterval(id);
   }, []);
 
-  // ¿El local activó el termómetro? Vive en venue.settings.energy (default: sí).
+  // ¿Mostrar el termómetro de energía? Se elige acá en la consola (queda guardado en este equipo).
   useEffect(() => {
-    const vid = (status as { venue_id?: string } | null)?.venue_id;
-    if (!vid) return;
-    const sb = supa(); if (!sb) return;
-    (async () => {
-      const { data } = await sb.from('venue').select('settings').eq('id', vid).single();
-      const s = (data as { settings?: { energy?: boolean } } | null)?.settings;
-      setEnergyOn(s?.energy !== false);
-    })();
-  }, [status]);
+    try { const v = localStorage.getItem('cv-energy'); if (v !== null) setEnergyOn(v === '1'); } catch {}
+  }, []);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -1001,6 +994,12 @@ export default function ConsolePage() {
                 <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
                 AutoDJ cuando no hay votos
               </label>
+              <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'rgba(255,255,255,.85)', cursor: 'pointer' }}>
+                <input type="checkbox" checked={energyOn} onChange={(e) => { setEnergyOn(e.target.checked); try { localStorage.setItem('cv-energy', e.target.checked ? '1' : '0'); } catch {} }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                Mostrar termómetro de energía de la sala
+              </label>
+              <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,.4)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
               <div style={{ height: 1, background: 'rgba(255,255,255,.06)', margin: '12px 0' }} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'rgba(255,255,255,.6)', flexWrap: 'wrap' }}>
                 Segundos por canción (0 = completa):
