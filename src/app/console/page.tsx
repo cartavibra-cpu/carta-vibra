@@ -20,6 +20,54 @@ const STEP_MS = 100;
 const STAGE_BG =
   'radial-gradient(1000px 600px at 50% -8%, rgba(var(--cv-accent-rgb),.18), transparent 60%), radial-gradient(800px 500px at 80% 112%, rgba(var(--cv-accent-rgb),.10), transparent 60%), var(--cv-bg)';
 
+/** Vinilo de la consola: gira (anillo de color + brillo que barre se notan) con el
+ *  nombre del local QUIETO en el centro, con la tipografía/gradiente de Carta Vibra.
+ *  Es el co-brand integrado: el logo de CV reinterpretado por el nombre del local. */
+function ConsoleVinyl({ size, name }: { size: number; name: string }) {
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
+        background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,.045) 0 1px, transparent 1px 5px), radial-gradient(circle, #19141f, #0b0a14 74%)',
+        boxShadow: 'inset 0 0 40px rgba(0,0,0,.85), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px var(--cv-hair)' }}>
+        <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
+          background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1))',
+          WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
+          mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
+          background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
+      </div>
+      <div style={{ position: 'absolute', inset: '30%', borderRadius: '50%',
+        background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)', border: '1px solid var(--cv-hair)',
+        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8%' }}>
+        <span className="cv-wordmark cv-grad-theme" style={{ fontSize: Math.max(11, Math.round(size * 0.085)), fontWeight: 800, lineHeight: 0.95, textAlign: 'center', letterSpacing: '-.01em' }}>{name}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Termómetro de energía de la sala: barra que se llena con los colores de la paleta
+ *  (no rompe la estética) y muestra los votos/min. El local lo puede apagar. */
+function EnergyMeter({ pct, rate }: { pct: number; rate: number }) {
+  return (
+    <div style={{ background: 'rgba(8,7,16,.42)', border: '1px solid color-mix(in srgb, var(--cv-accent) 24%, transparent)', borderRadius: 16, padding: 'clamp(13px,1.1vw,18px)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}>
+      <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-accent) 70%, #ffffff)', marginBottom: 13, textTransform: 'uppercase' }}>Energía de la sala</div>
+      <div style={{ display: 'flex', gap: 13, height: 'clamp(140px,17vh,210px)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 'clamp(8px,.65vw,10px)', fontWeight: 700, letterSpacing: '.1em', color: 'rgba(255,255,255,.6)', textTransform: 'uppercase' }}>caliente</span>
+          <span>
+            <span className="cv-wordmark" style={{ fontSize: 'clamp(18px,1.5vw,26px)', fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1, display: 'block' }}>{rate}</span>
+            <span style={{ fontSize: 'clamp(7px,.6vw,9px)', fontWeight: 700, letterSpacing: '.12em', color: 'rgba(255,255,255,.42)', textTransform: 'uppercase' }}>votos/min</span>
+          </span>
+          <span style={{ fontSize: 'clamp(8px,.65vw,10px)', fontWeight: 700, letterSpacing: '.1em', color: 'rgba(255,255,255,.38)', textTransform: 'uppercase' }}>tranqui</span>
+        </div>
+        <div style={{ position: 'relative', width: 'clamp(12px,1vw,16px)', borderRadius: 999, background: 'rgba(255,255,255,.06)', border: '1px solid var(--cv-hair)', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
+          <div style={{ width: '100%', height: pct + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 18px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.7s cubic-bezier(.4,0,.2,1)' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function loadYT(): Promise<any> {
   return new Promise((resolve) => {
     if (window.YT && window.YT.Player) return resolve(window.YT);
@@ -49,6 +97,11 @@ export default function ConsolePage() {
   const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevVotesRef = useRef<string[]>([]);
   const tickerSeededRef = useRef(false);
+  // Termómetro de energía: on/off (lo elige el local en settings) + nivel por ritmo de votos.
+  const [energyOn, setEnergyOn] = useState(true);
+  const [energyPct, setEnergyPct] = useState(0);
+  const [voteRate, setVoteRate] = useState(0);
+  const voteTimesRef = useRef<number[]>([]);
   const [maxSeconds, setMaxSeconds] = useState(0);
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
@@ -147,12 +200,13 @@ export default function ConsolePage() {
       if (!tickerSeededRef.current) { prevVotesRef.current = sigs; tickerSeededRef.current = true; return; }
       const prevCount: Record<string, number> = {};
       prevVotesRef.current.forEach((x) => { prevCount[x] = (prevCount[x] || 0) + 1; });
-      let newIdx = -1;
+      let newIdx = -1; let newCount = 0;
       for (let i = 0; i < sigs.length; i++) {
         if ((prevCount[sigs[i]] || 0) > 0) prevCount[sigs[i]]--;
-        else { newIdx = i; break; }
+        else { if (newIdx < 0) newIdx = i; newCount++; }
       }
       prevVotesRef.current = sigs;
+      if (newCount > 0) { const t = Date.now(); for (let k = 0; k < newCount; k++) voteTimesRef.current.push(t); }
       if (newIdx >= 0) {
         setTicker({ name: rows[newIdx].name || null, title: rows[newIdx].title });
         if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
@@ -163,6 +217,33 @@ export default function ConsolePage() {
     const id = setInterval(pull, 3500);
     return () => { alive = false; clearInterval(id); if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current); };
   }, [status?.slug]);
+
+  // Energía de la sala = ritmo de votos en los últimos 3 min (no necesita SQL nueva).
+  useEffect(() => {
+    const calc = () => {
+      const now = Date.now();
+      const WIN = 180000; // 3 min
+      voteTimesRef.current = voteTimesRef.current.filter((t) => now - t < WIN);
+      const n = voteTimesRef.current.length;
+      setVoteRate(Math.round((n / (WIN / 60000)) * 10) / 10);
+      setEnergyPct(Math.min(100, Math.round((n / 12) * 100)));
+    };
+    calc();
+    const id = setInterval(calc, 2500);
+    return () => clearInterval(id);
+  }, []);
+
+  // ¿El local activó el termómetro? Vive en venue.settings.energy (default: sí).
+  useEffect(() => {
+    const vid = (status as { venue_id?: string } | null)?.venue_id;
+    if (!vid) return;
+    const sb = supa(); if (!sb) return;
+    (async () => {
+      const { data } = await sb.from('venue').select('settings').eq('id', vid).single();
+      const s = (data as { settings?: { energy?: boolean } } | null)?.settings;
+      setEnergyOn(s?.energy !== false);
+    })();
+  }, [status]);
 
   // Controles que se auto-esconden: aparecen al mover el mouse / tocar y se van solos.
   const pokeControls = () => {
@@ -816,7 +897,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'absolute', inset: 0, zIndex: 1, borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(74vw, calc(78vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(67vw, calc(73vh * 16 / 9))', aspectRatio: '16 / 9', zIndex: 1, borderRadius: 'clamp(6px, .8vw, 14px)', border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -846,8 +927,8 @@ export default function ConsolePage() {
             <div className="cv-wordmark" style={{ fontSize: 'clamp(13px,2.2cqw,26px)', fontWeight: 700, color: sk.textOnVideo, lineHeight: 1.15, marginTop: 2, textShadow: '0 1px 8px rgba(0,0,0,.9)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTitle}</div>
           </div>
 
-          {/* ABAJO-CENTRO: ticker social (quién votó qué) */}
-          {tickerItem && (
+          {/* ABAJO-CENTRO: ticker social (solo en pantalla completa; en vista normal va al costado) */}
+          {clean && tickerItem && (
             <div style={{ position: 'absolute', bottom: '3.6cqh', left: '50%', transform: 'translateX(-50%)', maxWidth: '36%', display: 'flex', alignItems: 'center', gap: '.7cqw', padding: '.7cqh 1.3cqw', borderRadius: 999, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none', whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: sk.accent, boxShadow: `0 0 8px ${sk.accent}`, flexShrink: 0 }} />
               <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(9px,1.25cqw,15px)', color: sk.textOnVideo, textShadow: '0 1px 6px rgba(0,0,0,.9)', overflow: 'hidden', textOverflow: 'ellipsis', animation: 'cvFadeIn .55s ease' }}>
@@ -858,7 +939,8 @@ export default function ConsolePage() {
             </div>
           )}
 
-          {/* ABAJO-DERECHA: invitación — QR + código */}
+          {/* ABAJO-DERECHA: invitación — QR + código (solo en pantalla completa; en vista normal va al costado) */}
+          {clean && (
           <div style={{ position: 'absolute', bottom: '3.5cqh', right: '2.6cqw', display: 'flex', alignItems: 'center', gap: '1cqw', padding: '.9cqh 1.4cqw', borderRadius: 12, background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', pointerEvents: 'none' }}>
             {widgetQr && (
               <div style={{ background: '#fff', padding: '.55cqh', borderRadius: 8, lineHeight: 0, flexShrink: 0 }}>
@@ -871,6 +953,7 @@ export default function ConsolePage() {
               <div style={{ marginTop: 3, display: 'flex', justifyContent: 'flex-end', opacity: .85 }}><Waveform n={18} color={sk.waveColor} maxH={12} barW={2.5} gap={3} seed={7} /></div>
             </div>
           </div>
+          )}
 
           {/* ABAJO-IZQUIERDA: co-brand chiquito */}
           <div style={{ position: 'absolute', bottom: '3.5cqh', left: '2.6cqw', display: 'flex', alignItems: 'center', gap: 5, opacity: .55, pointerEvents: 'none' }}>
@@ -928,6 +1011,41 @@ export default function ConsolePage() {
             </div>
           )}
         </div>
+
+        {/* COSTADOS (vista normal, no fullscreen): rellenan el espacio muerto de los lados */}
+        {!clean && (
+          <>
+            {/* RAIL IZQUIERDO: termómetro de energía; si el local lo apagó, el vinilo del local */}
+            <div style={{ position: 'absolute', left: 'clamp(20px,3vw,56px)', top: '50%', transform: 'translateY(-50%)', width: 'clamp(190px,17vw,288px)', zIndex: 2, pointerEvents: 'none' }}>
+              {energyOn
+                ? <EnergyMeter pct={energyPct} rate={voteRate} />
+                : <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 13 }}>
+                    <ConsoleVinyl size={170} name={status?.name || 'tu local'} />
+                    <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,10px)', letterSpacing: '.16em', color: 'color-mix(in srgb, var(--cv-accent) 60%, #ffffff)' }}>EN CARTA VIBRA</span>
+                  </div>}
+            </div>
+
+            {/* RAIL DERECHO: código + QR (invitación a votar) + ticker al costado */}
+            <div style={{ position: 'absolute', right: 'clamp(20px,3vw,56px)', top: '50%', transform: 'translateY(-50%)', width: 'clamp(200px,18vw,300px)', display: 'flex', flexDirection: 'column', gap: 14, zIndex: 2, pointerEvents: 'none' }}>
+              <div style={{ background: sk.cardBg, border: `1px solid ${sk.cardBorder}`, borderRadius: 16, padding: 'clamp(14px,1.1vw,18px)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}>
+                <div className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 6 }}>CÓDIGO DE SALA</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4.4vw,68px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '.02em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 13 }}>
+                  {widgetQr && <div style={{ background: '#fff', padding: 7, borderRadius: 9, lineHeight: 0, flexShrink: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(54px,5vw,76px)', height: 'clamp(54px,5vw,76px)', display: 'block' }} /></div>}
+                  <div className="cv-mono" style={{ fontSize: 'clamp(8px,.68vw,11px)', letterSpacing: '.13em', color: sk.labelColor, lineHeight: 1.5 }}>VOTÁ LA<br />PRÓXIMA DESDE<br />TU CELULAR</div>
+                </div>
+              </div>
+              {tickerItem && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '9px 14px', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: sk.accent, boxShadow: `0 0 8px ${sk.accent}`, flexShrink: 0 }} />
+                  <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(10px,.85vw,14px)', color: sk.textOnVideo, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', animation: 'cvFadeIn .55s ease' }}>
+                    {tickerItem.name ? <><b style={{ color: sk.accent, fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</> : <>alguien votó <b>{tickerItem.title}</b></>}
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
+        )}
     </main>
     </>
   );
