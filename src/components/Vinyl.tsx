@@ -11,6 +11,8 @@ type VinylProps = {
   beat?: boolean;
   /** contenido del centro del vinilo (ej. el wordmark en la pantalla de logo) */
   label?: React.ReactNode;
+  /** disco blanco (para temas claros); si no, disco negro de siempre */
+  light?: boolean;
   style?: React.CSSProperties;
 };
 
@@ -19,7 +21,7 @@ type VinylProps = {
  * - mini: disco que gira con anillo de color y púa central (now-playing).
  * - hero: disco que gira + late + resplandece, con etiqueta central opcional (login/logo).
  */
-export default function Vinyl({ size, mini = false, glow = false, beat = false, label, style }: VinylProps) {
+export default function Vinyl({ size, mini = false, glow = false, beat = false, label, light = false, style }: VinylProps) {
   if (mini) {
     return (
       <div
@@ -30,9 +32,12 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
           flexShrink: 0,
           borderRadius: '50%',
           animation: 'cvSpin 9s linear infinite',
-          background:
-            'repeating-radial-gradient(circle at center, rgba(255,255,255,.05) 0 1px, transparent 1px 4px), radial-gradient(circle, #1a1426, #0c0a15 72%)',
-          boxShadow: 'inset 0 0 26px rgba(0,0,0,.8)',
+          background: light
+            ? 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 4px), radial-gradient(circle, #ffffff, #f0ecf6 72%)'
+            : 'repeating-radial-gradient(circle at center, rgba(255,255,255,.05) 0 1px, transparent 1px 4px), radial-gradient(circle, #1a1426, #0c0a15 72%)',
+          boxShadow: light
+            ? 'inset 0 0 20px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.14)'
+            : 'inset 0 0 26px rgba(0,0,0,.8)',
           ...style,
         }}
       >
@@ -41,7 +46,10 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
             position: 'absolute',
             inset: '20%',
             borderRadius: '50%',
-            background: 'conic-gradient(from 200deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5))',
+            background: light
+              ? 'conic-gradient(from 200deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.88), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.88))'
+              : 'conic-gradient(from 200deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5))',
+            filter: light ? 'saturate(1.9) brightness(.8) drop-shadow(0 0 3px rgba(var(--cv-accent-rgb),.95)) drop-shadow(0 0 7px rgba(var(--cv-accent-rgb),.6))' : undefined,
             WebkitMask: 'radial-gradient(circle, transparent 52%, #000 56%, #000 70%, transparent 74%)',
             mask: 'radial-gradient(circle, transparent 52%, #000 56%, #000 70%, transparent 74%)',
           }}
@@ -51,8 +59,8 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
             position: 'absolute',
             inset: '42%',
             borderRadius: '50%',
-            background: '#07060e',
-            boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.2)',
+            background: light ? '#2a2233' : '#07060e',
+            boxShadow: light ? 'inset 0 0 0 1px rgba(0,0,0,.25)' : 'inset 0 0 0 1px rgba(255,255,255,.2)',
           }}
         />
       </div>
