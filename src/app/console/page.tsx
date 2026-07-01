@@ -140,10 +140,17 @@ export default function ConsolePage() {
   const [karaokeMode, setKaraokeMode] = useState(false);
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
+  const [nowTrackId, setNowTrackId] = useState<string | null>(null);
+  const [playlistName, setPlaylistName] = useState<string>('');
+  const [volume, setVolumeState] = useState(100);
+  const volumeRef = useRef(100);
+  const [stopped, setStopped] = useState(false);
+  const historyRef = useRef<string[]>([]);
+  const lastVoteAtRef = useRef(0);
+  const [quietVinyl, setQuietVinyl] = useState(false);
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
-  const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number; side: 'L' | 'R' }[]>([]);
+  const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
   const votanteIdRef = useRef(0);
-  const sideCountRef = useRef(0);
   const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevVotesRef = useRef<string[]>([]);
   const tickerSeededRef = useRef(false);
@@ -269,15 +276,15 @@ export default function ConsolePage() {
         else { if (newIdx < 0) newIdx = i; newCount++; newRows.push(rows[i]); }
       }
       prevVotesRef.current = sigs;
-      if (newCount > 0) { const t = Date.now(); for (let k = 0; k < newCount; k++) voteTimesRef.current.push(t); }
+      if (newCount > 0) { const t = Date.now(); for (let k = 0; k < newCount; k++) voteTimesRef.current.push(t); lastVoteAtRef.current = t; }
       if (newIdx >= 0) {
         setTicker({ name: rows[newIdx].name || null, title: rows[newIdx].title });
         if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
         tickerTimerRef.current = setTimeout(() => setTicker(null), 6000);
         const born = Date.now();
         setVotantes((prev) => {
-          const added = newRows.map((r) => ({ id: ++votanteIdRef.current, name: r.name || null, title: r.title, born, side: (sideCountRef.current++ % 2 === 0 ? 'R' : 'L') as 'L' | 'R' }));
-          return [...added.reverse(), ...prev].slice(0, 6);
+          const added = newRows.map((r) => ({ id: ++votanteIdRef.current, name: r.name || null, title: r.title, born }));
+          return [...added.reverse(), ...prev].slice(0, 5);
         });
       }
     };
@@ -295,21 +302,23 @@ export default function ConsolePage() {
       const n = voteTimesRef.current.length;
       setVoteRate(Math.round((n / (WIN / 60000)) * 10) / 10);
       setEnergyPct(Math.min(100, Math.round((n / 12) * 100)));
+      // sin votos por ~90s → aparece el vinilo del local (modo tranqui)
+      setQuietVinyl(now - lastVoteAtRef.current > 90000);
     };
     calc();
     const id = setInterval(calc, 2500);
     return () => clearInterval(id);
   }, []);
 
-  // Limpia los votantes flotantes después de ~6.5s (cuando termina su animación de aparecer→subir→desvanecer).
+  // Los votos quedan en la lista ~16s (duran más, en orden), después se van.
   useEffect(() => {
     const id = setInterval(() => {
       setVotantes((prev) => {
         const now = Date.now();
-        const next = prev.filter((v) => now - v.born < 6500);
+        const next = prev.filter((v) => now - v.born < 16000);
         return next.length === prev.length ? prev : next;
       });
-    }, 900);
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -474,9 +483,19 @@ export default function ConsolePage() {
   const refreshNow = async () => {
     const sb = supa(); const venueId = venueRef.current; if (!sb || !venueId) return;
     const { data } = await sb.from('now_playing').select('track_id').eq('venue_id', venueId).maybeSingle();
-    const tid = (data as any)?.track_id;
+    const tid = (data as any)?.track_id ?? null;
     const tr = tid ? tracksRef.current[tid] : null;
+    setNowTrackId(tid);
     setNowTitle(tr ? `${tr.title}${tr.artist ? ' — ' + tr.artist : ''}` : '—');
+  };
+
+  // Nombre de la playlist activa (para el ranking de la izquierda).
+  const refreshPlaylistName = async (pid: string | null) => {
+    const sb = supa(); if (!sb || !pid) { setPlaylistName(''); return; }
+    try {
+      const { data } = await sb.from('playlists').select('name').eq('id', pid).maybeSingle();
+      setPlaylistName((data as { name?: string } | null)?.name || '');
+    } catch { setPlaylistName(''); }
   };
 
   // AutoDJ: bolsa barajada de la playlist activa (todas una vez antes de repetir).
@@ -528,7 +547,7 @@ export default function ConsolePage() {
     if (!p) return;
     setIsPaused(true); pausedRef.current = true;
     if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; }
-    let v = 100;
+    let v = volumeRef.current;
     fadeRampRef.current = setInterval(() => {
       v -= 12;
       try { p.setVolume(Math.max(0, v)); } catch {}
@@ -547,9 +566,16 @@ export default function ConsolePage() {
     let v = 0;
     fadeRampRef.current = setInterval(() => {
       v += 12;
-      try { p.setVolume(Math.min(100, v)); } catch {}
-      if (v >= 100) { if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; } }
+      const target = volumeRef.current;
+      try { p.setVolume(Math.min(target, v)); } catch {}
+      if (v >= target) { if (fadeRampRef.current) { clearInterval(fadeRampRef.current); fadeRampRef.current = null; } }
     }, 60);
+  };
+  // Control de volumen manual (aplica al reproductor actual si está sonando).
+  const changeVolume = (val: number) => {
+    const nv = Math.max(0, Math.min(100, Math.round(val)));
+    setVolumeState(nv); volumeRef.current = nv;
+    if (!pausedRef.current) { try { decksRef.current[currentRef.current]?.setVolume(nv); } catch {} }
   };
   // Decide según el estado REAL del reproductor (no solo nuestra bandera), así nunca se desfasa.
   const togglePlayPause = () => {
@@ -594,8 +620,9 @@ export default function ConsolePage() {
     rampRef.current = setInterval(() => {
       i++;
       const f = Math.min(1, i / steps);
-      try { to.setVolume(Math.round(f * 100)); } catch {}
-      try { if (from) from.setVolume(Math.round((1 - f) * 100)); } catch {}
+      const target = volumeRef.current;
+      try { to.setVolume(Math.round(f * target)); } catch {}
+      try { if (from) from.setVolume(Math.round((1 - f) * target)); } catch {}
       const toEl = document.getElementById('wrap-' + toKey);
       const fromEl = document.getElementById('wrap-' + fromKey);
       if (toEl) toEl.style.opacity = String(f);
@@ -630,16 +657,44 @@ export default function ConsolePage() {
       if (!trackId) { playingRef.current = false; busyRef.current = false; return; }
 
       const track = tracksRef.current[trackId];
+      if (nowTrackIdRef.current && nowTrackIdRef.current !== trackId) {
+        historyRef.current.push(nowTrackIdRef.current);
+        if (historyRef.current.length > 25) historyRef.current.shift();
+      }
       nowTrackIdRef.current = trackId;
       await sb.rpc('console_set_now_playing', { p_token: token, p_track: trackId, p_position: 0 });
       setIsAutoNow(isAuto);
       await refreshNow();
       if (!track?.external_id) { busyRef.current = false; setTimeout(advance, 400); return; }
-      pausedRef.current = false; setIsPaused(false);
+      pausedRef.current = false; setIsPaused(false); setStopped(false);
       playingRef.current = true;
       transitionTo(track.external_id);
     } catch (e) { logError('console-advance', e); busyRef.current = false; }
   };
+
+  // Retroceder: vuelve a la canción anterior (por si saltaste una sin querer).
+  const goBack = async () => {
+    if (busyRef.current) return;
+    const prev = historyRef.current.pop();
+    if (!prev) return;
+    const track = tracksRef.current[prev];
+    if (!track?.external_id) return;
+    busyRef.current = true;
+    try {
+      const sb = supa(); const token = tokenRef.current;
+      nowTrackIdRef.current = prev;
+      if (sb && token) await sb.rpc('console_set_now_playing', { p_token: token, p_track: prev, p_position: 0 });
+      setIsAutoNow(false);
+      await refreshNow();
+      pausedRef.current = false; setIsPaused(false); setStopped(false);
+      playingRef.current = true;
+      transitionTo(track.external_id);
+    } catch (e) { logError('console-goback', e); busyRef.current = false; }
+  };
+
+  // STOP: manda a la pantalla de espera (sin video). PAUSA (togglePlayPause) solo congela el video.
+  const stop = () => { setStopped(true); pauseWithFade(); };
+  const resumeFromStop = () => { setStopped(false); resumeWithFade(); };
 
   // Carga el mapa de canciones + el pool del AutoDJ desde la PLAYLIST ACTIVA
   // (por playlist, no por local → así también suenan las de la biblioteca).
@@ -663,6 +718,7 @@ export default function ConsolePage() {
   // playlist (porque el filtro de Supabase es por un único playlist_id).
   const subscribeTracks = (pid: string | null) => {
     const sb = supa(); if (!sb) return;
+    refreshPlaylistName(pid);
     if (tracksChannelRef.current) { tracksChannelRef.current.unsubscribe(); tracksChannelRef.current = null; }
     if (!pid) return;
     tracksChannelRef.current = sb.channel('console-tracks-' + pid)
@@ -991,8 +1047,8 @@ export default function ConsolePage() {
   const ambientBg = 'repeating-radial-gradient(circle at 50% 46%, rgba(150,150,170,.05) 0 1px, transparent 1px 13px), radial-gradient(80% 95% at 50% -8%, rgba(var(--cv-accent-rgb),.40), transparent 56%), radial-gradient(64% 82% at 50% 110%, rgba(var(--cv-accent-rgb),.34), transparent 56%), var(--cv-bg)';
   const tickerItem = ticker;
   // Pastilla de votante flotante (se usa a la izquierda y a la derecha, intercaladas).
-  const votantePill = (v: { id: number; name: string | null; title: string; side: 'L' | 'R' }) => (
-    <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '8px 13px', fontSize: 13.5, color: 'var(--cv-ink)', whiteSpace: 'nowrap', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', animation: 'cvVotante 6.5s ease forwards' }}>
+  const votantePill = (v: { id: number; name: string | null; title: string }) => (
+    <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '8px 13px', fontSize: 13.5, color: 'var(--cv-ink)', whiteSpace: 'nowrap', animation: 'cvVotante 16s ease forwards' }}>
       <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.name}</b> votó {v.title}</> : <>alguien votó <b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.title}</b></>}</span>
     </div>
@@ -1000,7 +1056,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', alignSelf: 'center', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size', flexShrink: 0 };
 
   return (
     <>
@@ -1029,8 +1085,8 @@ export default function ConsolePage() {
           position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
           border: '1px solid var(--cv-hair)',
-          background: 'repeating-radial-gradient(circle at 50% 24%, rgba(150,150,170,.045) 0 1px, transparent 1px 14px), radial-gradient(130% 150% at 50% -4%, color-mix(in srgb, var(--cv-accent) 11%, var(--cv-surf)) 0%, var(--cv-surf) 48%, var(--cv-bg) 100%)',
-          boxShadow: '0 44px 110px -46px #000, inset 0 0 0 1px rgba(var(--cv-accent-rgb),.07)',
+          background: 'repeating-radial-gradient(circle at 50% 22%, rgba(160,160,185,.05) 0 1px, transparent 1px 14px), radial-gradient(135% 150% at 50% -6%, color-mix(in srgb, var(--cv-accent) 15%, var(--cv-surf)) 0%, var(--cv-surf) 58%, color-mix(in srgb, var(--cv-bg) 52%, var(--cv-surf)) 100%)',
+          boxShadow: '0 44px 110px -46px #000, inset 0 0 0 1px rgba(var(--cv-accent-rgb),.09)',
           padding: 'clamp(16px,1.8vw,30px)',
         }}>
 
@@ -1043,44 +1099,48 @@ export default function ConsolePage() {
             </div>
           )}
 
-          {/* GRILLA de secciones DENTRO del marco: medidor | video | código+QR+votantes */}
+          {/* GRILLA: playlist | video+medidor+controles | código+QR+votos */}
           <div style={clean
             ? { width: '100%', height: '100%' }
-            : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(150px,212px) minmax(0,1fr) minmax(232px,298px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
+            : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(198px,280px) minmax(0,1fr) minmax(228px,300px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
 
-          {/* IZQUIERDA: medidor/disco centrado arriba + banda de votos abajo (mismo alto que la derecha) */}
+          {/* IZQUIERDA: PLAYLIST en vivo — ranking por votos (lo que suena + lo que viene) */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                {energyOn ? (
-                  <div style={{ display: 'flex', gap: 14, height: 'min(100%, clamp(220px,42vh,400px))', alignItems: 'stretch' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingTop: 2, paddingBottom: 2 }}>
-                      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>caliente</span>
-                      <span>
-                        <span className="cv-wordmark" style={{ fontSize: 26, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span><br />
-                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
-                      </span>
-                      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
-                    </div>
-                    <div style={{ position: 'relative', width: 18, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
-                      <div style={{ width: '100%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 20px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.7s cubic-bezier(.4,0,.2,1)', height: Math.max(3, Math.min(100, energyPct)) + '%' }} />
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 13 }}>
-                    <ConsoleVinyl size={180} name={status?.name || 'tu local'} />
-                    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>en carta vibra</span>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
+              <div style={{ marginBottom: 12 }}>
+                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 3 }}>♫ Sonando la playlist</div>
+                <div className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.5vw,22px)', fontWeight: 700, color: 'var(--cv-ink)', lineHeight: 1.1, letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playlistName || 'Mi playlist'}</div>
+              </div>
+              <div className="cv-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5, paddingRight: 4, maskImage: 'linear-gradient(180deg, transparent 0, #000 12px, #000 calc(100% - 14px), transparent 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0, #000 12px, #000 calc(100% - 14px), transparent 100%)' }}>
+                {nowTrackId && tracksRef.current[nowTrackId] && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', borderRadius: 11, background: 'rgba(var(--cv-accent-rgb),.14)', border: '1px solid rgba(var(--cv-accent-rgb),.32)' }}>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 9px var(--cv-accent)', flexShrink: 0, animation: 'cvLive 1.4s ease-in-out infinite' }} />
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tracksRef.current[nowTrackId].title}</span>
+                    <span className="cv-mono" style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', flexShrink: 0 }}>SONANDO</span>
                   </div>
                 )}
-              </div>
-              {/* BANDA DE VOTOS IZQUIERDA — flotan y suben desde abajo, intercaladas con la derecha */}
-              <div style={{ position: 'relative', height: 'clamp(130px,22vh,190px)' }}>
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column-reverse', gap: 7, alignItems: 'flex-start', pointerEvents: 'none' }}>
-                  {votantes.filter((v) => v.side === 'L').map(votantePill)}
-                </div>
+                {queue.map((q, i) => {
+                  const tr = tracksRef.current[q.track_id];
+                  if (!tr) return null;
+                  return (
+                    <div key={q.track_id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 10 }}>
+                      <span className="cv-wordmark" style={{ fontSize: 13, fontWeight: 700, color: 'var(--cv-mut)', width: 16, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.title}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--cv-accent)' }}>
+                        <span style={{ fontSize: 10 }}>▲</span>{q.votes}
+                      </span>
+                    </div>
+                  );
+                })}
+                {nowTrackId == null && queue.length === 0 && (
+                  <div style={{ fontSize: 12.5, color: 'var(--cv-faint)', padding: '8px 11px', lineHeight: 1.5 }}>Aún nadie ha votado — las canciones más votadas van subiendo acá. 🎶</div>
+                )}
               </div>
             </div>
           )}
+
+          {/* CENTRO: video (bien arriba) + medidor horizontal + panel de navegación (abajo) */}
+          <div style={clean ? { width: '100%', height: '100%' } : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(10px,1.5vh,20px)', minHeight: 0, position: 'relative' }}>
 
           {/* PANTALLA: el video */}
           <div ref={stageRef} tabIndex={-1} style={videoBox}>
@@ -1168,71 +1228,106 @@ export default function ConsolePage() {
             </>
           )}
 
-          {/* (en modo normal: controles + ajustes van fijos bajo el QR, en la columna derecha) */}
-        </div>
+          {/* (en modo normal: el panel de navegación va abajo, en esta columna central) */}
+        </div>{/* fin video */}
 
-          {/* DERECHA: código+QR centrado arriba + banda de votos abajo (mismo alto que la izquierda) */}
-          {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18 }}>
-                <div>
-                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10 }}>Código de sala</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(44px,4.4vw,66px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
-                    {widgetQr && <div style={{ width: 'clamp(70px,6.4vw,94px)', height: 'clamp(70px,6.4vw,94px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
-                    <div className="cv-mono" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
-                  </div>
-                </div>
-
-                {/* CONTROLES FIJOS bajo el QR + AJUSTES en ventanita que baja (scroll adentro, tapa los votos no el QR) */}
-                <div style={{ position: 'relative' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '5px 6px', borderRadius: 12, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)' }}>
-                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
-                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
-                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
-                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '6px 10px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
-                    <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 2px' }} />
-                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
-                  </div>
-                  {showSettings && (
-                    <div className="cv-scroll" style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 'min(100%, 300px)', maxHeight: 'clamp(190px,30vh,280px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 15px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'sticky', top: 0 }}>
-                        <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
-                        <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                      </div>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                        AutoDJ cuando no hay votos
-                      </label>
-                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                        Mostrar termómetro de energía
-                      </label>
-                      <div style={{ fontSize: 11, color: 'var(--cv-faint)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
-                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                      <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
-                        {CV_THEME_META.map((t) => (
-                          <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 28, borderRadius: 7, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
-                        ))}
-                      </div>
-                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-mut)', flexWrap: 'wrap' }}>
-                        Segundos por canción (0 = completa):
-                        <input type="number" min={0} className="cv-input" style={{ width: 68, padding: '6px 9px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
-                      </label>
-                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                      <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', textDecoration: 'none' }}>← Volver al panel</a>
-                    </div>
-                  )}
-                </div>
+          {/* MEDIDOR HORIZONTAL de votos (entre el video y los controles) */}
+          {!clean && energyOn && (
+            <div style={{ width: 'min(100%, 640px)', display: 'flex', alignItems: 'center', gap: 13, flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexShrink: 0 }}>
+                <span className="cv-wordmark" style={{ fontSize: 22, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
               </div>
-              {/* BANDA DE VOTOS DERECHA — flotan y suben desde abajo, intercaladas con la izquierda */}
-              <div style={{ position: 'relative', height: 'clamp(130px,22vh,190px)' }}>
-                <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column-reverse', gap: 7, alignItems: 'flex-start', pointerEvents: 'none' }}>
-                  {votantes.filter((v) => v.side === 'R').map(votantePill)}
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase', flexShrink: 0 }}>tranqui</span>
+              <div style={{ flex: 1, height: 12, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: Math.max(3, Math.min(100, energyPct)) + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 16px rgba(var(--cv-accent-rgb),.5)', transition: 'width 1.7s cubic-bezier(.4,0,.2,1)' }} />
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase', flexShrink: 0 }}>caliente</span>
+            </div>
+          )}
+
+          {/* PANEL DE NAVEGACIÓN + AJUSTES que baja (hacia el espacio de abajo, no tapa nada) */}
+          {!clean && (
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '6px 8px', borderRadius: 14, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)', boxShadow: '0 8px 26px -14px #000' }}>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={goBack} title="Anterior (deshacer salto)">⏮</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa (congela el video)">{isPaused && !stopped ? '▶' : '⏸'}</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={stop} title="Detener (pantalla de espera)">⏹</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltar (→)">⏭</button>
+                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 10px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
+                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 5px' }} title="Volumen">
+                  <span style={{ fontSize: 13, color: 'var(--cv-mut)', width: 16, textAlign: 'center' }}>{volume === 0 ? '🔇' : '🔊'}</span>
+                  <input type="range" min={0} max={100} value={volume} onChange={(e) => changeVolume(parseInt(e.target.value))} style={{ width: 82, accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
                 </div>
+                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+              </div>
+              {showSettings && (
+                <div className="cv-scroll" style={{ position: 'absolute', top: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)', width: 'min(92vw, 340px)', maxHeight: 'clamp(200px,34vh,320px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
+                    <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                    AutoDJ cuando no hay votos
+                  </label>
+                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                    Mostrar medidor de votos
+                  </label>
+                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                  <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+                    {CV_THEME_META.map((t) => (
+                      <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 28, borderRadius: 7, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
+                    ))}
+                  </div>
+                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-mut)', flexWrap: 'wrap' }}>
+                    Segundos por canción (0 = completa):
+                    <input type="number" min={0} className="cv-input" style={{ width: 68, padding: '6px 9px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
+                  </label>
+                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                  <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', textDecoration: 'none' }}>← Volver al panel</a>
+                </div>
+              )}
+            </div>
+          )}
+        </div>{/* fin columna central */}
+
+          {/* DERECHA: código+QR (ordenados, arriba) + votos que pasan a vinilo cuando hay silencio */}
+          {!clean && (
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
+              <div style={{ flexShrink: 0 }}>
+                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10 }}>Código de sala</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(46px,4.6vw,70px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 18 }}>
+                  {widgetQr && <div style={{ width: 'clamp(80px,7vw,104px)', height: 'clamp(80px,7vw,104px)', borderRadius: 14, background: '#fff', padding: 7, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
+                  <div className="cv-mono" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>Votá la<br />próxima desde<br />tu celular</div>
+                </div>
+                <div style={{ height: 1, background: 'var(--cv-hair)', marginTop: 'clamp(16px,2vh,26px)' }} />
+              </div>
+
+              {/* VOTOS en vivo → cuando no hay votos por un rato, gira el vinilo del local */}
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingTop: 'clamp(14px,2vh,22px)' }}>
+                {quietVinyl ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+                    <ConsoleVinyl size={150} name={status?.name || 'tu local'} />
+                    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>esperando votos</span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10, flexShrink: 0 }}>Votando ahora</div>
+                    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7, alignItems: 'flex-start', overflow: 'hidden' }}>
+                      {votantes.map(votantePill)}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -1241,15 +1336,15 @@ export default function ConsolePage() {
         </div>{/* MARCO */}
       </div>{/* escenario */}
 
-        {/* STANDBY EN PAUSA: aparece/desaparece con el MISMO fade que la música (~.54s). */}
-        <div onClick={isPaused ? togglePlayPause : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: isPaused ? 'pointer' : 'default',
-            opacity: isPaused ? 1 : 0, pointerEvents: isPaused ? 'auto' : 'none', transition: 'opacity .54s ease',
+        {/* PANTALLA DE ESPERA: aparece con STOP (⏹). La pausa (⏸) solo congela el video, no llega acá. */}
+        <div onClick={stopped ? resumeFromStop : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: stopped ? 'pointer' : 'default',
+            opacity: stopped ? 1 : 0, pointerEvents: stopped ? 'auto' : 'none', transition: 'opacity .54s ease',
             background: ambientBg,
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'clamp(30px,4.5vh,56px)', padding: '4vh 4vw' }}>
 
             <div style={{ position: 'absolute', top: 'clamp(20px,4vh,44px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.5)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
               <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
-              <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 75%, #ffffff)' }}>EN PAUSA · {status?.name || 'CARTA VIBRA'}</span>
+              <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 75%, #ffffff)' }}>{status?.name || 'CARTA VIBRA'}</span>
             </div>
 
             {/* HERO: vinilo del local + código gigante */}
