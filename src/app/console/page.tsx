@@ -141,8 +141,9 @@ export default function ConsolePage() {
   const [queue, setQueue] = useState<{ track_id: string; votes: number }[]>([]);
   const [nowTitle, setNowTitle] = useState('—');
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
-  const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
+  const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number; side: 'L' | 'R' }[]>([]);
   const votanteIdRef = useRef(0);
+  const sideCountRef = useRef(0);
   const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevVotesRef = useRef<string[]>([]);
   const tickerSeededRef = useRef(false);
@@ -268,8 +269,8 @@ export default function ConsolePage() {
         tickerTimerRef.current = setTimeout(() => setTicker(null), 6000);
         const born = Date.now();
         setVotantes((prev) => {
-          const added = newRows.map((r) => ({ id: ++votanteIdRef.current, name: r.name || null, title: r.title, born }));
-          return [...added.reverse(), ...prev].slice(0, 4);
+          const added = newRows.map((r) => ({ id: ++votanteIdRef.current, name: r.name || null, title: r.title, born, side: (sideCountRef.current++ % 2 === 0 ? 'R' : 'L') as 'L' | 'R' }));
+          return [...added.reverse(), ...prev].slice(0, 6);
         });
       }
     };
@@ -982,10 +983,17 @@ export default function ConsolePage() {
   // Las "luces": el color del TEMA se desvanece desde el centro hacia los bordes.
   const ambientBg = 'repeating-radial-gradient(circle at 50% 46%, rgba(150,150,170,.05) 0 1px, transparent 1px 13px), radial-gradient(80% 95% at 50% -8%, rgba(var(--cv-accent-rgb),.40), transparent 56%), radial-gradient(64% 82% at 50% 110%, rgba(var(--cv-accent-rgb),.34), transparent 56%), var(--cv-bg)';
   const tickerItem = ticker;
+  // Pastilla de votante flotante (se usa a la izquierda y a la derecha, intercaladas).
+  const votantePill = (v: { id: number; name: string | null; title: string; side: 'L' | 'R' }) => (
+    <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 8, maxWidth: '100%', background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '8px 13px', fontSize: 13.5, color: 'var(--cv-ink)', whiteSpace: 'nowrap', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', animation: 'cvVotante 6.5s ease forwards' }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.name}</b> votó {v.title}</> : <>alguien votó <b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.title}</b></>}</span>
+    </div>
+  );
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', alignSelf: 'center', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -998,13 +1006,14 @@ export default function ConsolePage() {
       <style>{`@keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}`}</style>
 
       {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: clean ? 0 : 'clamp(14px,3vh,30px) clamp(18px,3vw,40px)' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: clean ? 0 : 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
         <div style={clean ? { width: '100%', height: '100%' } : {
           position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
+          display: 'flex', flexDirection: 'column',
           border: '1px solid var(--cv-hair)',
           background: 'repeating-radial-gradient(circle at 50% 24%, rgba(150,150,170,.045) 0 1px, transparent 1px 14px), radial-gradient(130% 150% at 50% -4%, color-mix(in srgb, var(--cv-accent) 11%, var(--cv-surf)) 0%, var(--cv-surf) 48%, var(--cv-bg) 100%)',
           boxShadow: '0 44px 110px -46px #000, inset 0 0 0 1px rgba(var(--cv-accent-rgb),.07)',
-          padding: 'clamp(18px,2vw,32px)',
+          padding: 'clamp(16px,1.8vw,30px)',
         }}>
 
           {/* barra de identidad DENTRO del marco */}
@@ -1020,31 +1029,35 @@ export default function ConsolePage() {
           {/* GRILLA de secciones DENTRO del marco: medidor | video | código+QR+votantes */}
           <div style={clean
             ? { width: '100%', height: '100%' }
-            : { display: 'grid', gridTemplateColumns: 'minmax(148px,208px) minmax(0,1fr) minmax(230px,294px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+            : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(150px,212px) minmax(0,1fr) minmax(232px,298px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
 
-          {/* IZQUIERDA: medidor vertical finito o el disco si está apagado */}
+          {/* IZQUIERDA: medidor vertical (más largo) o el disco si está apagado + votantes que flotan */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
               {energyOn ? (
-                <div style={{ display: 'flex', gap: 13, height: 'clamp(160px,25vh,210px)', alignItems: 'stretch' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>caliente</span>
+                <div style={{ display: 'flex', gap: 14, height: 'min(100%, clamp(230px,46vh,420px))', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', paddingTop: 2, paddingBottom: 2 }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>caliente</span>
                     <span>
-                      <span className="cv-wordmark" style={{ fontSize: 22, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span><br />
-                      <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
+                      <span className="cv-wordmark" style={{ fontSize: 26, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span><br />
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
                     </span>
-                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
                   </div>
-                  <div style={{ position: 'relative', width: 16, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
-                    <div style={{ width: '100%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 18px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.7s cubic-bezier(.4,0,.2,1)', height: Math.max(3, Math.min(100, energyPct)) + '%' }} />
+                  <div style={{ position: 'relative', width: 18, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden', display: 'flex', flexDirection: 'column-reverse' }}>
+                    <div style={{ width: '100%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 20px rgba(var(--cv-accent-rgb),.6)', transition: 'height 1.7s cubic-bezier(.4,0,.2,1)', height: Math.max(3, Math.min(100, energyPct)) + '%' }} />
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 11, padding: '6px 0' }}>
-                  <ConsoleVinyl size={120} name={status?.name || 'tu local'} />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 13 }}>
+                  <ConsoleVinyl size={180} name={status?.name || 'tu local'} />
                   <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>en carta vibra</span>
                 </div>
               )}
+              {/* VOTANTES IZQUIERDA — flotan y suben desde abajo, intercaladas con la derecha */}
+              <div style={{ position: 'absolute', left: 0, right: 'clamp(14px,1.6vw,26px)', bottom: 0, display: 'flex', flexDirection: 'column-reverse', gap: 7, alignItems: 'flex-start', pointerEvents: 'none' }}>
+                {votantes.filter((v) => v.side === 'L').map(votantePill)}
+              </div>
             </div>
           )}
 
@@ -1169,25 +1182,20 @@ export default function ConsolePage() {
           )}
         </div>
 
-          {/* DERECHA: código + QR (sección del marco, SIN caja) + votantes flotantes debajo */}
+          {/* DERECHA: código + QR (sección del marco) + votantes que flotan desde abajo */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'center', borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 16, justifyContent: 'flex-start', borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
               <div>
-                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 9 }}>Código de sala</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4vw,58px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '-.01em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
-                  {widgetQr && <div style={{ width: 'clamp(66px,6vw,88px)', height: 'clamp(66px,6vw,88px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
-                  <div className="cv-mono" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
+                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10 }}>Código de sala</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(44px,4.4vw,66px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
+                  {widgetQr && <div style={{ width: 'clamp(70px,6.4vw,94px)', height: 'clamp(70px,6.4vw,94px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
+                  <div className="cv-mono" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
                 </div>
               </div>
-              {/* VOTANTES flotantes */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
-                {votantes.map((v) => (
-                  <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 9, maxWidth: '100%', background: 'rgba(var(--cv-accent-rgb),.11)', border: '1px solid rgba(var(--cv-accent-rgb),.24)', borderRadius: 999, padding: '9px 15px', fontSize: 14, color: 'var(--cv-ink)', whiteSpace: 'nowrap', animation: 'cvVotante 6.5s ease forwards' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.name}</b> votó {v.title}</> : <>alguien votó <b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{v.title}</b></>}</span>
-                  </div>
-                ))}
+              {/* VOTANTES DERECHA — flotan y suben desde abajo, intercaladas con la izquierda */}
+              <div style={{ position: 'absolute', left: 'clamp(14px,1.6vw,26px)', right: 0, bottom: 0, display: 'flex', flexDirection: 'column-reverse', gap: 7, alignItems: 'flex-start', pointerEvents: 'none' }}>
+                {votantes.filter((v) => v.side === 'R').map(votantePill)}
               </div>
             </div>
           )}
