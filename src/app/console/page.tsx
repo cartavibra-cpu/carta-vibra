@@ -65,7 +65,7 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
           {/* velo claro para que el texto se lea sobre los surcos (en el original es oscuro) */}
           <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.9) 42%, rgba(255,255,255,.5) 63%, transparent 78%)' }} />
           {words.map((w, i) => (
-            <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
+            <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{w}</span>
           ))}
         </div>
       </div>
@@ -91,7 +91,7 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
         {/* velo oscuro para que el texto se lea sobre los surcos */}
         <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,5,12,.72) 42%, rgba(6,5,12,.38) 63%, transparent 78%)' }} />
         {words.map((w, i) => (
-          <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
+          <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{w}</span>
         ))}
       </div>
     </div>
@@ -1552,7 +1552,7 @@ export default function ConsolePage() {
             <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0, marginBottom: 'clamp(8px,1.4vh,16px)' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.42)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
-                <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 78%, #ffffff)' }}>{status?.name || 'CARTA VIBRA'}</span>
+                <span className="cv-mono cv-grad-theme" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em' }}>{status?.name || 'CARTA VIBRA'}</span>
               </div>
             </div>
 
