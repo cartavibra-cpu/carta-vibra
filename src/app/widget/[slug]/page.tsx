@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, use, useCallback } from 'react';
+import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
@@ -79,6 +79,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   const [kMsg, setKMsg] = useState<string | null>(null);
 
   const [session, setSession] = useState('');
+  const reactChRef = useRef<any>(null);   // canal para enviar reacciones a la consola
 
   useEffect(() => {
     setSession(getSession());
@@ -137,8 +138,16 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
       .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venue.id}` }, () => loadVenue())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venue.id}` }, () => loadSignups(venue.id))
       .subscribe();
-    return () => { sb.removeChannel(ch); };
+    const rch = sb.channel('cmd-' + venue.id);
+    rch.subscribe();
+    reactChRef.current = rch;
+    return () => { sb.removeChannel(ch); sb.removeChannel(rch); reactChRef.current = null; };
   }, [venue, loadLive, loadVenue, loadSignups]);
+
+  // Enviar una reacción (emoji) a la consola en vivo.
+  const sendReaction = (emoji: string) => {
+    try { reactChRef.current?.send({ type: 'broadcast', event: 'reaction', payload: { emoji } }); } catch {}
+  };
 
   // búsqueda en YouTube (con debounce; el caché y el fallback los maneja la ruta).
   // IMPORTANTE: este hook va con el resto, ANTES de cualquier return condicional.
@@ -396,6 +405,16 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 {nowTrack?.artist && <div style={{ fontSize: 13, color: 'var(--cv-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack.artist}</div>}
               </div>
               {nowTrack && <MiniEq />}
+            </div>
+
+            {/* reacciones en vivo: saltan en la pantalla del local */}
+            <div style={{ marginTop: 14 }}>
+              <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 8, textAlign: 'center' }}>MANDÁ TU REACCIÓN A LA PANTALLA</div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {['🔥', '❤️', '🎉', '😂', '🙌', '💃'].map((e) => (
+                  <button key={e} onClick={() => sendReaction(e)} style={{ fontSize: 26, lineHeight: 1, padding: '8px 12px', borderRadius: 14, background: 'rgba(var(--cv-accent-rgb),.08)', border: '1px solid var(--cv-line)', cursor: 'pointer' }}>{e}</button>
+                ))}
+              </div>
             </div>
 
             {!present && (

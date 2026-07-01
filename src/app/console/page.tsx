@@ -235,6 +235,9 @@ export default function ConsolePage() {
   const [cycleSecs, setCycleSecs] = useState(15);
   const cycleOnRef = useRef(false);
   const cycleSecsRef = useRef(15);
+  // Reacciones en vivo que mandan los usuarios desde el widget (saltan bajo el panel de nav).
+  const [reactions, setReactions] = useState<{ id: number; emoji: string; x: number; y: number; size: number }[]>([]);
+  const reactSeqRef = useRef(0);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showSettingsRef = useRef(false);
 
@@ -668,6 +671,16 @@ export default function ConsolePage() {
   // Igual que changeTheme pero SIN persistir (el auto-paleta no ensucia la DB en cada salto).
   const applyThemeLive = (t: string) => { applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState(); };
 
+  // Un usuario reaccionó desde el widget: aparece un emoji en posición aleatoria, hace pop y se va.
+  const addReaction = (emoji: string) => {
+    const id = ++reactSeqRef.current;
+    const x = 3 + Math.random() * 90;                 // % horizontal
+    const y = Math.random() * 60;                      // % vertical dentro del espacio
+    const size = 26 + Math.round(Math.random() * 18);  // px
+    setReactions((rs) => [...rs.slice(-28), { id, emoji, x, y, size }]);
+    setTimeout(() => setReactions((rs) => rs.filter((r) => r.id !== id)), 1150);
+  };
+
   // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
   // Cada salto se transmite al celular vía broadcastJbState → el control sigue el color.
   useEffect(() => {
@@ -887,7 +900,7 @@ export default function ConsolePage() {
       else if (c.cmd === 'cyclepalette') { setCycleOn(!!c.value); }
       else if (c.cmd === 'cyclesecs') { setCycleSecs(Math.max(3, parseInt(c.value) || 15)); }
       else if (c.cmd === 'hello') broadcastJbState();
-    }).subscribe();
+    }).on('broadcast', { event: 'reaction' }, (p: any) => { const e = p?.payload?.emoji; if (typeof e === 'string') addReaction(e); }).subscribe();
     cmdChRef.current = cmdCh;
 
     const onStateChange = (e: any) => {
@@ -1169,6 +1182,7 @@ export default function ConsolePage() {
     >
       <style>{`
         @keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}
+        @keyframes cvReact{0%{opacity:0;transform:scale(.2) translateY(6px)}22%{opacity:1;transform:scale(1.25) translateY(0)}52%{transform:scale(1) translateY(-4px)}100%{opacity:0;transform:scale(.85) translateY(-16px)}}
         @keyframes cvFsFade{from{opacity:1}to{opacity:0}}
         .cv-scroll{scrollbar-width:thin;scrollbar-color:color-mix(in srgb, var(--cv-accent) 45%, transparent) transparent}
         .cv-scroll::-webkit-scrollbar{width:9px}
@@ -1414,6 +1428,13 @@ export default function ConsolePage() {
                   </div>
                   <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mut)', textDecoration: 'none', whiteSpace: 'nowrap' }}>← Panel</a>
                   <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 14, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                </div>
+              )}
+              {!showSettings && reactions.length > 0 && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, height: 'clamp(64px,13vh,140px)', pointerEvents: 'none', overflow: 'visible', zIndex: 35 }}>
+                  {reactions.map((r) => (
+                    <span key={r.id} style={{ position: 'absolute', left: `${r.x}%`, top: `${r.y}%`, fontSize: r.size, lineHeight: 1, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,.5))', animation: 'cvReact 1.1s ease-out forwards', willChange: 'transform, opacity' }}>{r.emoji}</span>
+                  ))}
                 </div>
               )}
             </div>
