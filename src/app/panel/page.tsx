@@ -80,7 +80,7 @@ export default function PanelPage() {
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={104} /></div>
-          <p style={{ fontSize: 15, color: 'var(--cv-text-2)', marginBottom: 18 }}>Necesitás iniciar sesión para entrar al panel.</p>
+          <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>Necesitás iniciar sesión para entrar al panel.</p>
           <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</a>
         </div>
       </main>
@@ -91,7 +91,7 @@ export default function PanelPage() {
     return (
       <main style={{ minHeight: '100vh', background: PANEL_BG }}>
         <TopNav />
-        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando tus locales…</div>
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-mut)' }}>cargando tus locales…</div>
       </main>
     );
   }
@@ -110,7 +110,7 @@ export default function PanelPage() {
         {/* crear local */}
         {showCreate && (
           <section className="cv-card" style={{ padding: '20px 22px', marginBottom: 24, border: '1px solid rgba(var(--cv-accent-rgb),.25)' }}>
-            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 14 }}>CREAR UN LOCAL NUEVO</div>
+            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-faint)', marginBottom: 14 }}>CREAR UN LOCAL NUEVO</div>
             <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <input className="cv-input" placeholder="Nombre del local" value={name} onChange={(e) => setName(e.target.value)} />
               <input className="cv-input" placeholder="slug (sin espacios, ej: bar-luna)" value={slug} onChange={(e) => setSlug(e.target.value)} />
@@ -128,9 +128,9 @@ export default function PanelPage() {
         {/* Bienvenida para dueño nuevo (sin locales todavía) */}
         {venues.length === 0 ? (
           <div className="cv-card" style={{ padding: isMobile ? '28px 20px' : '36px 32px', textAlign: 'center', border: '1px solid rgba(var(--cv-accent-rgb),.25)', background: 'linear-gradient(165deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.04))' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-cyan)' }}><Ic name="music" size={40} /></div>
-            <h2 className="cv-wordmark" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 600, color: 'var(--cv-text)' }}>¡Bienvenido a <span className="cv-grad-text">Carta Vibra</span>!</h2>
-            <p style={{ fontSize: 14.5, color: 'var(--cv-text-2)', lineHeight: 1.6, margin: '12px auto 0', maxWidth: 460 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-accent)' }}><Ic name="music" size={40} /></div>
+            <h2 className="cv-wordmark" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 600, color: 'var(--cv-ink)' }}>¡Bienvenido a <span className="cv-grad-text">Carta Vibra</span>!</h2>
+            <p style={{ fontSize: 14.5, color: 'var(--cv-mut)', lineHeight: 1.6, margin: '12px auto 0', maxWidth: 460 }}>
               Tus clientes votan la música y cantan karaoke desde el celular, y suena en la pantalla de tu local. Armarlo lleva 2 minutos:
             </p>
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 14, justifyContent: 'center', margin: '22px 0', textAlign: 'left' }}>
@@ -139,11 +139,11 @@ export default function PanelPage() {
                 { n: '2', t: 'Armá la música', d: 'Una playlist tuya o curada.' },
                 { n: '3', t: 'Vinculá la pantalla', d: 'Abrí /console y emparejá.' },
               ].map((s) => (
-                <div key={s.n} style={{ flex: 1, display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-line)', borderRadius: 12, padding: '12px 14px' }}>
-                  <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-cyan)', flexShrink: 0 }}>{s.n}</span>
+                <div key={s.n} style={{ flex: 1, display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,.03)', border: '1px solid var(--cv-hair)', borderRadius: 12, padding: '12px 14px' }}>
+                  <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-accent)', flexShrink: 0 }}>{s.n}</span>
                   <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--cv-text)' }}>{s.t}</div>
-                    <div className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono)', marginTop: 2 }}>{s.d}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--cv-ink)' }}>{s.t}</div>
+                    <div className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-faint)', marginTop: 2 }}>{s.d}</div>
                   </div>
                 </div>
               ))}
@@ -152,7 +152,7 @@ export default function PanelPage() {
           </div>
         ) : (
           <>
-            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>TUS LOCALES</div>
+            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-faint)', marginBottom: 12 }}>TUS LOCALES</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {venues.map((v) => {
                 const open = openSlugs.has(v.slug);
@@ -160,13 +160,13 @@ export default function PanelPage() {
                   <div key={v.id} className="cv-card" style={{ padding: 0, overflow: 'hidden' }}>
                     <button onClick={() => toggle(v.slug)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '15px 18px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                       <div>
-                        <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, color: 'var(--cv-text)' }}>{v.name}</div>
-                        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{modeLabel(v.mode)} · /{v.slug}</div>
+                        <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, color: 'var(--cv-ink)' }}>{v.name}</div>
+                        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 3 }}>{modeLabel(v.mode)} · /{v.slug}</div>
                       </div>
-                      <span style={{ fontSize: 20, color: 'var(--cv-cyan)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
+                      <span style={{ fontSize: 20, color: 'var(--cv-accent)', transform: open ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
                     </button>
                     {open && (
-                      <div style={{ padding: '6px 18px 20px', borderTop: '1px solid var(--cv-line)' }}>
+                      <div style={{ padding: '6px 18px 20px', borderTop: '1px solid var(--cv-hair)' }}>
                         <VenueManager slug={v.slug} />
                       </div>
                     )}

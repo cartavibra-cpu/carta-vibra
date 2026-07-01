@@ -222,12 +222,12 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     </main>
   );
 
-  if (!sessionLoaded || !venueLoaded) return shell(<p className="cv-mono" style={{ color: 'var(--cv-muted)', textAlign: 'center', marginTop: 60 }}>Cargando…</p>);
+  if (!sessionLoaded || !venueLoaded) return shell(<p className="cv-mono" style={{ color: 'var(--cv-mut)', textAlign: 'center', marginTop: 60 }}>Cargando…</p>);
 
   if (!venue) return shell(
     <div style={{ textAlign: 'center', marginTop: 60 }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><BrandMark size={88} /></div>
-      <p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>No encontramos el local «{slug}».</p>
+      <p className="cv-mono" style={{ color: 'var(--cv-mut)' }}>No encontramos el local «{slug}».</p>
     </div>
   );
 
@@ -235,9 +235,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     <div style={{ textAlign: 'center', marginTop: 50 }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-muted)' }}><Ic name="lock" size={28} /></div>
-        <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Iniciá sesión para controlar tu local</p>
-        <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginBottom: 16 }}>Entrá con la cuenta dueña de «{venue.name}».</p>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-mut)' }}><Ic name="lock" size={28} /></div>
+        <p style={{ color: 'var(--cv-ink)', fontWeight: 600, marginBottom: 6 }}>Iniciá sesión para controlar tu local</p>
+        <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', marginBottom: 16 }}>Entrá con la cuenta dueña de «{venue.name}».</p>
         <a href="/" className="cv-btn cv-btn-primary" style={{ display: 'inline-block', padding: '11px 22px' }}>Ir a iniciar sesión</a>
       </div>
     </div>
@@ -248,8 +248,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-warm)' }}><Ic name="ban" size={28} /></div>
-        <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Este local no es tuyo</p>
-        <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>«{venue.name}» pertenece a otra cuenta.</p>
+        <p style={{ color: 'var(--cv-ink)', fontWeight: 600, marginBottom: 6 }}>Este local no es tuyo</p>
+        <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)' }}>«{venue.name}» pertenece a otra cuenta.</p>
       </div>
     </div>
   );
@@ -258,20 +258,20 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     <>
       <input className="cv-input" placeholder="Nombre o apodo" value={addSinger} onChange={(e) => setAddSinger(e.target.value)} style={{ width: '100%', marginBottom: 10, fontSize: 16 }} />
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 13, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
-        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 13, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: addPickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
+        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 13, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)', background: addPickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>Catálogo</button>
+        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 13, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)', background: addPickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>Link</button>
       </div>
       {addPickMode === 'catalog' ? (
         <>
           <input className="cv-input" placeholder="Buscá en el catálogo…" value={addFilter} onChange={(e) => setAddFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
           <div style={{ maxHeight: 240, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin resultados.</div>}
+            {addMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>sin resultados.</div>}
             {addMatches.map((t) => {
               const sel = addPicked?.external_id === t.external_id;
               return (
-                <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '10px 12px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
-                  <div style={{ fontSize: 15, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
-                  {t.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{t.artist}</div>}
+                <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '10px 12px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-accent)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
+                  <div style={{ fontSize: 15, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                  {t.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>{t.artist}</div>}
                 </button>
               );
             })}
@@ -280,10 +280,10 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       ) : (
         <>
           <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={addPasteUrl} onChange={(e) => setAddPasteUrl(e.target.value)} onBlur={fetchAddPaste} style={{ width: '100%', fontSize: 16 }} />
-          {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 13, color: addPasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
+          {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 13, color: addPasteMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
         </>
       )}
-      {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-text-2)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}
+      {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-mut)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}
       <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
         <button className="cv-btn cv-btn-ghost" onClick={() => setShowAdd(false)} style={{ padding: '12px 0', fontSize: 15, flex: 1 }}>Cancelar</button>
         <button className="cv-btn cv-btn-mint" onClick={doAdd} disabled={adding || !addSinger.trim() || !addPicked} style={{ padding: '12px 0', fontSize: 15, flex: 2, opacity: adding || !addSinger.trim() || !addPicked ? 0.5 : 1 }}>{adding ? 'Agregando…' : 'Agregar a la fila'}</button>
@@ -297,43 +297,43 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
         <div>
           <BrandMark size={32} layout="row" />
-          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginTop: 2 }}>{venue.name}</div>
+          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', marginTop: 2 }}>{venue.name}</div>
         </div>
         <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)', boxShadow: mode === 'jukebox' ? '0 0 10px var(--cv-cyan)' : '0 0 10px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
-          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: mode === 'jukebox' ? 'var(--cv-cyan)' : 'var(--cv-mint)' }}>CONTROL EN VIVO</span>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: mode === 'jukebox' ? 'var(--cv-accent)' : 'var(--cv-accent)', boxShadow: mode === 'jukebox' ? '0 0 10px var(--cv-accent)' : '0 0 10px var(--cv-accent)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: mode === 'jukebox' ? 'var(--cv-accent)' : 'var(--cv-accent)' }}>CONTROL EN VIVO</span>
         </span>
       </div>
 
       {/* apariencia de la pantalla del local: paleta + termómetro */}
       <div className="cv-card" style={{ padding: '16px 18px', marginBottom: 12 }}>
-        <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>PALETA DE LA PANTALLA</div>
+        <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-faint)', marginBottom: 12 }}>PALETA DE LA PANTALLA</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 7 }}>
           {CV_THEME_META.map((t) => (
-            <button key={t.id} onClick={() => pickTheme(t.id)} title={t.name} style={{ height: 36, borderRadius: 9, cursor: 'pointer', background: t.grad, border: theme === t.id ? '2px solid var(--cv-text)' : '2px solid var(--cv-line)', boxShadow: theme === t.id ? '0 0 10px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
+            <button key={t.id} onClick={() => pickTheme(t.id)} title={t.name} style={{ height: 36, borderRadius: 9, cursor: 'pointer', background: t.grad, border: theme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: theme === t.id ? '0 0 10px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
           ))}
         </div>
-        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 9 }}>cambia el color de la pantalla del local al toque.</div>
-        <div style={{ height: 1, background: 'var(--cv-line)', margin: '14px 0' }} />
+        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 9 }}>cambia el color de la pantalla del local al toque.</div>
+        <div style={{ height: 1, background: 'var(--cv-hair)', margin: '14px 0' }} />
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <input type="checkbox" checked={jbCycleOn} onChange={(e) => jbSetCycle(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
-          <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Auto-paleta <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(salta sola entre paletas oscuras)</span></span>
+          <span style={{ fontSize: 15, color: 'var(--cv-ink)' }}>Auto-paleta <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>(salta sola entre paletas oscuras)</span></span>
         </label>
         {jbCycleOn && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12, marginLeft: 28 }}>
-            <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Cambiar cada</span>
+            <span style={{ fontSize: 15, color: 'var(--cv-ink)' }}>Cambiar cada</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <input type="number" min={3} className="cv-input" value={jbCycleSecs} onChange={(e) => jbSetCycleSecs(Math.max(3, parseInt(e.target.value) || 15))} style={{ width: 72, padding: '10px', fontSize: 16, textAlign: 'center' }} />
-              <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>seg</span>
+              <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)' }}>seg</span>
             </div>
           </div>
         )}
-        <div style={{ height: 1, background: 'var(--cv-line)', margin: '14px 0' }} />
+        <div style={{ height: 1, background: 'var(--cv-hair)', margin: '14px 0' }} />
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <input type="checkbox" checked={energyOn} onChange={(e) => setEnergy(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
-          <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Mostrar termómetro de energía <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(rockola)</span></span>
+          <span style={{ fontSize: 15, color: 'var(--cv-ink)' }}>Mostrar termómetro de energía <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>(rockola)</span></span>
         </label>
-        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 6, marginLeft: 28 }}>apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
+        <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 6, marginLeft: 28 }}>apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
       </div>
 
       {mode === 'jukebox' ? (
@@ -341,7 +341,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           {/* aviso: cambiaron la playlist desde "mis locales" */}
           {pcPending && (
             <div className="cv-card" style={{ padding: '15px 16px', marginBottom: 12, border: '1px solid var(--cv-accent)', background: 'rgba(var(--cv-accent-rgb),.10)' }}>
-              <div style={{ fontSize: 14.5, color: 'var(--cv-text)', marginBottom: 11, lineHeight: 1.4 }}>Cambiaron la playlist a <b style={{ color: 'var(--cv-accent)' }}>{pcPending}</b>. ¿La ponés ahora?</div>
+              <div style={{ fontSize: 14.5, color: 'var(--cv-ink)', marginBottom: 11, lineHeight: 1.4 }}>Cambiaron la playlist a <b style={{ color: 'var(--cv-accent)' }}>{pcPending}</b>. ¿La ponés ahora?</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="cv-btn cv-btn-cyan" onClick={jbSwitchPlaylist} style={{ flex: 1, padding: '13px 0', fontSize: 15 }}>Cambiar ahora</button>
                 <button className="cv-btn cv-btn-ghost" onClick={() => setPcPending(null)} style={{ padding: '13px 18px', fontSize: 15 }}>Ahora no</button>
@@ -350,7 +350,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           )}
           {/* controles de la rockola (jukebox) */}
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
-            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>CONTROLES DE LA ROCKOLA</div>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-accent)', marginBottom: 14 }}>CONTROLES DE LA ROCKOLA</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <button className="cv-btn cv-btn-ghost" onClick={jbBack} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="prev" size={17} />Anterior</button>
               <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{pcPlaying ? <><Ic name="pause" size={17} />Pausa</> : <><Ic name="play" size={17} />Play</>}</button>
@@ -360,30 +360,30 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
               <span style={{ width: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cv-mut)' }}><Ic name={pcVolume === 0 ? 'mute' : 'volume'} size={20} /></span>
               <input type="range" min={0} max={100} value={pcVolume} onChange={(e) => jbVolume(parseInt(e.target.value))} style={{ flex: 1, accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
-              <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', width: 30, textAlign: 'right' }}>{pcVolume}</span>
+              <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', width: 30, textAlign: 'right' }}>{pcVolume}</span>
             </div>
             <button className="cv-btn cv-btn-ghost" onClick={jbCC} style={{ width: '100%', padding: '11px 0', fontSize: 13.5, marginTop: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="cc" size={18} />Subtítulos on/off</button>
           </div>
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
-            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>AJUSTES</div>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-faint)', marginBottom: 16 }}>AJUSTES</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, cursor: 'pointer' }}>
               <input type="checkbox" checked={jbAutoDj} onChange={(e) => jbSetAutoDj(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
-              <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>AutoDJ cuando no hay votos</span>
+              <span style={{ fontSize: 15, color: 'var(--cv-ink)' }}>AutoDJ cuando no hay votos</span>
             </label>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-              <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Segundos por canción <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(0 = completa)</span></span>
+              <span style={{ fontSize: 15, color: 'var(--cv-ink)' }}>Segundos por canción <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>(0 = completa)</span></span>
               <input type="number" min={0} className="cv-input" value={jbSeconds} onChange={(e) => jbSetSeconds(Math.max(0, parseInt(e.target.value) || 0))} style={{ width: 80, padding: '10px', fontSize: 16, textAlign: 'center' }} />
             </div>
           </div>
-          <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono-2)', textAlign: 'center' }}>la música arrancala desde el PC; desde acá saltás, pausás y ajustás.</p>
+          <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-faint)', textAlign: 'center' }}>la música arrancala desde el PC; desde acá saltás, pausás y ajustás.</p>
         </>
       ) : (
         <>
           {/* cantando ahora */}
       <div className="cv-card" style={{ padding: '18px', textAlign: 'center', marginBottom: 12 }}>
-        <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>CANTANDO AHORA</div>
-        <div className="cv-wordmark" style={{ fontSize: 26, fontWeight: 700, color: 'var(--cv-text)', lineHeight: 1.15, marginTop: 4 }}>{current ? current.singer : 'nadie todavía'}</div>
-        {current && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 3 }}>{current.title}{current.artist ? ` — ${current.artist}` : ''}</div>}
+        <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-accent)' }}>CANTANDO AHORA</div>
+        <div className="cv-wordmark" style={{ fontSize: 26, fontWeight: 700, color: 'var(--cv-ink)', lineHeight: 1.15, marginTop: 4 }}>{current ? current.singer : 'nadie todavía'}</div>
+        {current && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 3 }}>{current.title}{current.artist ? ` — ${current.artist}` : ''}</div>}
       </div>
 
       {/* controles grandes */}
@@ -395,7 +395,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         <button className="cv-btn cv-btn-ghost" onClick={togglePlay} style={{ width: '100%', padding: '14px 0', fontSize: 16, marginBottom: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{pcPlaying ? <><Ic name="pause" size={17} />Pausar</> : <><Ic name="play" size={17} />Reanudar</>}</button>
       )}
       {!current && waiting.length > 0 && (
-        <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono-2)', marginBottom: 12, textAlign: 'center' }}>el primer tema arrancalo desde el PC; después controlás todo desde acá.</p>
+        <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-faint)', marginBottom: 12, textAlign: 'center' }}>el primer tema arrancalo desde el PC; después controlás todo desde acá.</p>
       )}
 
       {/* agregar */}
@@ -404,26 +404,26 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           <button className="cv-btn cv-btn-ghost" onClick={() => setShowAdd(true)} style={{ width: '100%', padding: '12px 0', fontSize: 15 }}>➕ Agregar cantante</button>
         ) : (
           <>
-            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.14em', color: 'var(--cv-mint)', marginBottom: 12 }}>AGREGAR CANTANTE</div>
+            <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.14em', color: 'var(--cv-accent)', marginBottom: 12 }}>AGREGAR CANTANTE</div>
             {addFormBody}
           </>
         )}
       </div>
 
       {/* fila */}
-      <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 10 }}>PRÓXIMOS TURNOS ({waiting.length})</div>
+      <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-faint)', marginBottom: 10 }}>PRÓXIMOS TURNOS ({waiting.length})</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
+        {waiting.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>nadie en espera. Cuando se anoten, aparecen acá.</div>}
         {waiting.map((s, i) => (
-          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px', borderRadius: 12, background: 'var(--cv-surface)', border: '1px solid var(--cv-line)' }}>
+          <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px', borderRadius: 12, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
-              <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
+              <button onClick={() => moveOne(s.id, -1)} disabled={i === 0} style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 14, lineHeight: 1, padding: 0, opacity: i === 0 ? 0.4 : 1 }}>▲</button>
+              <button onClick={() => moveOne(s.id, 1)} disabled={i === waiting.length - 1} style={{ background: 'none', border: 'none', cursor: i === waiting.length - 1 ? 'default' : 'pointer', color: i === waiting.length - 1 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 14, lineHeight: 1, padding: 0, opacity: i === waiting.length - 1 ? 0.4 : 1 }}>▼</button>
             </div>
-            <span className="cv-wordmark" style={{ fontSize: 17, fontWeight: 700, color: 'var(--cv-muted)', width: 22, flexShrink: 0 }}>{i + 1}</span>
+            <span className="cv-wordmark" style={{ fontSize: 17, fontWeight: 700, color: 'var(--cv-mut)', width: 22, flexShrink: 0 }}>{i + 1}</span>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
-              <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.singer}</div>
+              <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
             </div>
             <button onClick={() => removeOne(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 19, flexShrink: 0, lineHeight: 1, padding: '4px' }}>✕</button>
           </div>
@@ -433,7 +433,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       )}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
-        <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={13} />Volver al panel</a>
+        <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={13} />Volver al panel</a>
       </div>
     </>
   );

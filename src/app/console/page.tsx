@@ -1095,21 +1095,21 @@ export default function ConsolePage() {
           <BrandMark size={150} light={CV_LIGHT_THEMES.has(curTheme)} />
           <div style={{ textAlign: 'center' }}>
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 600 }}>Vinculá esta consola</h1>
-            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Escribí este código en tu panel · sección “Vincular consola”</p>
+            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 10 }}>Escribí este código en tu panel · sección “Vincular consola”</p>
           </div>
           {pairCode ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
               <div style={{ display: 'flex', gap: 10 }}>
                 {pairCode.split('').map((d, i) => (
-                  <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-bg-2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-text)' }}>{d}</div>
+                  <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-surf)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-ink)' }}>{d}</div>
                 ))}
               </div>
               <button onClick={copyPairCode} className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: 7 }}>{copied ? (<><Ic name="check" size={15} /> Copiado</>) : (<><Ic name="copy" size={15} /> Copiar código</>)}</button>
             </div>
-          ) : (<p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>generando código…</p>)}
+          ) : (<p className="cv-mono" style={{ color: 'var(--cv-mut)' }}>generando código…</p>)}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
-            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Generar un código nuevo</button>
-            <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al panel</a>
+            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-faint)', textDecoration: 'underline' }}>Generar un código nuevo</button>
+            <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none' }}>← Volver al panel</a>
           </div>
         </div>
       </main>
@@ -1125,17 +1125,17 @@ export default function ConsolePage() {
           <BrandMark size={150} light={CV_LIGHT_THEMES.has(curTheme)} />
           <div style={{ textAlign: 'center' }}>
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 600 }}>{status.name}</h1>
-            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Consola lista para {status.slug}</p>
+            <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 10 }}>Consola lista para {status.slug}</p>
           </div>
           <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(var(--cv-accent-rgb),.5)', display: 'inline-flex', alignItems: 'center', gap: 12 }} onClick={startConsole}>
             <Ic name="play" size={20} />Iniciar sesión musical
           </button>
-          <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
+          <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-faint)', lineHeight: 1.5 }}>
             Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos. Para no mostrar avisos, logueá este navegador con tu cuenta de YouTube Premium.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline' }}>Vincular otra consola</button>
-            <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', textDecoration: 'none' }}>← Volver al panel</a>
+            <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-faint)', textDecoration: 'underline' }}>Vincular otra consola</button>
+            <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none' }}>← Volver al panel</a>
           </div>
         </div>
       </main>
@@ -1151,7 +1151,7 @@ export default function ConsolePage() {
       <div className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 46px)', fontWeight: 600, color: accent }}>
         {switchingTo === 'karaoke' ? 'Modo Karaoke' : 'Modo Rockola'}
       </div>
-      <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.2em', color: 'var(--cv-muted)', textTransform: 'uppercase' }}>cambiando…</div>
+      <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.2em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>cambiando…</div>
       <div style={{ width: 64, height: 3, borderRadius: 2, background: accent, boxShadow: `0 0 18px ${accent}`, animation: 'cvBreathe 1.2s ease-in-out infinite' }} />
     </div>
   ) : null;

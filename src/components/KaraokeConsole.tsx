@@ -306,13 +306,13 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
   const addFormBody = (
     <>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-mint)' }}>AGREGAR CANTANTE</span>
+        <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-accent)' }}>AGREGAR CANTANTE</span>
         <button onClick={() => setShowAdd(false)} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.42)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
       </div>
       <input className="cv-input" placeholder="Nombre o apodo" value={addSinger} onChange={(e) => setAddSinger(e.target.value)} style={{ width: '100%', marginBottom: 10 }} />
       <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-mint)' : 'rgba(255,255,255,.6)' }}>Catálogo</button>
-        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-mint)' : 'rgba(255,255,255,.6)' }}>Link</button>
+        <button onClick={() => { setAddPickMode('catalog'); setAddPicked(null); setAddPasteMsg(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'catalog' ? '1px solid var(--cv-accent)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'catalog' ? 'var(--cv-accent)' : 'rgba(255,255,255,.6)' }}>Catálogo</button>
+        <button onClick={() => { setAddPickMode('paste'); setAddPicked(null); }} className="cv-mono" style={{ flex: 1, fontSize: 12, padding: '7px 0', borderRadius: 10, cursor: 'pointer', border: addPickMode === 'paste' ? '1px solid var(--cv-accent)' : '1px solid rgba(255,255,255,.12)', background: addPickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: addPickMode === 'paste' ? 'var(--cv-accent)' : 'rgba(255,255,255,.6)' }}>Link</button>
       </div>
       {addPickMode === 'catalog' ? (
         <>
@@ -322,7 +322,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
             {addMatches.map((t) => {
               const sel = addPicked?.external_id === t.external_id;
               return (
-                <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
+                <button key={t.id} onClick={() => setAddPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })} style={{ textAlign: 'left', padding: '7px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-accent)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
                   <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,.92)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
                   {t.artist && <div className="cv-mono" style={{ fontSize: 10.5, color: 'rgba(255,255,255,.5)' }}>{t.artist}</div>}
                 </button>
@@ -333,7 +333,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
       ) : (
         <>
           <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={addPasteUrl} onChange={(e) => setAddPasteUrl(e.target.value)} onBlur={fetchAddPaste} style={{ width: '100%', fontSize: 13 }} />
-          {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: addPasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
+          {addPasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: addPasteMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{addPasteMsg}</p>}
         </>
       )}
       {addPicked && <div className="cv-mono" style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,.85)' }}>→ {addPicked.title}{addPicked.artist ? ` — ${addPicked.artist}` : ''}</div>}

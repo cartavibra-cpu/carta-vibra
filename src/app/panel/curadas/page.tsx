@@ -11,12 +11,12 @@ const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-
 type Template = { id: string; name: string; description: string | null; mood: string | null };
 type Track = { id: string; title: string; artist: string | null; external_id: string | null; is_embeddable: boolean | null };
 
-const PALETTE = ['var(--cv-violet-light)', 'var(--cv-cyan)', 'var(--cv-mint)'];
+const PALETTE = ['var(--cv-accent)', 'var(--cv-accent)', 'var(--cv-accent)'];
 function moodAccent(mood: string | null, name: string) {
   const m = (mood || '').toLowerCase();
-  if (/(chill|lounge|caf|relax|suave|tranqui|jazz|bossa|acust|ambient)/.test(m)) return 'var(--cv-violet-light)';
-  if (/(fiesta|party|baile|dance|after|reggaet|cumbia|perreo|hot|fuego|carrete)/.test(m)) return 'var(--cv-mint)';
-  if (/(rock|pop|indie|cl[aá]sic|hits|variad|80|90|retro)/.test(m)) return 'var(--cv-cyan)';
+  if (/(chill|lounge|caf|relax|suave|tranqui|jazz|bossa|acust|ambient)/.test(m)) return 'var(--cv-accent)';
+  if (/(fiesta|party|baile|dance|after|reggaet|cumbia|perreo|hot|fuego|carrete)/.test(m)) return 'var(--cv-accent)';
+  if (/(rock|pop|indie|cl[aá]sic|hits|variad|80|90|retro)/.test(m)) return 'var(--cv-accent)';
   const s = mood || name || '';
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
@@ -99,7 +99,7 @@ export default function CuradasPage() {
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={104} /></div>
-          <p style={{ fontSize: 15, color: 'var(--cv-text-2)', marginBottom: 18 }}>Necesitás iniciar sesión para ver las playlists curadas.</p>
+          <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>Necesitás iniciar sesión para ver las playlists curadas.</p>
           <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</a>
         </div>
       </main>
@@ -110,7 +110,7 @@ export default function CuradasPage() {
     return (
       <main style={{ minHeight: '100vh', background: PANEL_BG }}>
         <TopNav />
-        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando playlists curadas…</div>
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-mut)' }}>cargando playlists curadas…</div>
       </main>
     );
   }
@@ -120,15 +120,15 @@ export default function CuradasPage() {
       <TopNav />
       <div style={{ maxWidth: 980, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Curadas</h1>
-        <p style={{ fontSize: 14.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '8px 0 26px', maxWidth: 580 }}>
-          Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-text)' }}>escuchar sus temas</b>, e importá la que te guste a tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> — después la asignás a tus locales desde <a href="/panel" style={{ color: 'var(--cv-cyan)' }}>Mis locales</a>. Importar nunca pisa tus playlists: crea una copia tuya.
+        <p style={{ fontSize: 14.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '8px 0 26px', maxWidth: 580 }}>
+          Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-ink)' }}>escuchar sus temas</b>, e importá la que te guste a tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> — después la asignás a tus locales desde <a href="/panel" style={{ color: 'var(--cv-accent)' }}>Mis locales</a>. Importar nunca pisa tus playlists: crea una copia tuya.
         </p>
 
         {templates.length === 0 ? (
           <div className="cv-card" style={{ padding: '28px 24px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-cyan)' }}><Ic name="music" size={30} /></div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)', marginBottom: 4 }}>Pronto vas a tener playlists curadas acá</div>
-            <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>Estamos preparando colecciones listas para usar.</p>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-accent)' }}><Ic name="music" size={30} /></div>
+            <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-ink)', marginBottom: 4 }}>Pronto vas a tener playlists curadas acá</div>
+            <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)' }}>Estamos preparando colecciones listas para usar.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
@@ -140,25 +140,25 @@ export default function CuradasPage() {
                 <div key={t.id} className="cv-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ height: 4, background: accent, boxShadow: `0 0 18px ${accent}` }} />
                   <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                    <div className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: 'var(--cv-text)', lineHeight: 1.2 }}>{t.name}</div>
+                    <div className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: 'var(--cv-ink)', lineHeight: 1.2 }}>{t.name}</div>
                     {t.mood && (
-                      <span style={{ alignSelf: 'flex-start', fontSize: 11, fontFamily: 'var(--cv-font-mono, monospace)', letterSpacing: '.08em', color: accent, border: `1px solid ${accent}`, borderRadius: 999, padding: '2px 10px', textTransform: 'lowercase' }}>{t.mood}</span>
+                      <span style={{ alignSelf: 'flex-start', fontSize: 11, fontFamily: 'var(--cv-font-body)', letterSpacing: '.08em', color: accent, border: `1px solid ${accent}`, borderRadius: 999, padding: '2px 10px', textTransform: 'lowercase' }}>{t.mood}</span>
                     )}
                     {t.description && (
-                      <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t.description}</p>
+                      <p style={{ fontSize: 13, color: 'var(--cv-mut)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{t.description}</p>
                     )}
-                    <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 'auto' }}>{n} {n === 1 ? 'canción' : 'canciones'}</div>
+                    <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 'auto' }}>{n} {n === 1 ? 'canción' : 'canciones'}</div>
 
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                       <button className="cv-btn cv-btn-ghost" onClick={() => openModal(t)} style={{ fontSize: 12.5, padding: '8px 14px' }}>▸ Ver canciones</button>
                       {imported ? (
-                        <span className="cv-mono" style={{ fontSize: 12.5, color: 'var(--cv-mint)', alignSelf: 'center' }}>✓ Agregada</span>
+                        <span className="cv-mono" style={{ fontSize: 12.5, color: 'var(--cv-accent)', alignSelf: 'center' }}>✓ Agregada</span>
                       ) : (
                         <button className="cv-btn cv-btn-cyan" onClick={() => doImport(t)} disabled={importing === t.id} style={{ fontSize: 12.5, padding: '8px 14px', opacity: importing === t.id ? 0.6 : 1 }}>{importing === t.id ? 'Importando…' : 'Importar'}</button>
                       )}
                     </div>
                     {imported && (
-                      <a href="/panel" className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted)', textDecoration: 'underline' }}>asignála a un local →</a>
+                      <a href="/panel" className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mut)', textDecoration: 'underline' }}>asignála a un local →</a>
                     )}
                   </div>
                 </div>
@@ -173,15 +173,15 @@ export default function CuradasPage() {
         <div onClick={closeModal} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(4,3,10,.72)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 10 : 18 }}>
           <div onClick={(e) => e.stopPropagation()} className="cv-card" style={{ width: '100%', maxWidth: 560, maxHeight: '86vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
             {/* header */}
-            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--cv-line)' }}>
+            <div style={{ padding: '18px 20px', borderBottom: '1px solid var(--cv-hair)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div className="cv-wordmark" style={{ fontSize: 20, fontWeight: 600, color: 'var(--cv-text)' }}>{modalTpl.name}</div>
+                  <div className="cv-wordmark" style={{ fontSize: 20, fontWeight: 600, color: 'var(--cv-ink)' }}>{modalTpl.name}</div>
                   {modalTpl.mood && <div className="cv-mono" style={{ fontSize: 11, color: moodAccent(modalTpl.mood, modalTpl.name), marginTop: 3 }}>{modalTpl.mood}</div>}
                 </div>
-                <button onClick={closeModal} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>✕</button>
+                <button onClick={closeModal} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0 }}>✕</button>
               </div>
-              {modalTpl.description && <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '8px 0 0' }}>{modalTpl.description}</p>}
+              {modalTpl.description && <p style={{ fontSize: 13, color: 'var(--cv-mut)', lineHeight: 1.5, margin: '8px 0 0' }}>{modalTpl.description}</p>}
             </div>
 
             {/* reproductor */}
@@ -200,25 +200,25 @@ export default function CuradasPage() {
             {/* lista */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
               {modalLoading ? (
-                <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>cargando canciones…</div>
+                <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)' }}>cargando canciones…</div>
               ) : modalTracks.length === 0 ? (
-                <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>esta playlist todavía no tiene canciones.</div>
+                <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>esta playlist todavía no tiene canciones.</div>
               ) : (
                 <>
-                  {!previewId && <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono)', margin: '0 0 10px' }}>tocá ▶ en cualquier tema para escucharlo</p>}
+                  {!previewId && <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-faint)', margin: '0 0 10px' }}>tocá ▶ en cualquier tema para escucharlo</p>}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {modalTracks.map((tr, i) => {
                       const active = previewId === tr.external_id;
                       return (
                         <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px', borderRadius: 10, background: active ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', border: active ? '1px solid rgba(var(--cv-accent-rgb),.3)' : '1px solid transparent' }}>
                           <button onClick={() => tr.external_id && setPreviewId(tr.external_id)} disabled={!tr.external_id}
-                            style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', border: '1px solid var(--cv-line)', background: active ? 'var(--cv-cyan)' : 'rgba(255,255,255,.04)', color: active ? 'var(--cv-on)' : 'var(--cv-cyan)', cursor: tr.external_id ? 'pointer' : 'default', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            style={{ flexShrink: 0, width: 30, height: 30, borderRadius: '50%', border: '1px solid var(--cv-hair)', background: active ? 'var(--cv-accent)' : 'rgba(255,255,255,.04)', color: active ? 'var(--cv-on)' : 'var(--cv-accent)', cursor: tr.external_id ? 'pointer' : 'default', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {active ? '♪' : '▶'}
                           </button>
-                          <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', width: 20, flexShrink: 0 }}>{i + 1}</span>
+                          <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', width: 20, flexShrink: 0 }}>{i + 1}</span>
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ fontSize: 14, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr.title}</div>
-                            {tr.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr.artist}</div>}
+                            <div style={{ fontSize: 14, color: 'var(--cv-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr.title}</div>
+                            {tr.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tr.artist}</div>}
                           </div>
                           {tr.is_embeddable === false && <span title="No se puede reproducir embebido" style={{ fontSize: 11, color: 'var(--cv-warm)', flexShrink: 0 }}>⚠️</span>}
                         </div>
@@ -230,15 +230,15 @@ export default function CuradasPage() {
             </div>
 
             {/* footer */}
-            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cv-line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--cv-hair)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               {done[modalTpl.id] ? (
                 <>
-                  <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mint)' }}>✓ En tu biblioteca</span>
+                  <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-accent)' }}>✓ En tu biblioteca</span>
                   <a href="/panel" className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 16px', textDecoration: 'none' }}>Asignar a un local →</a>
                 </>
               ) : (
                 <>
-                  <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>{modalTracks.length} {modalTracks.length === 1 ? 'canción' : 'canciones'}</span>
+                  <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)' }}>{modalTracks.length} {modalTracks.length === 1 ? 'canción' : 'canciones'}</span>
                   <button className="cv-btn cv-btn-cyan" onClick={() => doImport(modalTpl)} disabled={importing === modalTpl.id} style={{ fontSize: 14, padding: '10px 20px', opacity: importing === modalTpl.id ? 0.6 : 1 }}>
                     {importing === modalTpl.id ? 'Importando…' : 'Importar a mi biblioteca'}
                   </button>

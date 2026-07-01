@@ -263,61 +263,61 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
         {/* header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <BrandMark size={30} layout="row" />
-          {mesa && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted)', border: '1px solid var(--cv-line)', borderRadius: 999, padding: '5px 11px' }}>Mesa {mesa}</span>}
+          {mesa && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mut)', border: '1px solid var(--cv-hair)', borderRadius: 999, padding: '5px 11px' }}>Mesa {mesa}</span>}
         </div>
 
         <h1 className="cv-wordmark" style={{ fontSize: 24, fontWeight: 600 }}>{venue.name}</h1>
         {activePl && (
-          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 4 }}>
-            {mode === 'karaoke' ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="mic" size={13} /> Karaoke · <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></span> : <>Suena: <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></>}
+          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 4 }}>
+            {mode === 'karaoke' ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="mic" size={13} /> Karaoke · <span style={{ color: 'var(--cv-accent)' }}>{activePl.name}</span></span> : <>Suena: <span style={{ color: 'var(--cv-accent)' }}>{activePl.name}</span></>}
           </div>
         )}
 
         {!activePl ? (
-          <p style={{ marginTop: 24, fontSize: 14, color: 'var(--cv-muted)', textAlign: 'center', lineHeight: 1.6 }}>El local no tiene una playlist activa en este momento.</p>
+          <p style={{ marginTop: 24, fontSize: 14, color: 'var(--cv-mut)', textAlign: 'center', lineHeight: 1.6 }}>El local no tiene una playlist activa en este momento.</p>
         ) : mode === 'karaoke' ? (
           /* ════════ MODO KARAOKE ════════ */
           <>
             {!present && (
               <div className="cv-card" style={{ marginTop: 18, padding: 16 }}>
-                <p style={{ fontSize: 14, color: 'var(--cv-text-2)', marginBottom: 12, lineHeight: 1.5 }}>Para anotarte a cantar, ingresá el código que aparece en la pantalla del local:</p>
+                <p style={{ fontSize: 14, color: 'var(--cv-mut)', marginBottom: 12, lineHeight: 1.5 }}>Para anotarte a cantar, ingresá el código que aparece en la pantalla del local:</p>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
                     style={{ width: 120, textAlign: 'center', fontSize: 22, letterSpacing: '.3em', fontFamily: 'var(--cv-font-display)' }} />
                   <button className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '0 22px' }} onClick={redeem}>Validar</button>
                 </div>
-                {msg && <p className="cv-mono" style={{ marginTop: 12, fontSize: 13, color: 'var(--cv-mint)' }}>{msg}</p>}
+                {msg && <p className="cv-mono" style={{ marginTop: 12, fontSize: 13, color: 'var(--cv-accent)' }}>{msg}</p>}
               </div>
             )}
 
             {present && (
               <div className="cv-card" style={{ marginTop: 18, padding: 16 }}>
-                <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-mint)', marginBottom: 12 }}>ANOTARTE PARA CANTAR</div>
+                <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-accent)', marginBottom: 12 }}>ANOTARTE PARA CANTAR</div>
 
                 <input className="cv-input" placeholder="Tu nombre o apodo" value={singer} onChange={(e) => setSinger(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
 
                 {/* selector de canción */}
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   <button onClick={() => { setPickMode('catalog'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Catálogo</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'catalog' ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)', background: pickMode === 'catalog' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'catalog' ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>Catálogo</button>
                   <button onClick={() => { setPickMode('search'); setPicked(null); setPasteMsg(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'search' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'search' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'search' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Buscar</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'search' ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)', background: pickMode === 'search' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'search' ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>Buscar</button>
                   <button onClick={() => { setPickMode('paste'); setPicked(null); }} className="cv-mono"
-                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-mint)' : '1px solid var(--cv-line)', background: pickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-mint)' : 'var(--cv-muted)' }}>Link</button>
+                    style={{ flex: 1, fontSize: 12, padding: '8px 0', borderRadius: 10, cursor: 'pointer', border: pickMode === 'paste' ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)', background: pickMode === 'paste' ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent', color: pickMode === 'paste' ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>Link</button>
                 </div>
 
                 {pickMode === 'catalog' ? (
                   <>
                     <input className="cv-input" placeholder="Buscá en el catálogo…" value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
                     <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      {catMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>sin resultados.</div>}
+                      {catMatches.length === 0 && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)' }}>sin resultados.</div>}
                       {catMatches.map((t) => {
                         const sel = picked?.external_id === t.external_id;
                         return (
                           <button key={t.id} onClick={() => setPicked({ external_id: t.external_id || '', title: t.title, artist: t.artist || '', is_embeddable: true })}
-                            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
-                            <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
-                            {t.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{t.artist}</div>}
+                            style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-accent)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
+                            <div style={{ fontSize: 14, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                            {t.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>{t.artist}</div>}
                           </button>
                         );
                       })}
@@ -326,14 +326,14 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 ) : pickMode === 'search' ? (
                   <>
                     <input className="cv-input" placeholder="Buscá tu canción (ej: bohemian rhapsody karaoke)" value={searchQ} onChange={(e) => setSearchQ(e.target.value)} style={{ width: '100%', marginBottom: 8, fontSize: 16 }} />
-                    {searching && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</div>}
+                    {searching && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)' }}>buscando…</div>}
                     {!searching && searchMsg === 'quota' && (
                       <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-warm)', lineHeight: 1.5 }}>
-                        Por ahora no se puede buscar (mucha demanda hoy). <button onClick={() => { setPickMode('paste'); setPicked(null); }} style={{ color: 'var(--cv-cyan)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: 12 }}>Pegá el link de YouTube</button> en su lugar.
+                        Por ahora no se puede buscar (mucha demanda hoy). <button onClick={() => { setPickMode('paste'); setPicked(null); }} style={{ color: 'var(--cv-accent)', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: 12 }}>Pegá el link de YouTube</button> en su lugar.
                       </div>
                     )}
                     {!searching && searchMsg && searchMsg !== 'quota' && (
-                      <div className="cv-mono" style={{ fontSize: 12, color: searchMsg.startsWith('⚠️') ? 'var(--cv-warm)' : 'var(--cv-mono)' }}>{searchMsg}</div>
+                      <div className="cv-mono" style={{ fontSize: 12, color: searchMsg.startsWith('⚠️') ? 'var(--cv-warm)' : 'var(--cv-faint)' }}>{searchMsg}</div>
                     )}
                     {!searching && searchResults.length > 0 && (
                       <div style={{ maxHeight: 220, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -341,9 +341,9 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                           const sel = picked?.external_id === res.videoId;
                           return (
                             <button key={res.videoId} onClick={() => setPicked({ external_id: res.videoId, title: res.title, artist: res.artist, is_embeddable: true })}
-                              style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-mint)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
-                              <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{res.title}</div>
-                              {res.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>{res.artist}</div>}
+                              style={{ textAlign: 'left', padding: '8px 10px', borderRadius: 10, cursor: 'pointer', border: sel ? '1px solid var(--cv-accent)' : '1px solid transparent', background: sel ? 'rgba(var(--cv-accent-rgb),.10)' : 'rgba(255,255,255,.03)' }}>
+                              <div style={{ fontSize: 14, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{res.title}</div>
+                              {res.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>{res.artist}</div>}
                             </button>
                           );
                         })}
@@ -353,14 +353,14 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                 ) : (
                   <>
                     <input className="cv-input" placeholder="Pegá el link de YouTube y soltá" value={pasteUrl} onChange={(e) => setPasteUrl(e.target.value)} onBlur={fetchPaste} style={{ width: '100%', fontSize: 16 }} />
-                    {pasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: pasteMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{pasteMsg}</p>}
+                    {pasteMsg && <p className="cv-mono" style={{ marginTop: 8, fontSize: 12, color: pasteMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{pasteMsg}</p>}
                   </>
                 )}
 
                 {picked && (
                   <div style={{ marginTop: 12, padding: '10px 12px', borderRadius: 10, background: 'rgba(var(--cv-accent-rgb),.08)', border: '1px solid rgba(var(--cv-accent-rgb),.3)' }}>
-                    <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-mint)' }}>VAS A CANTAR</div>
-                    <div style={{ fontSize: 14, color: 'var(--cv-text)', marginTop: 2 }}>{picked.title}{picked.artist ? ` — ${picked.artist}` : ''}</div>
+                    <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-accent)' }}>VAS A CANTAR</div>
+                    <div style={{ fontSize: 14, color: 'var(--cv-ink)', marginTop: 2 }}>{picked.title}{picked.artist ? ` — ${picked.artist}` : ''}</div>
                   </div>
                 )}
 
@@ -368,25 +368,25 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
                   style={{ width: '100%', marginTop: 14, fontSize: 15, padding: '12px 0', opacity: !singer.trim() || !picked ? 0.5 : 1 }}>
                   Anotarme en la fila
                 </button>
-                {kMsg && <p className="cv-mono" style={{ marginTop: 12, fontSize: 13, color: kMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{kMsg}</p>}
+                {kMsg && <p className="cv-mono" style={{ marginTop: 12, fontSize: 13, color: kMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{kMsg}</p>}
               </div>
             )}
 
             {/* la fila */}
-            <div className="cv-mono" style={{ marginTop: 22, marginBottom: 12, fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>FILA PARA CANTAR ({signups.length})</div>
+            <div className="cv-mono" style={{ marginTop: 22, marginBottom: 12, fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-faint)' }}>FILA PARA CANTAR ({signups.length})</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {signups.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no se anotó nadie. ¡Sé el primero!</div>}
+              {signups.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>todavía no se anotó nadie. ¡Sé el primero!</div>}
               {signups.map((s, i) => {
                 const mine = s.session === session;
                 const singing = s.state === 'singing';
                 return (
                   <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, background: singing ? 'rgba(var(--cv-accent-rgb),.10)' : mine ? 'rgba(var(--cv-accent-rgb),.08)' : 'rgba(255,255,255,.03)', border: singing ? '1px solid rgba(var(--cv-accent-rgb),.35)' : mine ? '1px solid rgba(var(--cv-accent-rgb),.3)' : '1px solid rgba(255,255,255,.06)' }}>
-                    <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, color: singing ? 'var(--cv-cyan)' : mine ? 'var(--cv-mint)' : 'var(--cv-muted)', width: 22, flexShrink: 0 }}>{singing ? '♪' : i + 1}</span>
+                    <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, color: singing ? 'var(--cv-accent)' : mine ? 'var(--cv-accent)' : 'var(--cv-mut)', width: 22, flexShrink: 0 }}>{singing ? '♪' : i + 1}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {s.singer}{mine && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mint)' }}> · vos</span>}
+                      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {s.singer}{mine && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-accent)' }}> · vos</span>}
                       </div>
-                      <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
+                      <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.title}{s.artist ? ` — ${s.artist}` : ''}</div>
                     </div>
                     {mine && !singing && (
                       <button onClick={() => removeOwn(s.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 12 }}>sacarme</button>
@@ -396,7 +396,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
               })}
             </div>
 
-            <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-mono-2)', marginTop: 22, lineHeight: 1.6 }}>
+            <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-faint)', marginTop: 22, lineHeight: 1.6 }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>anotate, esperá tu turno y cantá <Ic name="mic" size={11} /></span>
             </div>
           </>
@@ -407,32 +407,32 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
             <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(150deg, rgba(var(--cv-accent-rgb),.18), rgba(var(--cv-accent-rgb),.06))', border: '1px solid rgba(255,255,255,.10)', borderRadius: 18, padding: 14 }}>
               <Vinyl size={56} mini light={CV_LIGHT_THEMES.has(wTheme)} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>SONANDO AHORA</div>
+                <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-accent)' }}>SONANDO AHORA</div>
                 <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack ? nowTrack.title : '—'}</div>
-                {nowTrack?.artist && <div style={{ fontSize: 13, color: 'var(--cv-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack.artist}</div>}
+                {nowTrack?.artist && <div style={{ fontSize: 13, color: 'var(--cv-mut)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack.artist}</div>}
               </div>
               {nowTrack && <MiniEq />}
             </div>
 
             {/* reacciones en vivo: saltan en la pantalla del local */}
             <div style={{ marginTop: 14 }}>
-              <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 8, textAlign: 'center' }}>MANDÁ TU REACCIÓN A LA PANTALLA</div>
+              <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--cv-faint)', marginBottom: 8, textAlign: 'center' }}>MANDÁ TU REACCIÓN A LA PANTALLA</div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap' }}>
                 {['🔥', '❤️', '🎉', '😂', '🙌', '💃'].map((e) => (
-                  <button key={e} onClick={() => sendReaction(e)} style={{ fontSize: 26, lineHeight: 1, padding: '8px 12px', borderRadius: 14, background: 'rgba(var(--cv-accent-rgb),.08)', border: '1px solid var(--cv-line)', cursor: 'pointer' }}>{e}</button>
+                  <button key={e} onClick={() => sendReaction(e)} style={{ fontSize: 26, lineHeight: 1, padding: '8px 12px', borderRadius: 14, background: 'rgba(var(--cv-accent-rgb),.08)', border: '1px solid var(--cv-hair)', cursor: 'pointer' }}>{e}</button>
                 ))}
               </div>
             </div>
 
             {!present && (
               <div className="cv-card" style={{ marginTop: 18, padding: 16 }}>
-                <p style={{ fontSize: 14, color: 'var(--cv-text-2)', marginBottom: 12, lineHeight: 1.5 }}>Para votar, ingresá el código que aparece en la pantalla del local:</p>
+                <p style={{ fontSize: 14, color: 'var(--cv-mut)', marginBottom: 12, lineHeight: 1.5 }}>Para votar, ingresá el código que aparece en la pantalla del local:</p>
                 <input className="cv-input" inputMode="numeric" maxLength={4} placeholder="0000" value={code} onChange={(e) => setCode(e.target.value)}
                   style={{ width: '100%', textAlign: 'center', fontSize: 24, letterSpacing: '.34em', fontFamily: 'var(--cv-font-display)', marginBottom: 16 }} />
 
                 {mode === 'jukebox' && (
                   <>
-                    <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)', marginBottom: 9 }}>TU NOMBRE <span style={{ color: 'var(--cv-mono)' }}>(OPCIONAL)</span></div>
+                    <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-faint)', marginBottom: 9 }}>TU NOMBRE <span style={{ color: 'var(--cv-faint)' }}>(OPCIONAL)</span></div>
                     <input className="cv-input" placeholder="Dejalo vacío para votar anónimo" maxLength={24} value={voterName} onChange={(e) => setVoterName(e.target.value)} style={{ width: '100%', fontSize: 16 }} />
                   </>
                 )}
@@ -441,26 +441,26 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
               </div>
             )}
 
-            {msg && <p className="cv-mono" style={{ marginTop: 14, fontSize: 13, color: 'var(--cv-cyan-light)' }}>{msg}</p>}
+            {msg && <p className="cv-mono" style={{ marginTop: 14, fontSize: 13, color: 'var(--cv-accent)' }}>{msg}</p>}
 
-            <div className="cv-mono" style={{ marginTop: 22, marginBottom: 12, fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>VOTÁ TU CANCIÓN</div>
+            <div className="cv-mono" style={{ marginTop: 22, marginBottom: 12, fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-faint)' }}>VOTÁ TU CANCIÓN</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {sorted.map((t) => (
                 <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.06)', borderRadius: 14, padding: '10px 10px 10px 14px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div className="cv-wordmark" style={{ fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
-                    {t.artist && <div style={{ fontSize: 12, color: 'var(--cv-muted-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</div>}
+                    {t.artist && <div style={{ fontSize: 12, color: 'var(--cv-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.artist}</div>}
                   </div>
                   <button className="cv-vote-btn" onClick={() => vote(t.id)}>
-                    <span style={{ fontSize: 14, lineHeight: 1, color: 'var(--cv-mint)' }}>▲</span>
+                    <span style={{ fontSize: 14, lineHeight: 1, color: 'var(--cv-accent)' }}>▲</span>
                     <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 700, lineHeight: 1 }}>{votes[t.id] || 0}</span>
                   </button>
                 </div>
               ))}
-              {sorted.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>la playlist activa no tiene canciones.</div>}
+              {sorted.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>la playlist activa no tiene canciones.</div>}
             </div>
 
-            <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-mono-2)', marginTop: 22, lineHeight: 1.6 }}>
+            <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-faint)', marginTop: 22, lineHeight: 1.6 }}>
               toca ▲ para sumar tu voto · la vibra se elige entre todos
             </div>
           </>

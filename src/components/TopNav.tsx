@@ -30,7 +30,7 @@ export default function TopNav() {
     window.location.href = '/';
   };
 
-  const linkStyle: React.CSSProperties = { fontSize: 13, color: 'var(--cv-muted)', textDecoration: 'none' };
+  const linkStyle: React.CSSProperties = { fontSize: 13, color: 'var(--cv-mut)', textDecoration: 'none' };
 
   return (
     <nav
@@ -47,7 +47,7 @@ export default function TopNav() {
         background: 'rgba(7,6,14,.82)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
-        borderBottom: '1px solid var(--cv-line)',
+        borderBottom: '1px solid var(--cv-hair)',
       }}
     >
       <a href="/panel" style={{ textDecoration: 'none', flexShrink: 0 }}>
@@ -57,10 +57,10 @@ export default function TopNav() {
         <a href="/panel" className="cv-mono" style={linkStyle}>{isMobile ? 'Locales' : 'Mis locales'}</a>
         <a href="/panel/playlists" className="cv-mono" style={linkStyle}>{isMobile ? 'Playlists' : 'Mis playlists'}</a>
         <a href="/panel/curadas" className="cv-mono" style={linkStyle}>Curadas</a>
-        {isAdmin && <a href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-violet-light)' }}>Admin</a>}
-        {isAdmin && <a href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-violet-light)' }}>Errores</a>}
-        <a href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-cyan)' }}>Consola</a>
-        <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted-2)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
+        {isAdmin && <a href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Admin</a>}
+        {isAdmin && <a href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Errores</a>}
+        <a href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Consola</a>
+        <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
       </div>
     </nav>
   );

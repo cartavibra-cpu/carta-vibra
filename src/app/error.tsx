@@ -30,10 +30,10 @@ export default function Error({
     >
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-accent, #9b8cff)' }}><Ic name="sliders" size={44} /></div>
-        <h1 className="cv-wordmark" style={{ fontSize: 26, fontWeight: 600, color: 'var(--cv-text)' }}>
+        <h1 className="cv-wordmark" style={{ fontSize: 26, fontWeight: 600, color: 'var(--cv-ink)' }}>
           Algo se desafinó
         </h1>
-        <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10, lineHeight: 1.6 }}>
+        <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 10, lineHeight: 1.6 }}>
           Tuvimos un problema cargando esta pantalla. Ya quedó registrado para revisarlo. Probá de nuevo.
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20, flexWrap: 'wrap' }}>

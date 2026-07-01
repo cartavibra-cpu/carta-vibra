@@ -7,41 +7,9 @@
    ============================================================ */
 
 :root {
-  /* ── COMPAT: los tokens viejos ahora APUNTAN a los del tema ──
-     Cada página existente queda conectada al motor de temas sin reescribir
-     cientos de líneas. Se resuelven en cascada (ver "MOTOR DE TEMAS" abajo). */
-
-  /* Marca → acento del tema */
-  --cv-violet:        var(--cv-accent);
-  --cv-violet-light:  var(--cv-accent);
-  --cv-cyan:          var(--cv-accent);
-  --cv-mint:          var(--cv-accent);
-
-  /* Superficies → tema */
-  --cv-night:         var(--cv-bg);
-  --cv-bg-2:          var(--cv-surf);
-  --cv-surface:       var(--cv-surf);
-
-  /* Texto → tema (3 niveles: ink / mut / faint) */
-  --cv-text:          var(--cv-ink);
-  --cv-text-2:        var(--cv-mut);
-  --cv-muted:         var(--cv-mut);
-  --cv-muted-2:       var(--cv-faint);
-  --cv-mono:          var(--cv-faint);
-  --cv-mono-2:        var(--cv-faint);
-
-  /* Acentos utilitarios neutros (semánticos, no cambian con el tema) */
+  /* Tokens semánticos neutros (no cambian con el tema) */
   --cv-dot-off:       #3A3548;   /* punto playlist inactiva */
   --cv-warm:          #CC9977;   /* acción borrar */
-
-  /* Gradientes → gradiente del tema (insignia violeta en Vibra por defecto) */
-  --cv-grad:       var(--cv-theme-grad);
-  --cv-grad-text:  var(--cv-theme-grad);
-  --cv-grad-code:  var(--cv-theme-grad);
-  --cv-grad-code-retro: var(--cv-theme-grad);
-
-  /* línea/hairline → tema */
-  --cv-line:       var(--cv-hair);
 
   /* Forma */
   --cv-radius:     16px;
@@ -68,10 +36,10 @@
 @keyframes cvBubble  { 0%{transform:translateX(-50%) translateY(0);opacity:0;} 14%{opacity:.85;} 86%{opacity:.85;} 100%{transform:translateX(-50%) translateY(-66vh);opacity:0;} }
 
 /* ---------- Base ---------- */
-html { background: var(--cv-night); }
+html { background: var(--cv-bg); }
 body {
-  background: var(--cv-night);
-  color: var(--cv-text);
+  background: var(--cv-bg);
+  color: var(--cv-ink);
   font-family: var(--cv-font-body);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -85,23 +53,23 @@ body {
   font-family: var(--cv-font-wordmark, var(--cv-font-display));
   font-weight: 600;
   letter-spacing: -.03em;
-  color: var(--cv-text);
+  color: var(--cv-ink);
   line-height: 1;
 }
 .cv-grad-text {
-  background: var(--cv-grad-text);
+  background: var(--cv-theme-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .cv-grad-code {
-  background: var(--cv-grad-code);
+  background: var(--cv-theme-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .cv-grad-code-retro {
-  background: var(--cv-grad-code-retro);
+  background: var(--cv-theme-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -111,7 +79,7 @@ body {
 .cv-mono {
   font-family: var(--cv-font-body);
   letter-spacing: .14em;
-  color: var(--cv-mono);
+  color: var(--cv-faint);
 }
 
 /* Superficie / tarjeta */
@@ -163,8 +131,8 @@ body {
 .cv-live-dot {
   width: 9px; height: 9px;
   border-radius: 50%;
-  background: var(--cv-mint);
-  box-shadow: 0 0 12px var(--cv-mint);
+  background: var(--cv-accent);
+  box-shadow: 0 0 12px var(--cv-accent);
   animation: cvLive 1.4s ease-in-out infinite;
 }
 
@@ -185,11 +153,6 @@ body {
 /* ============================================================
    v2 · Director's cut — extras (ondas, termómetro, scroll)
    ============================================================ */
-:root {
-  --cv-cyan-light:  var(--cv-accent);
-  --cv-violet-tint: var(--cv-accent);
-  --cv-night-wave:  var(--cv-bg);
-}
 
 /* barras de la forma de onda */
 @keyframes cvWiggle { 0%,100%{transform:scaleY(.9);} 50%{transform:scaleY(1.08);} }
@@ -233,9 +196,9 @@ html { scroll-behavior: smooth; }
 .cv-btn-mint { background: var(--cv-accent); color: var(--cv-on); }
 
 .cv-input {
-  background: var(--cv-bg-2);
-  border: 1px solid var(--cv-line);
-  color: var(--cv-text);
+  background: var(--cv-surf);
+  border: 1px solid var(--cv-hair);
+  color: var(--cv-ink);
   border-radius: 11px;
   padding: 12px 14px;
   font-family: var(--cv-font-body);
@@ -244,7 +207,7 @@ html { scroll-behavior: smooth; }
   transition: border-color .15s ease;
 }
 .cv-input:focus { border-color: rgba(var(--cv-accent-rgb),.5); }
-.cv-input::placeholder { color: var(--cv-mono-2); }
+.cv-input::placeholder { color: var(--cv-faint); }
 
 .cv-vote-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;

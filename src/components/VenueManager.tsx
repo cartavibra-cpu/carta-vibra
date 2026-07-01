@@ -23,8 +23,8 @@ type Assignment = {
 type LibPlaylist = { id: string; name: string; type: string | null; mood: string | null };
 
 const SECTIONS: { key: Section; label: string; accent: string; hint: string }[] = [
-  { key: 'jukebox', label: 'JUKEBOX', accent: 'var(--cv-cyan)', hint: 'Los clientes votan las canciones de la playlist activa.' },
-  { key: 'karaoke', label: 'KARAOKE', accent: 'var(--cv-mint)', hint: 'Para cantar. (El modo karaoke completo llega pronto.)' },
+  { key: 'jukebox', label: 'JUKEBOX', accent: 'var(--cv-accent)', hint: 'Los clientes votan las canciones de la playlist activa.' },
+  { key: 'karaoke', label: 'KARAOKE', accent: 'var(--cv-accent)', hint: 'Para cantar. (El modo karaoke completo llega pronto.)' },
 ];
 
 function belongsToSection(p: LibPlaylist, section: Section) {
@@ -32,7 +32,7 @@ function belongsToSection(p: LibPlaylist, section: Section) {
   return p.type !== 'karaoke' && p.type !== 'dj_pro';
 }
 
-const labelStyle: React.CSSProperties = { fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)' };
+const labelStyle: React.CSSProperties = { fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-faint)' };
 
 export default function VenueManager({ slug, showHeader = false }: { slug: string; showHeader?: boolean }) {
   const [venue, setVenue] = useState<any>(null);
@@ -157,17 +157,17 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
   };
 
   if (!venue) return (
-    <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', padding: '8px 0' }}>cargando local…</div>
+    <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', padding: '8px 0' }}>cargando local…</div>
   );
 
-  const block: React.CSSProperties = { paddingTop: 20, marginTop: 20, borderTop: '1px solid var(--cv-line)' };
+  const block: React.CSSProperties = { paddingTop: 20, marginTop: 20, borderTop: '1px solid var(--cv-hair)' };
 
   return (
     <div>
       {showHeader && (
         <div style={{ marginBottom: 22 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 600 }}>{venue.name}</h1>
-          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 6 }}>MODO · {modeLabel(venue.mode)}</div>
+          <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 6 }}>MODO · {modeLabel(venue.mode)}</div>
         </div>
       )}
 
@@ -176,26 +176,26 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
         <div className="cv-card" style={{ padding: '18px 20px', marginBottom: 20, border: '1px solid rgba(var(--cv-accent-rgb),.3)', background: 'linear-gradient(160deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.05))' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)', flexShrink: 0 }} />
-            <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>Primeros pasos</span>
+            <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-ink)' }}>Primeros pasos</span>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 14px' }}>
+          <p style={{ fontSize: 13, color: 'var(--cv-mut)', lineHeight: 1.5, margin: '0 0 14px' }}>
             Dos cositas y tu local queda listo para abrir:
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* paso 1: playlist */}
             <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
-              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-mint)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasPlaylist ? 'var(--cv-on)' : 'transparent' }}>✓</span>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-accent)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-faint)', color: hasPlaylist ? 'var(--cv-on)' : 'transparent' }}>✓</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: hasPlaylist ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasPlaylist ? 'line-through' : 'none' }}>Elegí la música y ponela a sonar</div>
-                {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> más abajo, en <b style={{ color: 'var(--cv-text-2)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-text-2)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <a href="/panel/curadas" style={{ color: 'var(--cv-cyan)' }}>curadas</a>.</div>}
+                <div style={{ fontSize: 14, fontWeight: 600, color: hasPlaylist ? 'var(--cv-mut)' : 'var(--cv-ink)', textDecoration: hasPlaylist ? 'line-through' : 'none' }}>Elegí la música y ponela a sonar</div>
+                {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> más abajo, en <b style={{ color: 'var(--cv-mut)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-mut)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <a href="/panel/curadas" style={{ color: 'var(--cv-accent)' }}>curadas</a>.</div>}
               </div>
             </div>
             {/* paso 2: consola */}
             <div style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
-              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasConsole ? 'var(--cv-mint)' : 'transparent', border: hasConsole ? 'none' : '1.5px solid var(--cv-muted-2)', color: hasConsole ? 'var(--cv-on)' : 'transparent' }}>✓</span>
+              <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasConsole ? 'var(--cv-accent)' : 'transparent', border: hasConsole ? 'none' : '1.5px solid var(--cv-faint)', color: hasConsole ? 'var(--cv-on)' : 'transparent' }}>✓</span>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: hasConsole ? 'var(--cv-muted)' : 'var(--cv-text)', textDecoration: hasConsole ? 'line-through' : 'none' }}>Vinculá la pantalla del local</div>
-                {!hasConsole && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', marginTop: 4, lineHeight: 1.5 }}>En la pantalla o PC del local, abrí <b style={{ color: 'var(--cv-text-2)' }}>/console</b>. Te da un código de 6 dígitos: escribilo acá abajo en <b style={{ color: 'var(--cv-text-2)' }}>“Vincular consola”</b>.</div>}
+                <div style={{ fontSize: 14, fontWeight: 600, color: hasConsole ? 'var(--cv-mut)' : 'var(--cv-ink)', textDecoration: hasConsole ? 'line-through' : 'none' }}>Vinculá la pantalla del local</div>
+                {!hasConsole && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 4, lineHeight: 1.5 }}>En la pantalla o PC del local, abrí <b style={{ color: 'var(--cv-mut)' }}>/console</b>. Te da un código de 6 dígitos: escribilo acá abajo en <b style={{ color: 'var(--cv-mut)' }}>“Vincular consola”</b>.</div>}
               </div>
             </div>
           </div>
@@ -205,21 +205,21 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
       {/* Vincular consola */}
       <div>
         <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>VINCULAR CONSOLA</div>
-        <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          Abrí <b style={{ color: 'var(--cv-text)' }}>/console</b> en la pantalla del local. Te muestra un código de 6 dígitos. Escribilo acá.
+        <p style={{ fontSize: 13.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '0 0 12px' }}>
+          Abrí <b style={{ color: 'var(--cv-ink)' }}>/console</b> en la pantalla del local. Te muestra un código de 6 dígitos. Escribilo acá.
         </p>
         <form onSubmit={handlePair} style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <input className="cv-input" inputMode="numeric" maxLength={6} placeholder="000000" value={pairCode} onChange={(e) => setPairCode(e.target.value)} style={{ width: 150, textAlign: 'center', fontSize: 19, letterSpacing: '.25em', fontFamily: 'var(--cv-font-display)' }} />
           <button className="cv-btn cv-btn-cyan" type="submit" style={{ fontSize: 14, padding: '0 22px' }}>Vincular</button>
         </form>
-        {pairMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-cyan-light)' }}>{pairMsg}</p>}
+        {pairMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 13, color: 'var(--cv-accent)' }}>{pairMsg}</p>}
       </div>
 
       {/* Control en vivo desde el celular */}
       <div style={block}>
         <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>CONTROL EN VIVO (CELULAR)</div>
-        <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          Mientras el PC proyecta a la TV, controlá el local <b style={{ color: 'var(--cv-text)' }}>desde tu celular</b>. En karaoke: agregar, reordenar, anterior y siguiente. En jukebox: saltear, pausar, AutoDJ y segundos por canción. Abrí este link en tu teléfono (logueado con tu cuenta).
+        <p style={{ fontSize: 13.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '0 0 12px' }}>
+          Mientras el PC proyecta a la TV, controlá el local <b style={{ color: 'var(--cv-ink)' }}>desde tu celular</b>. En karaoke: agregar, reordenar, anterior y siguiente. En jukebox: saltear, pausar, AutoDJ y segundos por canción. Abrí este link en tu teléfono (logueado con tu cuenta).
         </p>
         <a href={`/control/${slug}`} className="cv-btn cv-btn-mint" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, padding: '10px 20px' }}><Ic name="phone" size={16} />Abrir control en vivo</a>
       </div>
@@ -227,14 +227,14 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
       {/* Playlists del local */}
       <div style={block}>
         <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>PLAYLISTS DEL LOCAL</div>
-        <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '0 0 14px' }}>
-          Asigná playlists de tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> a cada sección y elegí cuál suena.
-          La que <b style={{ color: 'var(--cv-mint)' }}>está sonando</b> es la que ven y votan los clientes — solo una a la vez.
+        <p style={{ fontSize: 13.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '0 0 14px' }}>
+          Asigná playlists de tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> a cada sección y elegí cuál suena.
+          La que <b style={{ color: 'var(--cv-accent)' }}>está sonando</b> es la que ven y votan los clientes — solo una a la vez.
         </p>
 
         <div style={{ marginBottom: 16, padding: '11px 14px', borderRadius: 12, background: 'rgba(var(--cv-accent-rgb),.06)', border: '1px solid rgba(var(--cv-accent-rgb),.2)' }}>
-          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted)' }}>SONANDO AHORA</span>
-          <div style={{ fontSize: 15.5, fontWeight: 700, color: activeAssignment ? 'var(--cv-text)' : 'var(--cv-mono)', marginTop: 3 }}>
+          <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>SONANDO AHORA</span>
+          <div style={{ fontSize: 15.5, fontWeight: 700, color: activeAssignment ? 'var(--cv-ink)' : 'var(--cv-faint)', marginTop: 3 }}>
             {activeAssignment ? `${activeAssignment.name}  ·  ${activeAssignment.section === 'karaoke' ? 'Karaoke' : 'Jukebox'}` : 'Ninguna playlist activa'}
           </div>
         </div>
@@ -248,34 +248,34 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: sec.accent, boxShadow: `0 0 10px ${sec.accent}` }} />
                 <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: sec.accent }}>{sec.label}</span>
               </div>
-              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', margin: isMobile ? '0 0 10px 0' : '0 0 10px 16px' }}>{sec.hint}</p>
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', margin: isMobile ? '0 0 10px 0' : '0 0 10px 16px' }}>{sec.hint}</p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginLeft: isMobile ? 0 : 16 }}>
                 {items.length === 0 && (
-                  <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin playlists asignadas.</div>
+                  <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>sin playlists asignadas.</div>
                 )}
                 {items.map((a, idx) => (
                   <div key={a.id} style={{
                     display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
                     background: a.is_active ? 'rgba(var(--cv-accent-rgb),.08)' : 'rgba(255,255,255,.02)',
-                    border: a.is_active ? '1px solid rgba(var(--cv-accent-rgb),.35)' : '1px solid var(--cv-line)',
+                    border: a.is_active ? '1px solid rgba(var(--cv-accent-rgb),.35)' : '1px solid var(--cv-hair)',
                   }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                       <button onClick={() => move(a, -1)} disabled={busy || idx === 0} title="Subir"
-                        style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: idx === 0 ? 0.4 : 1 }}>▲</button>
+                        style={{ background: 'none', border: 'none', cursor: idx === 0 ? 'default' : 'pointer', color: idx === 0 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 11, lineHeight: 1, padding: 0, opacity: idx === 0 ? 0.4 : 1 }}>▲</button>
                       <button onClick={() => move(a, 1)} disabled={busy || idx === items.length - 1} title="Bajar"
-                        style={{ background: 'none', border: 'none', cursor: idx === items.length - 1 ? 'default' : 'pointer', color: idx === items.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 11, lineHeight: 1, padding: 0, opacity: idx === items.length - 1 ? 0.4 : 1 }}>▼</button>
+                        style={{ background: 'none', border: 'none', cursor: idx === items.length - 1 ? 'default' : 'pointer', color: idx === items.length - 1 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 11, lineHeight: 1, padding: 0, opacity: idx === items.length - 1 ? 0.4 : 1 }}>▼</button>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
-                      <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--cv-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
+                      <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>
                         {a.count} {a.count === 1 ? 'canción' : 'canciones'}{a.mood ? ` · ${a.mood}` : ''}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: isMobile ? '1 1 100%' : '0 0 auto', justifyContent: isMobile ? 'flex-end' : undefined }}>
                       {a.is_active ? (
-                        <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mint)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+                        <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-accent)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
                           Sonando
                         </span>
                       ) : (
@@ -290,17 +290,17 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                 {avail.length > 0 ? (
                   <select className="cv-input" defaultValue="" disabled={busy}
                     onChange={(e) => { const val = e.target.value; e.currentTarget.value = ''; doAssign(sec.key, val); }}
-                    style={{ marginTop: 2, fontSize: 14, color: 'var(--cv-text-2)' }}>
+                    style={{ marginTop: 2, fontSize: 14, color: 'var(--cv-mut)' }}>
                     <option value="" disabled>+ Asignar playlist de la biblioteca…</option>
                     {avail.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}{p.mood ? ` · ${p.mood}` : ''}</option>
                     ))}
                   </select>
                 ) : (
-                  <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', marginTop: 2 }}>
+                  <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 2 }}>
                     {library.some((p) => belongsToSection(p, sec.key))
                       ? 'ya asignaste todas tus playlists de esta sección.'
-                      : <>no tenés playlists de esta sección · <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>creá una en tu biblioteca</a></>}
+                      : <>no tenés playlists de esta sección · <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>creá una en tu biblioteca</a></>}
                   </div>
                 )}
               </div>
@@ -315,9 +315,9 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
           {qr && <img src={qr} alt="QR" style={{ width: 140, height: 140, borderRadius: 12, background: '#fff', padding: 8 }} />}
           <div>
-            <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginBottom: 6 }}>MESA</div>
+            <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', marginBottom: 6 }}>MESA</div>
             <input className="cv-input" value={mesa} onChange={(e) => setMesa(e.target.value)} style={{ width: 90 }} />
-            <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)', marginTop: 10, maxWidth: 240, lineHeight: 1.5 }}>El QR lleva al widget de este local con el número de mesa.</p>
+            <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 10, maxWidth: 240, lineHeight: 1.5 }}>El QR lleva al widget de este local con el número de mesa.</p>
           </div>
         </div>
       </div>

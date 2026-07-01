@@ -59,7 +59,7 @@ export default function Home() {
         <BrandMark size={150} glow beat />
 
         <div style={{ textAlign: 'center' }}>
-          <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>
+          <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)' }}>
             {session.user?.email}
           </div>
         </div>
@@ -73,7 +73,7 @@ export default function Home() {
           </a>
         </div>
 
-        <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-mono)', textDecoration: 'underline', marginTop: 4 }}>
+        <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-faint)', textDecoration: 'underline', marginTop: 4 }}>
           Salir
         </button>
       </div>

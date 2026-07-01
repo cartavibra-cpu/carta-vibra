@@ -34,7 +34,7 @@ function GoogleButton({ onClick, small }: { onClick: () => void; small?: boolean
         padding: small ? '9px 15px' : '14px 26px',
         background: 'rgba(255,255,255,.05)',
         border: '1px solid rgba(var(--cv-accent-rgb),.42)',
-        color: 'var(--cv-text)',
+        color: 'var(--cv-ink)',
         boxShadow: '0 8px 26px rgba(var(--cv-accent-rgb),.12)',
         backdropFilter: 'blur(8px)',
         WebkitBackdropFilter: 'blur(8px)',
@@ -49,7 +49,7 @@ function GoogleButton({ onClick, small }: { onClick: () => void; small?: boolean
 
 function Eyebrow({ children, color }: { children: React.ReactNode; color?: string }) {
   return (
-    <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.22em', textTransform: 'uppercase', color: color ?? 'var(--cv-muted-2)' }}>
+    <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.22em', textTransform: 'uppercase', color: color ?? 'var(--cv-faint)' }}>
       {children}
     </div>
   );
@@ -168,10 +168,10 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <BrandMark size={vinylSize} glow beat />
           </div>
           <div style={{ maxWidth: 600 }}>
-            <div className="cv-mono" style={{ fontSize: 14, letterSpacing: '.14em', color: 'var(--cv-muted-2)' }}>
+            <div className="cv-mono" style={{ fontSize: 14, letterSpacing: '.14em', color: 'var(--cv-faint)' }}>
               La vibra se elige entre todos.
             </div>
-            <p style={{ marginTop: 14, fontSize: 'clamp(17px, 2.6vw, 21px)', lineHeight: 1.55, color: 'var(--cv-text-2)' }}>
+            <p style={{ marginTop: 14, fontSize: 'clamp(17px, 2.6vw, 21px)', lineHeight: 1.55, color: 'var(--cv-mut)' }}>
               Tu rockola DJ digital. La música de tu local, elegida por su gente — en vivo, desde el celular.
             </p>
           </div>
@@ -186,7 +186,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
         </div>
 
         <div style={{ position: 'absolute', bottom: 26, left: '50%', transform: 'translateX(-50%)' }}>
-          <a href="#que-es" className="cv-mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--cv-mono)', textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <a href="#que-es" className="cv-mono" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--cv-faint)', textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
             cómo funciona
             <span style={{ fontSize: 16 }}>↓</span>
           </a>
@@ -201,7 +201,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 48px)', fontWeight: 600, lineHeight: 1.1, marginTop: 16 }}>
               No es una rockola. Es el <span className="cv-grad-text">sistema nervioso</span> de tu local.
             </h2>
-            <p style={{ marginTop: 22, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-muted)' }}>
+            <p style={{ marginTop: 22, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-mut)' }}>
               Carta Vibra pone la música del ambiente en manos de la gente. Tus clientes votan, suena lo más votado,
               y la energía del lugar se construye sola — sin pedirle canciones al mesero, sin un DJ que adivine.
             </p>
@@ -218,14 +218,14 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
           </div>
           <div className="cv-steps">
             {[
-              { n: '01', c: 'var(--cv-violet-light)', t: 'Pega el QR en las mesas', d: 'Lo imprimes desde tu panel y listo. Cada local tiene el suyo.' },
-              { n: '02', c: 'var(--cv-cyan)', t: 'Tu gente vota desde el celular', d: 'Sin descargar nada. Escanean, entran con el código de la pantalla, y eligen.' },
-              { n: '03', c: 'var(--cv-mint)', t: 'La pantalla reproduce lo más votado', d: 'La cola se reordena en vivo. El local suena como su gente.' },
+              { n: '01', c: 'var(--cv-accent)', t: 'Pega el QR en las mesas', d: 'Lo imprimes desde tu panel y listo. Cada local tiene el suyo.' },
+              { n: '02', c: 'var(--cv-accent)', t: 'Tu gente vota desde el celular', d: 'Sin descargar nada. Escanean, entran con el código de la pantalla, y eligen.' },
+              { n: '03', c: 'var(--cv-accent)', t: 'La pantalla reproduce lo más votado', d: 'La cola se reordena en vivo. El local suena como su gente.' },
             ].map((s, i) => (
               <div key={s.n} data-reveal className="cv-card" style={{ padding: 24, transitionDelay: `${i * 90}ms` }}>
                 <div className="cv-wordmark" style={{ fontSize: 14, fontWeight: 700, color: s.c, letterSpacing: '.04em' }}>{s.n}</div>
                 <div className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, marginTop: 12 }}>{s.t}</div>
-                <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--cv-muted)', marginTop: 8 }}>{s.d}</p>
+                <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--cv-mut)', marginTop: 8 }}>{s.d}</p>
               </div>
             ))}
           </div>
@@ -236,7 +236,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       <section className="cv-section">
         <div className="cv-container">
           <div data-reveal style={{ textAlign: 'center', marginBottom: 36 }}>
-            <Eyebrow color="var(--cv-cyan-light)">La consola</Eyebrow>
+            <Eyebrow color="var(--cv-accent)">La consola</Eyebrow>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 4.5vw, 42px)', fontWeight: 600, marginTop: 14 }}>Una sola onda. Se ve de lejos.</h2>
           </div>
 
@@ -247,8 +247,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <BrandMark size={28} layout="row" />
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-cyan)', boxShadow: '0 0 12px var(--cv-cyan)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
-                <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>EN VIVO</span>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 12px var(--cv-accent)', animation: 'cvLive 1.4s ease-in-out infinite' }} />
+                <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-accent)' }}>EN VIVO</span>
               </div>
             </div>
 
@@ -258,14 +258,14 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
                 <Waveform n={isMobile ? 30 : 76} color="var(--cv-accent)" maxH={isMobile ? 150 : 210} barW={5} gap={5} notch={isMobile ? 5 : 9} seed={5} />
               </div>
               <div style={{ position: 'relative', textAlign: 'center' }}>
-                <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.28em', color: 'var(--cv-cyan-light)', marginBottom: 4 }}>CÓDIGO DE SALA</div>
+                <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.28em', color: 'var(--cv-accent)', marginBottom: 4 }}>CÓDIGO DE SALA</div>
                 <div className="cv-wordmark cv-grad-code" style={{ fontSize: 'clamp(64px, 13vw, 150px)', fontWeight: 700, lineHeight: 0.9, letterSpacing: '.03em', textShadow: '0 0 70px rgba(var(--cv-accent-rgb),.3)' }}>4829</div>
               </div>
             </div>
 
             {/* sonando ahora */}
-            <div className="cv-mono" style={{ position: 'relative', textAlign: 'center', fontSize: 13, letterSpacing: '.06em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>
-              SONANDO AHORA · <span style={{ color: 'var(--cv-cyan)' }}>One More Time</span> — Daft Punk
+            <div className="cv-mono" style={{ position: 'relative', textAlign: 'center', fontSize: 13, letterSpacing: '.06em', color: 'var(--cv-faint)', marginBottom: 16 }}>
+              SONANDO AHORA · <span style={{ color: 'var(--cv-accent)' }}>One More Time</span> — Daft Punk
             </div>
 
             {/* ticker */}
@@ -273,15 +273,15 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               {[['Borderline', 47], ['Tek It', 41], ['Flashing Lights', 33]].map(([t, v], i) => (
                 <React.Fragment key={t as string}>
                   {i > 0 && <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#3a4658' }} />}
-                  <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 500, color: 'var(--cv-text-2)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: 'var(--cv-cyan)' }}>▲</span> {t} <span style={{ color: 'var(--cv-cyan-light)' }}>{v}</span>
+                  <span className="cv-wordmark" style={{ fontSize: 15, fontWeight: 500, color: 'var(--cv-mut)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: 'var(--cv-accent)' }}>▲</span> {t} <span style={{ color: 'var(--cv-accent)' }}>{v}</span>
                   </span>
                 </React.Fragment>
               ))}
             </div>
           </div>
 
-          <p data-reveal style={{ textAlign: 'center', marginTop: 22, fontSize: 15, color: 'var(--cv-muted)', maxWidth: 560, marginInline: 'auto' }}>
+          <p data-reveal style={{ textAlign: 'center', marginTop: 22, fontSize: 15, color: 'var(--cv-mut)', maxWidth: 560, marginInline: 'auto' }}>
             El código de sala es el héroe. Tu gente lo escribe en el celular y ya está adentro, votando.
           </p>
         </div>
@@ -293,7 +293,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
           <div data-reveal style={{ marginBottom: 36 }}>
             <Eyebrow>El color late con la sala</Eyebrow>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 4.5vw, 42px)', fontWeight: 600, marginTop: 14 }}>La vibra no se dice. Se ve.</h2>
-            <p style={{ marginTop: 18, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-muted)', maxWidth: 680 }}>
+            <p style={{ marginTop: 18, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-mut)', maxWidth: 680 }}>
               El color es un termómetro del ambiente: violeta cuando el local está tranquilo, menta cuando está encendido.
               La frase se vuelve literal — visible desde la barra.
             </p>
@@ -308,7 +308,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               const label = (
                 <div style={{ flexShrink: 0, ...(isMobile ? {} : { width: 150 }) }}>
                   <div className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: r.title }}>{r.name}</div>
-                  <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>{r.meta}</div>
+                  <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 3 }}>{r.meta}</div>
                 </div>
               );
               const code = (
@@ -359,7 +359,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 48px)', fontWeight: 600, lineHeight: 1.1, marginTop: 16 }}>
               El DJ que <span className="cv-grad-text">nunca para</span>.
             </h2>
-            <p style={{ marginTop: 22, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-muted)' }}>
+            <p style={{ marginTop: 22, fontSize: 'clamp(16px, 2.2vw, 18px)', lineHeight: 1.7, color: 'var(--cv-mut)' }}>
               Carta Vibra aprende qué prende a tu gente. El objetivo: un DJ virtual que anima tu espacio solo,
               toda la noche — leyendo la sala y eligiendo lo que sube la vibra.
             </p>
@@ -369,7 +369,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
           <div data-reveal className="cv-eco" style={{ marginTop: 40 }}>
             <div className="cv-card" style={{ padding: 22 }}>
               <BrandMark size={30} layout="row" />
-              <p style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10, lineHeight: 1.6 }}>Noche, neón, movimiento. La energía de tu local cuando suena.</p>
+              <p style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 10, lineHeight: 1.6 }}>Noche, neón, movimiento. La energía de tu local cuando suena.</p>
             </div>
             <div style={{ padding: 22, borderRadius: 16, border: '1px solid rgba(214,167,116,.16)', background: 'linear-gradient(180deg,#16110d,#0e0b08)' }}>
               <div style={{ fontFamily: 'Georgia, serif', fontWeight: 600, fontSize: 19, color: '#ebd9c2' }}>CartaViva</div>
@@ -384,11 +384,11 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
         <div className="cv-container" style={{ textAlign: 'center', maxWidth: 680 }}>
           <div data-reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 22 }}>
             <Vinyl size={92} mini />
-            <Eyebrow color="var(--cv-mint)">¿Lo querés en tu local?</Eyebrow>
+            <Eyebrow color="var(--cv-accent)">¿Lo querés en tu local?</Eyebrow>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 600, lineHeight: 1.15 }}>
               Que tu local suene <span className="cv-grad-text">como su gente</span>.
             </h2>
-            <p style={{ fontSize: 'clamp(15px, 2.2vw, 17px)', lineHeight: 1.65, color: 'var(--cv-muted)', maxWidth: 520 }}>
+            <p style={{ fontSize: 'clamp(15px, 2.2vw, 17px)', lineHeight: 1.65, color: 'var(--cv-mut)', maxWidth: 520 }}>
               Te mostramos cómo quedaría andando en tu local y lo dejamos listo. Escribinos y conversamos — sin compromiso.
             </p>
 
@@ -401,8 +401,8 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               </a>
             </div>
 
-            <div className="cv-mono" style={{ fontSize: 12.5, letterSpacing: '.04em', color: 'var(--cv-muted-2)', display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 4, maxWidth: '100%' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-mint)', boxShadow: '0 0 8px var(--cv-mint)', flexShrink: 0 }} />
+            <div className="cv-mono" style={{ fontSize: 12.5, letterSpacing: '.04em', color: 'var(--cv-faint)', display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 4, maxWidth: '100%' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
               Te responde una persona de verdad, no un robot.
             </div>
           </div>
@@ -412,7 +412,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <BrandMark size={32} layout="row" />
           </div>
-          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-mono)', marginTop: 12 }}>La vibra se elige entre todos · Tu rockola DJ digital</div>
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.12em', color: 'var(--cv-faint)', marginTop: 12 }}>La vibra se elige entre todos · Tu rockola DJ digital</div>
         </footer>
       </section>
     </main>

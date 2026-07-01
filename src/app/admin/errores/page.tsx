@@ -62,7 +62,7 @@ export default function ErroresPage() {
   if (isAdmin === null) {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG }}>
-        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted)' }}>cargando…</div>
+        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-mut)' }}>cargando…</div>
       </main>
     );
   }
@@ -70,7 +70,7 @@ export default function ErroresPage() {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
         <div style={{ textAlign: 'center' }}>
-          <p style={{ color: 'var(--cv-text-2)', fontSize: 15, marginBottom: 16 }}>Esta sección es solo para administradores.</p>
+          <p style={{ color: 'var(--cv-mut)', fontSize: 15, marginBottom: 16 }}>Esta sección es solo para administradores.</p>
           <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
         </div>
       </main>
@@ -93,19 +93,19 @@ export default function ErroresPage() {
             {loading ? 'Cargando…' : '↻ Actualizar'}
           </button>
         </div>
-        <p style={{ fontSize: 14, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 18px', maxWidth: 580 }}>
+        <p style={{ fontSize: 14, color: 'var(--cv-mut)', lineHeight: 1.5, margin: '0 0 18px', maxWidth: 580 }}>
           Lo que falló en la app (cliente y servidor). Si está vacío, todo viene andando.
         </p>
 
         {/* resumen */}
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 18 }}>
           <div className="cv-card" style={{ padding: '12px 18px', flex: '1 1 auto', minWidth: 140 }}>
-            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)' }}>ÚLTIMAS 24 H</div>
-            <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: last24 > 0 ? 'var(--cv-warm)' : 'var(--cv-mint)', marginTop: 2 }}>{last24}</div>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-faint)' }}>ÚLTIMAS 24 H</div>
+            <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: last24 > 0 ? 'var(--cv-warm)' : 'var(--cv-accent)', marginTop: 2 }}>{last24}</div>
           </div>
           <div className="cv-card" style={{ padding: '12px 18px', flex: '1 1 auto', minWidth: 140 }}>
-            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-muted-2)' }}>TOTAL (últimos 150)</div>
-            <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: 'var(--cv-text)', marginTop: 2 }}>{rows.length}</div>
+            <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-faint)' }}>TOTAL (últimos 150)</div>
+            <div className="cv-wordmark" style={{ fontSize: 28, fontWeight: 700, color: 'var(--cv-ink)', marginTop: 2 }}>{rows.length}</div>
           </div>
         </div>
 
@@ -115,9 +115,9 @@ export default function ErroresPage() {
             {['todos', ...contexts].map((c) => (
               <button key={c} onClick={() => setFilter(c)} className="cv-mono"
                 style={{ fontSize: 12, padding: '6px 12px', borderRadius: 999, cursor: 'pointer',
-                  border: filter === c ? '1px solid var(--cv-cyan)' : '1px solid var(--cv-line)',
+                  border: filter === c ? '1px solid var(--cv-accent)' : '1px solid var(--cv-hair)',
                   background: filter === c ? 'rgba(var(--cv-accent-rgb),.10)' : 'transparent',
-                  color: filter === c ? 'var(--cv-cyan)' : 'var(--cv-muted)' }}>{c}</button>
+                  color: filter === c ? 'var(--cv-accent)' : 'var(--cv-mut)' }}>{c}</button>
             ))}
           </div>
         )}
@@ -125,8 +125,8 @@ export default function ErroresPage() {
         {/* lista */}
         {shown.length === 0 ? (
           <div className="cv-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, color: "var(--cv-mint)" }}><Ic name="check" size={34} /></div>
-            <p className="cv-mono" style={{ fontSize: 14, color: 'var(--cv-muted)' }}>Sin errores registrados. Todo viene andando.</p>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, color: "var(--cv-accent)" }}><Ic name="check" size={34} /></div>
+            <p className="cv-mono" style={{ fontSize: 14, color: 'var(--cv-mut)' }}>Sin errores registrados. Todo viene andando.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -136,44 +136,44 @@ export default function ErroresPage() {
                 <div key={r.id} className="cv-card" style={{ padding: 0, overflow: 'hidden' }}>
                   <button onClick={() => toggle(r.id)}
                     style={{ width: '100%', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
-                    <span style={{ marginTop: 2, fontSize: 14, color: 'var(--cv-cyan)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
+                    <span style={{ marginTop: 2, fontSize: 14, color: 'var(--cv-accent)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .2s', flexShrink: 0 }}>›</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
-                        <span className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.08em', color: 'var(--cv-cyan-light)', border: '1px solid rgba(var(--cv-accent-rgb),.3)', borderRadius: 999, padding: '1px 8px' }}>{r.context || '—'}</span>
-                        {r.venue_slug && <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-muted-2)' }}>/{r.venue_slug}</span>}
-                        <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-mono)' }}>{timeAgo(r.created_at)}</span>
+                        <span className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.08em', color: 'var(--cv-accent)', border: '1px solid rgba(var(--cv-accent-rgb),.3)', borderRadius: 999, padding: '1px 8px' }}>{r.context || '—'}</span>
+                        {r.venue_slug && <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-faint)' }}>/{r.venue_slug}</span>}
+                        <span className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-faint)' }}>{timeAgo(r.created_at)}</span>
                       </div>
-                      <div style={{ fontSize: 13.5, color: 'var(--cv-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isOpen ? 'normal' : 'nowrap' }}>{r.message || '(sin mensaje)'}</div>
+                      <div style={{ fontSize: 13.5, color: 'var(--cv-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: isOpen ? 'normal' : 'nowrap' }}>{r.message || '(sin mensaje)'}</div>
                     </div>
                   </button>
                   {isOpen && (
-                    <div style={{ padding: '0 14px 14px 34px', borderTop: '1px solid var(--cv-line)' }}>
+                    <div style={{ padding: '0 14px 14px 34px', borderTop: '1px solid var(--cv-hair)' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 12 }}>
                         {r.url && (
                           <div>
-                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-muted-2)', marginBottom: 3 }}>PANTALLA</div>
-                            <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-text-2)', wordBreak: 'break-all' }}>{r.url}</div>
+                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-faint)', marginBottom: 3 }}>PANTALLA</div>
+                            <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', wordBreak: 'break-all' }}>{r.url}</div>
                           </div>
                         )}
                         {r.stack && (
                           <div>
-                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-muted-2)', marginBottom: 3 }}>TRAZA</div>
-                            <pre className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 220, overflowY: 'auto', background: 'rgba(0,0,0,.25)', padding: 10, borderRadius: 8 }}>{r.stack}</pre>
+                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-faint)', marginBottom: 3 }}>TRAZA</div>
+                            <pre className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, maxHeight: 220, overflowY: 'auto', background: 'rgba(0,0,0,.25)', padding: 10, borderRadius: 8 }}>{r.stack}</pre>
                           </div>
                         )}
                         {r.user_agent && (
                           <div>
-                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-muted-2)', marginBottom: 3 }}>DISPOSITIVO</div>
-                            <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', wordBreak: 'break-word' }}>{r.user_agent}</div>
+                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-faint)', marginBottom: 3 }}>DISPOSITIVO</div>
+                            <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', wordBreak: 'break-word' }}>{r.user_agent}</div>
                           </div>
                         )}
                         {r.extra && (
                           <div>
-                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-muted-2)', marginBottom: 3 }}>EXTRA</div>
-                            <pre className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{JSON.stringify(r.extra, null, 2)}</pre>
+                            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', color: 'var(--cv-faint)', marginBottom: 3 }}>EXTRA</div>
+                            <pre className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0 }}>{JSON.stringify(r.extra, null, 2)}</pre>
                           </div>
                         )}
-                        <div className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-mono-2)' }}>{new Date(r.created_at).toLocaleString('es-CL')}</div>
+                        <div className="cv-mono" style={{ fontSize: 10.5, color: 'var(--cv-faint)' }}>{new Date(r.created_at).toLocaleString('es-CL')}</div>
                       </div>
                     </div>
                   )}

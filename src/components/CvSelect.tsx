@@ -52,8 +52,8 @@ export function CvSelect({
         onClick={() => !disabled && setOpen((v) => !v)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-          background: 'var(--cv-bg-2)', color: 'var(--cv-text)',
-          border: '1px solid ' + (open ? 'rgba(var(--cv-accent-rgb),.5)' : 'var(--cv-line)'),
+          background: 'var(--cv-surf)', color: 'var(--cv-ink)',
+          border: '1px solid ' + (open ? 'rgba(var(--cv-accent-rgb),.5)' : 'var(--cv-hair)'),
           borderRadius: 11, padding: '11px 14px', fontFamily: 'var(--cv-font-body)', fontSize: 15,
           cursor: disabled ? 'default' : 'pointer', outline: 'none', textAlign: 'left',
           opacity: disabled ? 0.55 : 1, transition: 'border-color .15s ease',

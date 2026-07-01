@@ -180,7 +180,7 @@ export default function AdminPage() {
 
   if (isAdmin === null) return (
     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG }}>
-      <div className="cv-mono" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.18em', color: 'var(--cv-muted)' }}>verificando acceso…</div>
+      <div className="cv-mono" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.18em', color: 'var(--cv-mut)' }}>verificando acceso…</div>
     </main>
   );
 
@@ -188,14 +188,14 @@ export default function AdminPage() {
     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><BrandMark size={104} /></div>
-        <p style={{ fontSize: 15, color: 'var(--cv-text-2)', marginBottom: 18 }}>No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
+        <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
         <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
       </div>
     </main>
   );
 
   const inputStyle: React.CSSProperties = { width: '100%' };
-  const sub = (s: string) => (<div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', margin: '0 0 8px' }}>{s}</div>);
+  const sub = (s: string) => (<div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-faint)', margin: '0 0 8px' }}>{s}</div>);
 
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
@@ -203,7 +203,7 @@ export default function AdminPage() {
       <div style={{ maxWidth: 880, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 24 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Admin</h1>
-          <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-muted-2)' }}>PLAYLISTS CURADAS</span>
+          <span className="cv-mono" style={{ fontSize: 12, letterSpacing: '.16em', color: 'var(--cv-faint)' }}>PLAYLISTS CURADAS</span>
         </div>
 
         {/* crear */}
@@ -218,16 +218,16 @@ export default function AdminPage() {
         </section>
 
         {/* lista */}
-        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', marginBottom: 12 }}>PLAYLISTS ({templates.length})</div>
+        <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-faint)', marginBottom: 12 }}>PLAYLISTS ({templates.length})</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
-          {templates.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>todavía no creaste ninguna.</div>}
+          {templates.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>todavía no creaste ninguna.</div>}
           {templates.map((t) => (
             <div key={t.id} className="cv-card" style={{ padding: '14px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 10, ...(selected?.id === t.id ? { border: '1px solid rgba(var(--cv-accent-rgb),.35)' } : {}) }}>
               <div style={{ minWidth: 0 }}>
-                <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>{t.name}</span>
-                <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 3 }}>
+                <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-ink)' }}>{t.name}</span>
+                <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 3 }}>
                   {t.mood ? `${t.mood} · ` : ''}{counts[t.id] || 0} temas ·{' '}
-                  <span style={{ color: t.published ? 'var(--cv-mint)' : 'var(--cv-mono-2)' }}>{t.published ? '● publicada' : '○ borrador'}</span>
+                  <span style={{ color: t.published ? 'var(--cv-accent)' : 'var(--cv-faint)' }}>{t.published ? '● publicada' : '○ borrador'}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
@@ -243,13 +243,13 @@ export default function AdminPage() {
         {selected && (
           <section className="cv-card" style={{ padding: '22px 24px', border: '1px solid rgba(123,77,255,.3)' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-              <h2 className="cv-wordmark" style={{ fontSize: 19, fontWeight: 600, color: 'var(--cv-text)' }}>Editando: {selected.name}</h2>
-              <button onClick={() => { setSelected(null); setTplTracks([]); }} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer' }}>cerrar editor ✕</button>
+              <h2 className="cv-wordmark" style={{ fontSize: 19, fontWeight: 600, color: 'var(--cv-ink)' }}>Editando: {selected.name}</h2>
+              <button onClick={() => { setSelected(null); setTplTracks([]); }} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>cerrar editor ✕</button>
             </div>
-            {selected.description && <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', margin: '0 0 16px' }}>{selected.description}</p>}
+            {selected.description && <p style={{ fontSize: 13.5, color: 'var(--cv-mut)', margin: '0 0 16px' }}>{selected.description}</p>}
 
             {/* datos */}
-            <div style={{ paddingTop: 16, marginTop: 8, borderTop: '1px solid var(--cv-line)' }}>
+            <div style={{ paddingTop: 16, marginTop: 8, borderTop: '1px solid var(--cv-hair)' }}>
               {sub('NOMBRE Y DATOS')}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <input className="cv-input" style={inputStyle} placeholder="Nombre" value={editName} onChange={(e) => setEditName(e.target.value)} />
@@ -260,12 +260,12 @@ export default function AdminPage() {
             </div>
 
             {/* agregar canción */}
-            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-hair)' }}>
               {sub('AGREGAR CANCIÓN')}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <input className="cv-input" style={inputStyle} placeholder="Pegá URL de YouTube y soltá → autocompleta" value={url} onChange={(e) => setUrl(e.target.value)} onBlur={fetchMeta} />
-                {metaLoading && <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>buscando…</p>}
-                {metaMsg && <p className="cv-mono" style={{ fontSize: 12.5, color: metaMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{metaMsg}</p>}
+                {metaLoading && <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)' }}>buscando…</p>}
+                {metaMsg && <p className="cv-mono" style={{ fontSize: 12.5, color: metaMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{metaMsg}</p>}
                 <input className="cv-input" style={inputStyle} placeholder="Título" value={title} onChange={(e) => setTitle(e.target.value)} />
                 <input className="cv-input" style={inputStyle} placeholder="Artista" value={artist} onChange={(e) => setArtist(e.target.value)} />
                 <button className="cv-btn cv-btn-cyan" onClick={addSong} style={{ fontSize: 14, padding: '9px 18px', alignSelf: 'flex-start' }}>Agregar a la playlist</button>
@@ -273,24 +273,24 @@ export default function AdminPage() {
             </div>
 
             {/* importar playlist */}
-            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-hair)' }}>
               {sub('IMPORTAR PLAYLIST DE YOUTUBE')}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 <input className="cv-input" placeholder="https://www.youtube.com/playlist?list=..." value={plUrl} onChange={(e) => setPlUrl(e.target.value)} style={{ flex: 1, minWidth: isMobile ? 0 : 220 }} />
                 <button className="cv-btn cv-btn-ghost" onClick={importPlaylistToTpl} disabled={plLoading} style={{ fontSize: 14, padding: '0 18px', opacity: plLoading ? 0.6 : 1 }}>{plLoading ? 'Importando…' : 'Importar'}</button>
               </div>
-              {plMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 12.5, color: plMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{plMsg}</p>}
+              {plMsg && <p className="cv-mono" style={{ marginTop: 10, fontSize: 12.5, color: plMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{plMsg}</p>}
             </div>
 
             {/* canciones */}
-            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-line)' }}>
+            <div style={{ paddingTop: 16, marginTop: 18, borderTop: '1px solid var(--cv-hair)' }}>
               {sub(`CANCIONES (${tplTracks.length})`)}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {tplTracks.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>sin canciones todavía.</div>}
+                {tplTracks.length === 0 && <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>sin canciones todavía.</div>}
                 {tplTracks.map((t) => (
-                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.02)', border: '1px solid var(--cv-line)' }}>
-                    <span style={{ fontSize: 14, color: 'var(--cv-text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {t.title}{t.artist ? <span style={{ color: 'var(--cv-muted)' }}> — {t.artist}</span> : null}
+                  <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.02)', border: '1px solid var(--cv-hair)' }}>
+                    <span style={{ fontSize: 14, color: 'var(--cv-ink)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {t.title}{t.artist ? <span style={{ color: 'var(--cv-mut)' }}> — {t.artist}</span> : null}
                       {t.is_embeddable === false ? <span style={{ marginLeft: 8, fontSize: 11, color: 'var(--cv-warm)' }}>⚠️ no embebible</span> : null}
                     </span>
                     <button onClick={() => deleteSong(t.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 12.5, flexShrink: 0 }}>quitar</button>

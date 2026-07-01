@@ -42,15 +42,15 @@ export default function ThemePicker({ venueId, current }: { venueId: string; cur
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
         <h2 className="cv-wordmark" style={{ fontSize: 19, fontWeight: 700 }}>Tema del local</h2>
-        {saving && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted)' }}>guardando…</span>}
-        {saved && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mint)' }}>✓ guardado</span>}
+        {saving && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mut)' }}>guardando…</span>}
+        {saved && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-accent)' }}>✓ guardado</span>}
       </div>
-      <p className="cv-mono" style={{ fontSize: 12.5, color: 'var(--cv-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+      <p className="cv-mono" style={{ fontSize: 12.5, color: 'var(--cv-mut)', marginBottom: 16, lineHeight: 1.5 }}>
         Elegí la personalidad de tu pantalla y tu carta. Se aplica al toque en la consola y el widget.
       </p>
 
       {/* PREVIEW EN VIVO (tema acotado a esta caja) */}
-      <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-mono)', fontWeight: 700, marginBottom: 7 }}>VISTA PREVIA · TU PANTALLA EN VIVO</div>
+      <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-faint)', fontWeight: 700, marginBottom: 7 }}>VISTA PREVIA · TU PANTALLA EN VIVO</div>
       <div
         data-cv-theme={theme}
         style={{
@@ -88,15 +88,15 @@ export default function ThemePicker({ venueId, current }: { venueId: string; cur
               style={{
                 cursor: saving ? 'default' : 'pointer', padding: 4, overflow: 'hidden',
                 borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 5,
-                background: on ? 'rgba(var(--cv-accent-rgb),.10)' : 'var(--cv-surface)',
-                border: on ? '1.5px solid var(--cv-accent)' : '1px solid var(--cv-line)',
+                background: on ? 'rgba(var(--cv-accent-rgb),.10)' : 'var(--cv-surf)',
+                border: on ? '1.5px solid var(--cv-accent)' : '1px solid var(--cv-hair)',
                 transition: 'transform .12s ease, border-color .15s ease, background .15s ease',
               }}
             >
               <div style={{ height: 28, borderRadius: 7, background: t.grad, position: 'relative' }}>
                 {on && <span style={{ position: 'absolute', top: 3, right: 6, fontSize: 11, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,.6)' }}>✓</span>}
               </div>
-              <span className="cv-wordmark" style={{ fontSize: 12.5, fontWeight: 700, textAlign: 'center', lineHeight: 1, color: on ? 'var(--cv-accent)' : 'var(--cv-text)' }}>{t.name}</span>
+              <span className="cv-wordmark" style={{ fontSize: 12.5, fontWeight: 700, textAlign: 'center', lineHeight: 1, color: on ? 'var(--cv-accent)' : 'var(--cv-ink)' }}>{t.name}</span>
             </button>
           );
         })}

@@ -19,9 +19,9 @@ type Playlist = { id: string; name: string; type: string; mood: string | null; d
 type Track = { id: string; title: string; artist: string | null; external_id: string | null; is_embeddable: boolean; sort: number };
 
 const TYPES: { key: string; label: string; color: string; sub: string }[] = [
-  { key: 'jukebox', label: 'Jukebox', color: 'var(--cv-cyan)', sub: 'votos · YouTube' },
-  { key: 'karaoke', label: 'Karaoke', color: 'var(--cv-mint)', sub: 'por turnos · YouTube' },
-  { key: 'dj_pro', label: 'DJ Pro', color: 'var(--cv-violet-light)', sub: 'archivos propios · pronto' },
+  { key: 'jukebox', label: 'Jukebox', color: 'var(--cv-accent)', sub: 'votos · YouTube' },
+  { key: 'karaoke', label: 'Karaoke', color: 'var(--cv-accent)', sub: 'por turnos · YouTube' },
+  { key: 'dj_pro', label: 'DJ Pro', color: 'var(--cv-accent)', sub: 'archivos propios · pronto' },
 ];
 
 const PANEL_BG = 'radial-gradient(740px 520px at 50% -10%, rgba(var(--cv-accent-rgb),.09), transparent 60%), var(--cv-bg)';
@@ -217,7 +217,7 @@ export default function PlaylistsPage() {
     return (
       <main style={{ minHeight: '100vh', background: PANEL_BG }}>
         <TopNav />
-        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando tu biblioteca…</div>
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-mut)' }}>cargando tu biblioteca…</div>
       </main>
     );
   }
@@ -226,7 +226,7 @@ export default function PlaylistsPage() {
       <main style={{ minHeight: '100vh', background: PANEL_BG }}>
         <TopNav />
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-          <p style={{ color: 'var(--cv-text-2)', marginBottom: 16 }}>Iniciá sesión para ver tus playlists.</p>
+          <p style={{ color: 'var(--cv-mut)', marginBottom: 16 }}>Iniciá sesión para ver tus playlists.</p>
           <a href="/" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', textDecoration: 'none' }}>Ir al inicio</a>
         </div>
       </main>
@@ -241,12 +241,12 @@ export default function PlaylistsPage() {
         {/* encabezado */}
         <div style={{ marginBottom: 22 }}>
           <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 600 }}>Mis playlists</h1>
-          <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 6 }}>Tu biblioteca · las canciones viven acá y después las asignás a tus locales</p>
+          <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', marginTop: 6 }}>Tu biblioteca · las canciones viven acá y después las asignás a tus locales</p>
         </div>
 
         {/* crear playlist */}
         <section className="cv-card" style={{ padding: '18px 20px', marginBottom: 26 }}>
-          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan-light)', marginBottom: 14 }}>NUEVA PLAYLIST</div>
+          <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-accent)', marginBottom: 14 }}>NUEVA PLAYLIST</div>
           <form onSubmit={createPlaylist} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <input className="cv-input" style={{ flex: '2 1 240px', padding: '11px 14px' }} placeholder="Nombre de la playlist" value={cName} onChange={(e) => setCName(e.target.value)} />
@@ -268,7 +268,7 @@ export default function PlaylistsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <button type="submit" disabled={creating} className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', opacity: creating ? 0.6 : 1 }}>{creating ? 'Creando…' : 'Crear playlist'}</button>
               {cErr && <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-warm)' }}>{cErr}</span>}
-              <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono-2)' }}>DJ Pro (archivos propios) llega más adelante.</span>
+              <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>DJ Pro (archivos propios) llega más adelante.</span>
             </div>
           </form>
         </section>
@@ -278,21 +278,21 @@ export default function PlaylistsPage() {
           const pls = playlists.filter((p) => p.type === t.key);
           return (
             <section key={t.key} style={{ marginBottom: 28 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 2px 12px', borderBottom: '1px solid var(--cv-line)', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 2px 12px', borderBottom: '1px solid var(--cv-hair)', marginBottom: 16 }}>
                 <span style={{ width: 9, height: 9, borderRadius: '50%', background: t.color, boxShadow: `0 0 10px ${t.color}` }} />
-                <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: 'var(--cv-text)' }}>{t.label}</span>
-                <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>· {t.sub}</span>
-                <span className="cv-mono" style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--cv-muted-2)' }}>{pls.length} {pls.length === 1 ? 'playlist' : 'playlists'}</span>
+                <span className="cv-wordmark" style={{ fontSize: 18, fontWeight: 600, color: 'var(--cv-ink)' }}>{t.label}</span>
+                <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)' }}>· {t.sub}</span>
+                <span className="cv-mono" style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--cv-faint)' }}>{pls.length} {pls.length === 1 ? 'playlist' : 'playlists'}</span>
               </div>
 
               {t.key === 'dj_pro' ? (
                 <div className="cv-card" style={{ padding: '16px 18px', borderStyle: 'dashed' }}>
-                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', lineHeight: 1.6 }}>
-                    Pronto — acá vas a poder armar playlists con <b style={{ color: 'var(--cv-text-2)' }}>tus propios archivos de audio</b> (no YouTube). Más adelante, importaciones de Beatport / Tidal y similares.
+                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)', lineHeight: 1.6 }}>
+                    Pronto — acá vas a poder armar playlists con <b style={{ color: 'var(--cv-mut)' }}>tus propios archivos de audio</b> (no YouTube). Más adelante, importaciones de Beatport / Tidal y similares.
                   </p>
                 </div>
               ) : pls.length === 0 ? (
-                <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)', padding: '4px 2px' }}>Todavía no tenés playlists de {t.label}. Creá una arriba ↑</p>
+                <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', padding: '4px 2px' }}>Todavía no tenés playlists de {t.label}. Creá una arriba ↑</p>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(238px, 1fr))', gap: 14 }}>
                   {pls.map((p) => {
@@ -301,14 +301,14 @@ export default function PlaylistsPage() {
                       <div key={p.id} className="cv-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ height: 4, background: t.color, boxShadow: `0 0 18px ${t.color}` }} />
                         <div style={{ padding: '15px 17px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                          <div className="cv-wordmark" style={{ fontSize: 17.5, fontWeight: 600, color: 'var(--cv-text)', lineHeight: 1.2, wordBreak: 'break-word' }}>{p.name}</div>
+                          <div className="cv-wordmark" style={{ fontSize: 17.5, fontWeight: 600, color: 'var(--cv-ink)', lineHeight: 1.2, wordBreak: 'break-word' }}>{p.name}</div>
                           {p.mood && (
                             <span style={{ alignSelf: 'flex-start', fontSize: 11, fontFamily: 'var(--cv-font-body)', letterSpacing: '.06em', color: t.color, border: `1px solid ${t.color}`, borderRadius: 999, padding: '2px 10px', textTransform: 'lowercase' }}>{p.mood}</span>
                           )}
                           {p.description && (
-                            <p style={{ fontSize: 12.5, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
+                            <p style={{ fontSize: 12.5, color: 'var(--cv-mut)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
                           )}
-                          <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 'auto' }}>{n} {n === 1 ? 'canción' : 'canciones'}</div>
+                          <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 'auto' }}>{n} {n === 1 ? 'canción' : 'canciones'}</div>
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
                             <button className="cv-btn cv-btn-cyan" onClick={() => toggleExpand(p)} style={{ fontSize: 12.5, padding: '8px 13px' }}>Gestionar</button>
                             <button onClick={() => removePlaylist(p)} className="cv-btn cv-btn-ghost" style={{ fontSize: 12.5, padding: '8px 12px', color: 'var(--cv-warm)' }}>Borrar</button>
@@ -332,7 +332,7 @@ export default function PlaylistsPage() {
           <div onClick={() => toggleExpand(p)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(4,3,10,.72)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? 10 : 18 }}>
             <div onClick={(e) => e.stopPropagation()} className="cv-card" style={{ width: '100%', maxWidth: 620, maxHeight: '88vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
               {/* header */}
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--cv-line)', flexShrink: 0 }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--cv-hair)', flexShrink: 0 }}>
                 {editId === p.id ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -348,12 +348,12 @@ export default function PlaylistsPage() {
                 ) : (
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                     <div style={{ minWidth: 0 }}>
-                      <div className="cv-wordmark" style={{ fontSize: 20, fontWeight: 600, color: 'var(--cv-text)', wordBreak: 'break-word' }}>{p.name}</div>
-                      {p.mood && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-muted-2)', marginTop: 3 }}>{p.mood}</div>}
+                      <div className="cv-wordmark" style={{ fontSize: 20, fontWeight: 600, color: 'var(--cv-ink)', wordBreak: 'break-word' }}>{p.name}</div>
+                      {p.mood && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 3 }}>{p.mood}</div>}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                       <button onClick={() => startEdit(p)} className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}>Editar</button>
-                      <button onClick={() => toggleExpand(p)} className="cv-mono" aria-label="Cerrar" style={{ fontSize: 15, color: 'var(--cv-mono-2)', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                      <button onClick={() => toggleExpand(p)} className="cv-mono" aria-label="Cerrar" style={{ fontSize: 15, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
                     </div>
                   </div>
                 )}
@@ -370,7 +370,7 @@ export default function PlaylistsPage() {
                     <button type="submit" className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '10px 18px' }}>Agregar</button>
                   </div>
                   {(metaMsg || metaLoading) && (
-                    <span className="cv-mono" style={{ fontSize: 12, color: metaLoading ? 'var(--cv-muted)' : (metaMsg?.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)') }}>
+                    <span className="cv-mono" style={{ fontSize: 12, color: metaLoading ? 'var(--cv-mut)' : (metaMsg?.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)') }}>
                       {metaLoading ? 'Leyendo…' : metaMsg}
                     </span>
                   )}
@@ -378,30 +378,30 @@ export default function PlaylistsPage() {
 
                 {/* importar playlist entera */}
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 16, padding: '12px 14px', borderRadius: 10, background: 'rgba(var(--cv-accent-rgb),.04)', border: '1px dashed rgba(var(--cv-accent-rgb),.22)' }}>
-                  <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.1em', color: 'var(--cv-cyan-light)', width: '100%' }}>¿UNA PLAYLIST ENTERA? PEGÁ EL LINK DE LA PLAYLIST DE YOUTUBE</span>
+                  <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.1em', color: 'var(--cv-accent)', width: '100%' }}>¿UNA PLAYLIST ENTERA? PEGÁ EL LINK DE LA PLAYLIST DE YOUTUBE</span>
                   <input className="cv-input" style={{ flex: '2 1 220px', padding: '10px 12px' }} placeholder="https://youtube.com/playlist?list=…" value={ytUrl} onChange={(e) => setYtUrl(e.target.value)} />
                   <button type="button" onClick={() => importPlaylistInto(p)} disabled={ytLoading} className="cv-btn cv-btn-cyan" style={{ fontSize: 14, padding: '10px 18px', opacity: ytLoading ? 0.6 : 1 }}>{ytLoading ? 'Importando…' : 'Importar todas'}</button>
-                  {ytMsg && <span className="cv-mono" style={{ fontSize: 12, width: '100%', color: ytMsg.startsWith('✓') ? 'var(--cv-mint)' : 'var(--cv-warm)' }}>{ytMsg}</span>}
+                  {ytMsg && <span className="cv-mono" style={{ fontSize: 12, width: '100%', color: ytMsg.startsWith('✓') ? 'var(--cv-accent)' : 'var(--cv-warm)' }}>{ytMsg}</span>}
                 </div>
 
                 {/* lista de canciones */}
                 {tracksLoading ? (
-                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>cargando canciones…</p>
+                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mut)' }}>cargando canciones…</p>
                 ) : tracks.length === 0 ? (
-                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-mono)' }}>Sin canciones aún · pegá un link de YouTube arriba.</p>
+                  <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)' }}>Sin canciones aún · pegá un link de YouTube arriba.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {tracks.map((tr, i) => (
                       <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.05)' }}>
-                        <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)', width: 22 }}>{i + 1}</span>
+                        <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', width: 22 }}>{i + 1}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14, color: 'var(--cv-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div style={{ fontSize: 14, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {tr.title}{!tr.is_embeddable && <span title="No se reproduce embebido" style={{ color: 'var(--cv-warm)', marginLeft: 6 }}>⚠</span>}
                           </div>
-                          {tr.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.artist}</div>}
+                          {tr.artist && <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.artist}</div>}
                         </div>
-                        <button onClick={() => moveSong(p, i, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, padding: '2px 4px' }}>↑</button>
-                        <button onClick={() => moveSong(p, i, 1)} disabled={i === tracks.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === tracks.length - 1 ? 'default' : 'pointer', color: i === tracks.length - 1 ? 'var(--cv-mono-2)' : 'var(--cv-muted)', fontSize: 14, padding: '2px 4px' }}>↓</button>
+                        <button onClick={() => moveSong(p, i, -1)} disabled={i === 0} title="Subir" style={{ background: 'none', border: 'none', cursor: i === 0 ? 'default' : 'pointer', color: i === 0 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 14, padding: '2px 4px' }}>↑</button>
+                        <button onClick={() => moveSong(p, i, 1)} disabled={i === tracks.length - 1} title="Bajar" style={{ background: 'none', border: 'none', cursor: i === tracks.length - 1 ? 'default' : 'pointer', color: i === tracks.length - 1 ? 'var(--cv-faint)' : 'var(--cv-mut)', fontSize: 14, padding: '2px 4px' }}>↓</button>
                         <button onClick={() => deleteSong(p, tr.id)} className="cv-mono" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cv-warm)', fontSize: 12, padding: '2px 6px' }}>quitar</button>
                       </div>
                     ))}
