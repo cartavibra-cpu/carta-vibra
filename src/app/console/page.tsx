@@ -235,7 +235,6 @@ export default function ConsolePage() {
   const [cycleSecs, setCycleSecs] = useState(15);
   const cycleOnRef = useRef(false);
   const cycleSecsRef = useRef(15);
-  const [themeDim, setThemeDim] = useState(false);   // "dip de luces" al cambiar de paleta
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showSettingsRef = useRef(false);
 
@@ -659,29 +658,15 @@ export default function ConsolePage() {
   // Cuando aparece/desaparece el aviso de cambio de playlist, lo reflejamos al control.
   useEffect(() => { pendingRef.current = pending; broadcastJbState(); }, [pending]);
 
-  // Cambia el tema con "dip de luces": atenúa la pantalla, cambia la paleta a oscuras,
-  // y vuelve a encender con la nueva. Evita mezclar las dos paletas y no congela el video.
-  const dimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const applyThemeDip = (t: string) => {
-    themeRef.current = t;
-    setThemeDim(true);                                  // 1) bajan las luces
-    if (dimTimerRef.current) clearTimeout(dimTimerRef.current);
-    dimTimerRef.current = setTimeout(() => {
-      applyCvTheme(t); setCurTheme(t);                  // 2) cambia la paleta con la pantalla atenuada
-      broadcastJbState();                               // avisa al celular en el mismo instante
-      dimTimerRef.current = setTimeout(() => setThemeDim(false), 60);  // 3) suben las luces (nueva paleta)
-    }, 300);
-  };
-
-  // Cambiar la paleta desde la consola: aplica con dip, guarda en el local y avisa al control.
+  // Cambiar la paleta desde la consola: aplica al toque, guarda en el local y avisa al control.
   const changeTheme = (t: string) => {
-    applyThemeDip(t);
+    applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState();
     const sb = supa(); const vid = venueRef.current;
     if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
 
   // Igual que changeTheme pero SIN persistir (el auto-paleta no ensucia la DB en cada salto).
-  const applyThemeLive = (t: string) => { applyThemeDip(t); };
+  const applyThemeLive = (t: string) => { applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState(); };
 
   // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
   // Cada salto se transmite al celular vía broadcastJbState → el control sigue el color.
@@ -1194,9 +1179,6 @@ export default function ConsolePage() {
 
       {/* al SALIR de pantalla completa: velo negro a pantalla entera que se desvanece (misma transición suave) */}
       {exitingFs && <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 2147483646, pointerEvents: 'none', animation: 'cvFsFade .85s ease-in-out forwards' }} />}
-
-      {/* dip de luces al cambiar de paleta: atenúa la escena, cambia a oscuras, y vuelve a encender */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: 'none', background: '#04030a', opacity: themeDim ? 0.85 : 0, transition: `opacity ${themeDim ? '300ms' : '470ms'} ease` }} />
 
       {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: clean ? 0 : 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
