@@ -30,7 +30,7 @@ function ConsoleVinyl({ size, label, fill }: { size?: number; label: string; fil
   // La letra va POR SOBRE el vinilo (capa superior). En modo fill escala con el
   // ancho del contenedor (cqw) para acompañar al QR; si no, en px según el tamaño.
   const labelFs = fill
-    ? `${Math.min(22, Math.round(84 / (longest * 0.62)))}cqw`
+    ? `${Math.min(11, Math.round(48 / (longest * 0.62)))}cqw`
     : `${Math.max(12, Math.min(Math.round(px * 0.2), Math.floor((px * 0.92) / (longest * 0.7))))}px`;
   const outer: React.CSSProperties = fill
     ? { position: 'relative', width: '100%', aspectRatio: '1 / 1', flexShrink: 0 }
@@ -53,7 +53,7 @@ function ConsoleVinyl({ size, label, fill }: { size?: number; label: string; fil
       {/* TEXTO por SOBRE el vinilo — capa superior, grande, completa, NO gira */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '.02em', pointerEvents: 'none' }}>
         {/* velo oscuro para que el texto se lea sobre los surcos */}
-        <div style={{ position: 'absolute', inset: '9%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,5,12,.82) 40%, rgba(6,5,12,.45) 61%, transparent 74%)' }} />
+        <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,5,12,.72) 42%, rgba(6,5,12,.38) 63%, transparent 78%)' }} />
         {words.map((w, i) => (
           <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
         ))}
@@ -1162,12 +1162,12 @@ export default function ConsolePage() {
               <div style={{ flexShrink: 0 }}>
                 <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
                 <div>
-                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 8 }}>Código de sala</div>
+                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 2 }}>Código de sala</div>
                   <div className={'cv-wordmark ' + sk.gradClass} style={{ width: '100%', fontSize: `${Math.min(54, Math.round(92 / (Math.max((roomCode ?? '—').length, 1) * 0.6)))}cqw`, fontWeight: 700, lineHeight: 0.92, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
                 </div>
                 {widgetQr && (
                   <div style={{ marginTop: 14 }}>
-                    <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 14, background: '#fff', padding: 8, lineHeight: 0 }}>
+                    <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 6, background: '#fff', padding: 3, lineHeight: 0, overflow: 'hidden' }}>
                       <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
                     </div>
                     <div className="cv-mono" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45, marginTop: 9 }}>Votá la próxima desde tu celular</div>
