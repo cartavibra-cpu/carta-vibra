@@ -23,11 +23,11 @@ const STAGE_BG =
 /** Vinilo de la consola: gira (anillo de color + brillo que barre se notan) con el
  *  nombre del local QUIETO en el centro, con la tipografía/gradiente de Carta Vibra.
  *  Es el co-brand integrado: el logo de CV reinterpretado por el nombre del local. */
-function ConsoleVinyl({ size, name }: { size: number; name: string }) {
-  const words = (name || 'tu local').trim().split(/\s+/).slice(0, 3);
+function ConsoleVinyl({ size, label }: { size: number; label: string }) {
+  const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
   const circleW = size * 0.40 * 0.84; // ancho útil del centro (con padding)
-  const labelFs = Math.max(9, Math.min(Math.round(size * 0.135), Math.floor(circleW / (longest * 0.66))));
+  const labelFs = Math.max(9, Math.min(Math.round(size * 0.125), Math.floor(circleW / (longest * 0.6))));
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
@@ -148,6 +148,8 @@ export default function ConsolePage() {
   const historyRef = useRef<string[]>([]);
   const lastVoteAtRef = useRef(0);
   const [quietVinyl, setQuietVinyl] = useState(false);
+  const [videoW, setVideoW] = useState(0);
+  const [tracksTick, setTracksTick] = useState(0);
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
   const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
   const votanteIdRef = useRef(0);
@@ -320,6 +322,16 @@ export default function ConsolePage() {
       });
     }, 1000);
     return () => clearInterval(id);
+  }, []);
+
+  // Mide el ancho REAL del video → las barras (medidor + controles) miden exactamente lo mismo.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => { if (!document.fullscreenElement) setVideoW(el.clientWidth); });
+    ro.observe(el);
+    setVideoW(el.clientWidth);
+    return () => ro.disconnect();
   }, []);
 
   // El termómetro vive en el local (settings.energy, default sí). Lo prende/apaga la consola o el control.
@@ -712,6 +724,7 @@ export default function ConsolePage() {
     tracksRef.current = map;
     autoPoolRef.current = pool;
     bagRef.current = [];
+    setTracksTick((t) => t + 1);
   };
 
   // Canal realtime SOLO de la playlist activa. Se re-suscribe cuando cambiás de
@@ -1056,7 +1069,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size', flexShrink: 0 };
+    : { position: 'relative', height: '100%', maxWidth: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5), 0 30px 70px -34px rgba(var(--cv-accent-rgb),.4)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -1084,9 +1097,9 @@ export default function ConsolePage() {
         <div style={clean ? { width: '100%', height: '100%' } : {
           position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
-          border: '1px solid var(--cv-hair)',
-          background: 'repeating-radial-gradient(circle at 50% 22%, rgba(160,160,185,.05) 0 1px, transparent 1px 14px), radial-gradient(135% 150% at 50% -6%, color-mix(in srgb, var(--cv-accent) 15%, var(--cv-surf)) 0%, var(--cv-surf) 58%, color-mix(in srgb, var(--cv-bg) 52%, var(--cv-surf)) 100%)',
-          boxShadow: '0 44px 110px -46px #000, inset 0 0 0 1px rgba(var(--cv-accent-rgb),.09)',
+          border: '1px solid color-mix(in srgb, var(--cv-accent) 16%, var(--cv-hair))',
+          background: 'repeating-radial-gradient(circle at 50% 22%, rgba(175,175,200,.05) 0 1px, transparent 1px 15px), radial-gradient(150% 160% at 50% -10%, color-mix(in srgb, var(--cv-accent) 20%, var(--cv-surf)) 0%, var(--cv-surf) 50%, color-mix(in srgb, var(--cv-surf) 80%, var(--cv-bg)) 100%)',
+          boxShadow: '0 44px 120px -46px #000, inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px rgba(var(--cv-accent-rgb),.10)',
           padding: 'clamp(16px,1.8vw,30px)',
         }}>
 
@@ -1094,7 +1107,7 @@ export default function ConsolePage() {
           {!clean && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'clamp(16px,1.8vw,26px)', position: 'relative', zIndex: 2 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
-              <span className="cv-wordmark" style={{ fontSize: 'clamp(15px,1.4vw,21px)', fontWeight: 700, color: 'var(--cv-ink)', letterSpacing: '-.01em' }}>{status?.name || 'Tu local'}</span>
+              <span className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(16px,1.5vw,23px)', fontWeight: 700, letterSpacing: '-.01em', paddingBottom: '.04em' }}>{status?.name || 'Tu local'}</span>
               <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: 'var(--cv-mut)' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
             </div>
           )}
@@ -1104,44 +1117,48 @@ export default function ConsolePage() {
             ? { width: '100%', height: '100%' }
             : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(198px,280px) minmax(0,1fr) minmax(228px,300px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
 
-          {/* IZQUIERDA: PLAYLIST en vivo — ranking por votos (lo que suena + lo que viene) */}
+          {/* IZQUIERDA: votos en vivo / vinilo (arriba) → código → QR (abajo, mismo ancho) */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
-              <div style={{ marginBottom: 12 }}>
-                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 3 }}>♫ Sonando la playlist</div>
-                <div className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.5vw,22px)', fontWeight: 700, color: 'var(--cv-ink)', lineHeight: 1.1, letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playlistName || 'Mi playlist'}</div>
-              </div>
-              <div className="cv-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 5, paddingRight: 4, maskImage: 'linear-gradient(180deg, transparent 0, #000 12px, #000 calc(100% - 14px), transparent 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0, #000 12px, #000 calc(100% - 14px), transparent 100%)' }}>
-                {nowTrackId && tracksRef.current[nowTrackId] && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', borderRadius: 11, background: 'rgba(var(--cv-accent-rgb),.14)', border: '1px solid rgba(var(--cv-accent-rgb),.32)' }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 9px var(--cv-accent)', flexShrink: 0, animation: 'cvLive 1.4s ease-in-out infinite' }} />
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tracksRef.current[nowTrackId].title}</span>
-                    <span className="cv-mono" style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', flexShrink: 0 }}>SONANDO</span>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)', gap: 'clamp(12px,1.6vh,20px)' }}>
+              {/* zona votos → vinilo "esperando votos" cuando no hay votos en la lista */}
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                {votantes.length === 0 ? (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ConsoleVinyl size={158} label="esperando votos" />
                   </div>
-                )}
-                {queue.map((q, i) => {
-                  const tr = tracksRef.current[q.track_id];
-                  if (!tr) return null;
-                  return (
-                    <div key={q.track_id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 10 }}>
-                      <span className="cv-wordmark" style={{ fontSize: 13, fontWeight: 700, color: 'var(--cv-mut)', width: 16, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
-                      <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.title}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--cv-accent)' }}>
-                        <span style={{ fontSize: 10 }}>▲</span>{q.votes}
-                      </span>
+                ) : (
+                  <>
+                    <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10, flexShrink: 0 }}>Votando ahora</div>
+                    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7, alignItems: 'flex-start', overflow: 'hidden' }}>
+                      {votantes.map(votantePill)}
                     </div>
-                  );
-                })}
-                {nowTrackId == null && queue.length === 0 && (
-                  <div style={{ fontSize: 12.5, color: 'var(--cv-faint)', padding: '8px 11px', lineHeight: 1.5 }}>Aún nadie ha votado — las canciones más votadas van subiendo acá. 🎶</div>
+                  </>
+                )}
+              </div>
+              {/* CÓDIGO + QR (abajo, alineados al mismo borde y mismo ancho) */}
+              <div style={{ flexShrink: 0 }}>
+                <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
+                <div style={{ width: 'clamp(126px,11vw,154px)' }}>
+                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 8 }}>Código de sala</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(42px,3.7vw,58px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
+                </div>
+                {widgetQr && (
+                  <div style={{ width: 'clamp(126px,11vw,154px)', marginTop: 14 }}>
+                    <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 14, background: '#fff', padding: 8, lineHeight: 0 }}>
+                      <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
+                    </div>
+                    <div className="cv-mono" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45, marginTop: 9 }}>Votá la próxima desde tu celular</div>
+                  </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* CENTRO: video (bien arriba) + medidor horizontal + panel de navegación (abajo) */}
-          <div style={clean ? { width: '100%', height: '100%' } : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(10px,1.5vh,20px)', minHeight: 0, position: 'relative' }}>
+          {/* CENTRO: video (dimensionado por alto → siempre entra) + medidor + panel, todos del ancho del video */}
+          <div style={clean ? { width: '100%', height: '100%' } : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(9px,1.3vh,17px)', minHeight: 0, position: 'relative' }}>
 
+          {/* wrapper que ocupa el alto sobrante: el video se ajusta a él manteniendo 16:9 */}
+          <div style={clean ? { width: '100%', height: '100%' } : { flex: 1, minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {/* PANTALLA: el video */}
           <div ref={stageRef} tabIndex={-1} style={videoBox}>
           {/* pointerEvents:none → YouTube no muestra su nombre/compartir/más-videos al pasar el mouse */}
@@ -1230,43 +1247,49 @@ export default function ConsolePage() {
 
           {/* (en modo normal: el panel de navegación va abajo, en esta columna central) */}
         </div>{/* fin video */}
+          </div>{/* fin wrapper video (alto sobrante) */}
 
-          {/* MEDIDOR HORIZONTAL de votos (entre el video y los controles) */}
+          {/* MEDIDOR DE VOTOS — protagonista, del ancho del video */}
           {!clean && energyOn && (
-            <div style={{ width: 'min(100%, 640px)', display: 'flex', alignItems: 'center', gap: 13, flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, flexShrink: 0 }}>
-                <span className="cv-wordmark" style={{ fontSize: 22, fontWeight: 700, color: 'var(--cv-accent)', lineHeight: 1 }}>{voteRate}</span>
-                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>votos/min</span>
+            <div style={{ width: videoW || '100%', maxWidth: '100%', flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 7 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
+                <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                  <span className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(23px,2.1vw,32px)', fontWeight: 700, lineHeight: 1, paddingBottom: '.05em' }}>{voteRate}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>votos/min</span>
+                </span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase' }}>caliente</span>
               </div>
-              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-faint)', textTransform: 'uppercase', flexShrink: 0 }}>tranqui</span>
-              <div style={{ flex: 1, height: 12, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: Math.max(3, Math.min(100, energyPct)) + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 16px rgba(var(--cv-accent-rgb),.5)', transition: 'width 1.7s cubic-bezier(.4,0,.2,1)' }} />
+              <div style={{ height: 22, borderRadius: 999, background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', overflow: 'hidden', boxShadow: 'inset 0 2px 7px rgba(0,0,0,.45)' }}>
+                <div style={{ height: '100%', width: Math.max(3, Math.min(100, energyPct)) + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 22px rgba(var(--cv-accent-rgb),.65)', borderRadius: 999, transition: 'width 1.7s cubic-bezier(.4,0,.2,1)' }} />
               </div>
-              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.1em', color: 'var(--cv-mut)', textTransform: 'uppercase', flexShrink: 0 }}>caliente</span>
             </div>
           )}
 
-          {/* PANEL DE NAVEGACIÓN + AJUSTES que baja (hacia el espacio de abajo, no tapa nada) */}
+          {/* PANEL DE NAVEGACIÓN — del ancho del video, grupos repartidos. Ajustes se abre HACIA ARRIBA (respeta el margen inferior). */}
           {!clean && (
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '6px 8px', borderRadius: 14, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)', boxShadow: '0 8px 26px -14px #000' }}>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={goBack} title="Anterior (deshacer salto)">⏮</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa (congela el video)">{isPaused && !stopped ? '▶' : '⏸'}</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={stop} title="Detener (pantalla de espera)">⏹</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltar (→)">⏭</button>
-                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 10px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
-                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '0 5px' }} title="Volumen">
-                  <span style={{ fontSize: 13, color: 'var(--cv-mut)', width: 16, textAlign: 'center' }}>{volume === 0 ? '🔇' : '🔊'}</span>
-                  <input type="range" min={0} max={100} value={volume} onChange={(e) => changeVolume(parseInt(e.target.value))} style={{ width: 82, accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
+            <div style={{ width: videoW || '100%', maxWidth: '100%', flexShrink: 0, position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '7px 14px', borderRadius: 14, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)', boxShadow: '0 10px 30px -16px #000' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={goBack} title="Anterior (deshacer salto)">⏮</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 12px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa (congela el video)">{isPaused && !stopped ? '▶' : '⏸'}</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={stop} title="Detener (pantalla de espera)">⏹</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltar (→)">⏭</button>
                 </div>
-                <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 3px' }} />
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 10px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 11px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} title="Volumen">
+                    <span style={{ fontSize: 14, color: 'var(--cv-mut)', width: 18, textAlign: 'center' }}>{volume === 0 ? '🔇' : '🔊'}</span>
+                    <input type="range" min={0} max={100} value={volume} onChange={(e) => changeVolume(parseInt(e.target.value))} style={{ width: 'clamp(80px,8vw,130px)', accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
+                  </div>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+                </div>
               </div>
               {showSettings && (
-                <div className="cv-scroll" style={{ position: 'absolute', top: 'calc(100% + 10px)', left: '50%', transform: 'translateX(-50%)', width: 'min(92vw, 340px)', maxHeight: 'clamp(200px,34vh,320px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 16px' }}>
+                <div className="cv-scroll" style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, width: 'min(90vw, 344px)', maxHeight: 'clamp(190px,42vh,400px)', overflowY: 'auto', zIndex: 40, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 -26px 66px -18px #000', padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
                     <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
@@ -1280,6 +1303,7 @@ export default function ConsolePage() {
                     <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
                     Mostrar medidor de votos
                   </label>
+                  <div style={{ fontSize: 11, color: 'var(--cv-faint)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Si lo apagás, en la izquierda gira el vinilo.</div>
                   <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
                   <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
@@ -1300,34 +1324,58 @@ export default function ConsolePage() {
           )}
         </div>{/* fin columna central */}
 
-          {/* DERECHA: código+QR (ordenados, arriba) + votos que pasan a vinilo cuando hay silencio */}
+          {/* DERECHA: PLAYLIST completa — nombre real + votados arriba (con conteo) + el resto, con scroll acotado */}
           {!clean && (
             <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
-              <div style={{ flexShrink: 0 }}>
-                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10 }}>Código de sala</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(46px,4.6vw,70px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 18 }}>
-                  {widgetQr && <div style={{ width: 'clamp(80px,7vw,104px)', height: 'clamp(80px,7vw,104px)', borderRadius: 14, background: '#fff', padding: 7, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
-                  <div className="cv-mono" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>Votá la<br />próxima desde<br />tu celular</div>
-                </div>
-                <div style={{ height: 1, background: 'var(--cv-hair)', marginTop: 'clamp(16px,2vh,26px)' }} />
+              <div style={{ marginBottom: 12, flexShrink: 0 }}>
+                <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 3 }}>♫ Sonando la playlist</div>
+                <div className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.5vw,22px)', fontWeight: 700, color: 'var(--cv-ink)', lineHeight: 1.15, letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{playlistName || 'Mi playlist'}</div>
               </div>
-
-              {/* VOTOS en vivo → cuando no hay votos por un rato, gira el vinilo del local */}
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', paddingTop: 'clamp(14px,2vh,22px)' }}>
-                {quietVinyl ? (
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
-                    <ConsoleVinyl size={150} name={status?.name || 'tu local'} />
-                    <span style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>esperando votos</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10, flexShrink: 0 }}>Votando ahora</div>
-                    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 7, alignItems: 'flex-start', overflow: 'hidden' }}>
-                      {votantes.map(votantePill)}
-                    </div>
-                  </>
-                )}
+              <div className="cv-scroll" data-tt={tracksTick} style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4, paddingRight: 5, maskImage: 'linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%)', WebkitMaskImage: 'linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%)' }}>
+                {(() => {
+                  const shown = new Set<string>();
+                  if (nowTrackId) shown.add(nowTrackId);
+                  queue.forEach((q) => shown.add(q.track_id));
+                  const now = nowTrackId ? tracksRef.current[nowTrackId] : null;
+                  const rest = Object.values(tracksRef.current).filter((t) => !shown.has(t.id));
+                  const empty = !now && queue.length === 0 && rest.length === 0;
+                  return (
+                    <>
+                      {now && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 11px', borderRadius: 11, background: 'rgba(var(--cv-accent-rgb),.14)', border: '1px solid rgba(var(--cv-accent-rgb),.32)', flexShrink: 0 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 9px var(--cv-accent)', flexShrink: 0, animation: 'cvLive 1.4s ease-in-out infinite' }} />
+                          <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{now.title}</span>
+                          <span className="cv-mono" style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-accent)', flexShrink: 0 }}>SONANDO</span>
+                        </div>
+                      )}
+                      {queue.map((q, i) => {
+                        const tr = tracksRef.current[q.track_id];
+                        if (!tr) return null;
+                        return (
+                          <div key={q.track_id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '7px 11px', borderRadius: 9, flexShrink: 0 }}>
+                            <span className="cv-wordmark" style={{ fontSize: 13, fontWeight: 700, color: 'var(--cv-accent)', width: 17, textAlign: 'center', flexShrink: 0 }}>{i + 1}</span>
+                            <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--cv-ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.title}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0, fontSize: 12, fontWeight: 700, color: 'var(--cv-accent)' }}>
+                              <span style={{ fontSize: 9 }}>▲</span>{q.votes}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      {rest.length > 0 && (queue.length > 0 || now) && (
+                        <div className="cv-mono" style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.14em', color: 'var(--cv-faint)', textTransform: 'uppercase', margin: '8px 0 2px 11px', flexShrink: 0 }}>Resto de la playlist</div>
+                      )}
+                      {rest.map((tr) => (
+                        <div key={tr.id} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 11px', borderRadius: 9, flexShrink: 0 }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--cv-hair)', flexShrink: 0, marginLeft: 6 }} />
+                          <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: 'var(--cv-mut)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tr.title}</span>
+                        </div>
+                      ))}
+                      {empty && (
+                        <div style={{ fontSize: 12.5, color: 'var(--cv-faint)', padding: '8px 11px', lineHeight: 1.5 }}>Cargando la playlist…</div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
@@ -1349,7 +1397,7 @@ export default function ConsolePage() {
 
             {/* HERO: vinilo del local + código gigante */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,5vw,80px)', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <ConsoleVinyl size={240} name={status?.name || 'tu local'} />
+              <ConsoleVinyl size={240} label="esperando votos" />
               <div style={{ textAlign: 'left' }}>
                 <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 4 }}>CÓDIGO DE SALA</div>
                 <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(90px,15vw,220px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
