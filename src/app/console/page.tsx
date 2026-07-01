@@ -1003,7 +1003,15 @@ export default function ConsolePage() {
       onTouchStart={pokeControls}
       style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: clean ? '#000' : ambientBg, cursor: (clean && !controlsVisible) ? 'none' : 'default' }}
     >
-      <style>{`@keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}`}</style>
+      <style>{`
+        @keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}
+        @keyframes cvFsFade{from{opacity:1}to{opacity:0}}
+        .cv-scroll{scrollbar-width:thin;scrollbar-color:color-mix(in srgb, var(--cv-accent) 45%, transparent) transparent}
+        .cv-scroll::-webkit-scrollbar{width:9px}
+        .cv-scroll::-webkit-scrollbar-track{background:transparent}
+        .cv-scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb, var(--cv-accent) 42%, transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+        .cv-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--cv-accent) 65%, transparent);background-clip:padding-box}
+      `}</style>
 
       {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: clean ? 0 : 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
@@ -1069,6 +1077,9 @@ export default function ConsolePage() {
           {/* pointerEvents:none → YouTube no muestra su nombre/compartir/más-videos al pasar el mouse */}
           <div id="wrap-A" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 1, pointerEvents: 'none' }}><div id="yt-A" /></div>
           <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, pointerEvents: 'none' }}><div id="yt-B" /></div>
+
+          {/* al entrar a pantalla completa: velo negro que se desvanece (transición suave, no abrupta) */}
+          {clean && <div style={{ position: 'absolute', inset: 0, background: '#000', zIndex: 2147483600, pointerEvents: 'none', animation: 'cvFsFade .55s ease forwards' }} />}
 
           {/* viñeta sutil para legibilidad */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
@@ -1174,7 +1185,7 @@ export default function ConsolePage() {
                     <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
                   </div>
                   {showSettings && (
-                    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 'min(100%, 300px)', maxHeight: 'clamp(190px,30vh,280px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 15px' }}>
+                    <div className="cv-scroll" style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 'min(100%, 300px)', maxHeight: 'clamp(190px,30vh,280px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 15px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'sticky', top: 0 }}>
                         <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
                         <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
