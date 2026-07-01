@@ -88,11 +88,7 @@ export default function CuradasPage() {
   };
 
   if (!authChecked) {
-    return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
-        <BrandMark size={104} />
-      </main>
-    );
+    return <main style={{ minHeight: '100vh', background: PANEL_BG }} />;
   }
 
   if (!session) {
