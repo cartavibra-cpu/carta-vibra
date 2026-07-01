@@ -23,14 +23,20 @@ const STAGE_BG =
 /** Vinilo de la consola: gira (anillo de color + brillo que barre se notan) con el
  *  nombre del local QUIETO en el centro, con la tipografía/gradiente de Carta Vibra.
  *  Es el co-brand integrado: el logo de CV reinterpretado por el nombre del local. */
-function ConsoleVinyl({ size, label }: { size: number; label: string }) {
+function ConsoleVinyl({ size, label, fill }: { size?: number; label: string; fill?: boolean }) {
   const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
-  // La letra va POR SOBRE el vinilo (capa superior), no en el centro chico:
-  // puede ocupar casi todo el ancho del disco y verse COMPLETA y grande.
-  const labelFs = Math.max(12, Math.min(Math.round(size * 0.2), Math.floor((size * 0.92) / (longest * 0.7))));
+  const px = size ?? 140;
+  // La letra va POR SOBRE el vinilo (capa superior). En modo fill escala con el
+  // ancho del contenedor (cqw) para acompañar al QR; si no, en px según el tamaño.
+  const labelFs = fill
+    ? `${Math.min(22, Math.round(84 / (longest * 0.62)))}cqw`
+    : `${Math.max(12, Math.min(Math.round(px * 0.2), Math.floor((px * 0.92) / (longest * 0.7))))}px`;
+  const outer: React.CSSProperties = fill
+    ? { position: 'relative', width: '100%', aspectRatio: '1 / 1', flexShrink: 0 }
+    : { position: 'relative', width: px, height: px, flexShrink: 0 };
   return (
-    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+    <div style={outer}>
       {/* disco que gira */}
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
         background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,.045) 0 1px, transparent 1px 5px), radial-gradient(circle, #19141f, #0b0a14 74%)',
@@ -43,7 +49,7 @@ function ConsoleVinyl({ size, label }: { size: number; label: string }) {
           background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
       {/* pozo central (agujero del vinilo) */}
-      <div style={{ position: 'absolute', top: '50%', left: '50%', width: Math.max(4, size * 0.045), height: Math.max(4, size * 0.045), transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', width: '4.5%', aspectRatio: '1 / 1', transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
       {/* TEXTO por SOBRE el vinilo — capa superior, grande, completa, NO gira */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '.02em', pointerEvents: 'none' }}>
         {/* velo oscuro para que el texto se lea sobre los surcos */}
@@ -1136,12 +1142,12 @@ export default function ConsolePage() {
 
           {/* IZQUIERDA: votos en vivo / vinilo (arriba) → código → QR (abajo, mismo ancho) */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(11px,1.1vw,16px)', gap: 'clamp(12px,1.6vh,20px)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(11px,1.1vw,16px)', gap: 'clamp(12px,1.6vh,20px)', containerType: 'inline-size' }}>
               {/* zona votos → vinilo "esperando votos" cuando no hay votos en la lista (todo alineado a la IZQUIERDA) */}
               <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 {votantes.length === 0 ? (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
-                    <ConsoleVinyl size={140} label="esperando votos" />
+                  <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center' }}>
+                    <ConsoleVinyl fill label="esperando votos" />
                   </div>
                 ) : (
                   <>
@@ -1157,7 +1163,7 @@ export default function ConsolePage() {
                 <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
                 <div>
                   <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 8 }}>Código de sala</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,3.4vw,54px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ width: '100%', fontSize: `${Math.min(54, Math.round(92 / (Math.max((roomCode ?? '—').length, 1) * 0.6)))}cqw`, fontWeight: 700, lineHeight: 0.92, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
                 </div>
                 {widgetQr && (
                   <div style={{ marginTop: 14 }}>
