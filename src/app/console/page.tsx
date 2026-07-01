@@ -52,7 +52,7 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
             WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
             mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
           <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
-            background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
+            background: 'linear-gradient(118deg, transparent 30%, rgba(var(--cv-accent-rgb),.30) 46%, rgba(var(--cv-accent-rgb),.08) 53%, transparent 65%), linear-gradient(118deg, transparent 66%, rgba(var(--cv-accent-rgb),.14) 77%, transparent 86%)' }} />
         </div>
         {/* pozo central (agujero del vinilo) */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', width: '4.5%', aspectRatio: '1 / 1', transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
