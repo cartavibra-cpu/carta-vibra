@@ -69,6 +69,7 @@ export default function PlaylistsPage() {
   const load = async () => {
     setLoading(true);
     const sb = supa(); if (!sb) { setLoading(false); return; }
+    const t0 = Date.now();
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { setUid(null); setLoading(false); return; }
     setUid(user.id);
@@ -82,6 +83,8 @@ export default function PlaylistsPage() {
       (trk as { playlist_id: string }[] | null)?.forEach((t) => { if (t.playlist_id) c[t.playlist_id] = (c[t.playlist_id] || 0) + 1; });
       setCounts(c);
     } else setCounts({});
+    const dt = Date.now() - t0;
+    if (dt < 400) await new Promise((r) => setTimeout(r, 400 - dt));
     setLoading(false);
   };
 

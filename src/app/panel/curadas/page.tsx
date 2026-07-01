@@ -51,6 +51,7 @@ export default function CuradasPage() {
     const sb = supa();
     if (!sb) return;
     setLoading(true);
+    const t0 = Date.now();
     const { data } = await sb.from('playlist_template').select('id,name,description,mood').eq('published', true).order('sort').order('created_at');
     const tpls = (data as Template[]) || [];
     setTemplates(tpls);
@@ -60,6 +61,8 @@ export default function CuradasPage() {
       (trk as { template_id: string }[] | null)?.forEach((r) => { c[r.template_id] = (c[r.template_id] || 0) + 1; });
       setCounts(c);
     }
+    const dt = Date.now() - t0;
+    if (dt < 400) await new Promise((r) => setTimeout(r, 400 - dt));
     setLoading(false);
   };
 
@@ -103,6 +106,15 @@ export default function CuradasPage() {
     );
   }
 
+  if (loading) {
+    return (
+      <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+        <TopNav />
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando playlists curadas…</div>
+      </main>
+    );
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
@@ -112,9 +124,7 @@ export default function CuradasPage() {
           Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-text)' }}>escuchar sus temas</b>, e importá la que te guste a tu <a href="/panel/playlists" style={{ color: 'var(--cv-cyan)' }}>biblioteca</a> — después la asignás a tus locales desde <a href="/panel" style={{ color: 'var(--cv-cyan)' }}>Mis locales</a>. Importar nunca pisa tus playlists: crea una copia tuya.
         </p>
 
-        {loading ? (
-          <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>cargando playlists curadas…</div>
-        ) : templates.length === 0 ? (
+        {templates.length === 0 ? (
           <div className="cv-card" style={{ padding: '28px 24px', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-cyan)' }}><Ic name="music" size={30} /></div>
             <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)', marginBottom: 4 }}>Pronto vas a tener playlists curadas acá</div>

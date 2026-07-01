@@ -36,8 +36,11 @@ export default function PanelPage() {
   const load = async () => {
     const sb = supa();
     if (!sb) return;
+    const t0 = Date.now();
     const { data } = await sb.from('venue').select('*').order('created_at', { ascending: false });
     if (Array.isArray(data)) setVenues(data);
+    const dt = Date.now() - t0;
+    if (dt < 400) await new Promise((r) => setTimeout(r, 400 - dt));
     setLoaded(true);
   };
 
@@ -84,6 +87,15 @@ export default function PanelPage() {
     );
   }
 
+  if (!loaded) {
+    return (
+      <main style={{ minHeight: '100vh', background: PANEL_BG }}>
+        <TopNav />
+        <div className="cv-mono" style={{ textAlign: 'center', padding: '80px 20px', color: 'var(--cv-muted)' }}>cargando tus locales…</div>
+      </main>
+    );
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: PANEL_BG }}>
       <TopNav />
@@ -113,10 +125,8 @@ export default function PanelPage() {
           </section>
         )}
 
-        {/* Bienvenida para dueño nuevo (sin locales todavía) — solo cuando ya cargó, si no parpadea */}
-        {!loaded ? (
-          <div className="cv-mono" style={{ fontSize: 12, letterSpacing: '.18em', color: 'var(--cv-muted-2)', padding: '28px 2px', textAlign: 'center' }}>Cargando…</div>
-        ) : venues.length === 0 ? (
+        {/* Bienvenida para dueño nuevo (sin locales todavía) */}
+        {venues.length === 0 ? (
           <div className="cv-card" style={{ padding: isMobile ? '28px 20px' : '36px 32px', textAlign: 'center', border: '1px solid rgba(var(--cv-accent-rgb),.25)', background: 'linear-gradient(165deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.04))' }}>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-cyan)' }}><Ic name="music" size={40} /></div>
             <h2 className="cv-wordmark" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 600, color: 'var(--cv-text)' }}>¡Bienvenido a <span className="cv-grad-text">Carta Vibra</span>!</h2>
