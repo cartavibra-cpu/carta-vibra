@@ -178,6 +178,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   // Apariencia de la pantalla del local: paleta + termómetro (guarda en el local + avisa al PC).
   const pickTheme = (t: string) => {
     setTheme(t); applyCvTheme(t); jbSend({ cmd: 'theme', value: t });
+    // Además del jbcmd (que oye la consola), mandamos jbstate para que el widget se actualice
+    // en vivo AUNQUE la consola esté apagada (si está prendida, igual reenvía; es idempotente).
+    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { theme: t } }); } catch {}
     const sb = supa(); if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
   const setEnergy = (v: boolean) => {
