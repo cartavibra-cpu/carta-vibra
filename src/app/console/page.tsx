@@ -199,6 +199,8 @@ export default function ConsolePage() {
   // Vista ambiente (la rockola que se proyecta)
   const [controlsVisible, setControlsVisible] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [cycleOn, setCycleOn] = useState(false);   // modo auto-paleta (rota temas oscuros)
+  const [cycleSecs, setCycleSecs] = useState(15);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showSettingsRef = useRef(false);
 
@@ -628,6 +630,24 @@ export default function ConsolePage() {
     const sb = supa(); const vid = venueRef.current;
     if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
+
+  // Igual que changeTheme pero SIN persistir (el auto-paleta no ensucia la DB en cada salto).
+  const applyThemeLive = (t: string) => { applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState(); };
+
+  // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
+  useEffect(() => {
+    if (!cycleOn) return;
+    const darks: string[] = CV_THEME_META.filter((t) => !t.light).map((t) => t.id);
+    if (darks.length < 2) return;
+    const secs = Math.max(3, cycleSecs);
+    const id = setInterval(() => {
+      const i = darks.indexOf(themeRef.current);
+      applyThemeLive(darks[i < 0 ? 0 : (i + 1) % darks.length]);
+    }, secs * 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cycleOn, cycleSecs]);
+
   // Prender/apagar el termómetro: guarda en el local y avisa al control.
   const toggleEnergy = (v: boolean) => {
     applyEnergy(v); broadcastJbState();
@@ -775,10 +795,11 @@ export default function ConsolePage() {
   // El operador acepta el cambio: cambiamos el pool. NO cortamos la canción en
   // curso — si algo suena, el cambio toma efecto en la próxima; si no, arranca ya.
   const switchToPending = async () => {
-    if (!pending) return;
-    activePlaylistRef.current = pending.playlistId;
+    const pend = pendingRef.current;
+    if (!pend) return;
+    activePlaylistRef.current = pend.playlistId;
     await reloadActivePlaylist();
-    subscribeTracks(pending.playlistId);
+    subscribeTracks(pend.playlistId);
     await refreshQueue();
     setPending(null);
     if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
@@ -813,7 +834,7 @@ export default function ConsolePage() {
       const c = p.payload || {};
       if (c.cmd === 'skip') advance();
       else if (c.cmd === 'back') goBack();
-      else if (c.cmd === 'playpause') { if (stopped) resumeFromStop(); else togglePlayPause(); }
+      else if (c.cmd === 'playpause') { if (stoppedRef.current) resumeFromStop(); else togglePlayPause(); }
       else if (c.cmd === 'stop') stop();
       else if (c.cmd === 'resume') resumeFromStop();
       else if (c.cmd === 'volume') { changeVolume(parseInt(c.value)); broadcastJbState(); }
@@ -1246,7 +1267,7 @@ export default function ConsolePage() {
           {pending && (
             <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', maxWidth: 'min(94%, 520px)', zIndex: 2147483600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 13, border: `1px solid ${sk.cardBorder}`, background: 'rgba(7,6,14,.95)', boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                <span style={{ fontSize: 17, flexShrink: 0 }}>🔄</span>
+                <span style={{ flexShrink: 0, color: sk.accent, display: 'inline-flex' }}><Ic name="refresh" size={17} /></span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Activaron otra playlist</div>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pending.name}</div>
@@ -1331,6 +1352,15 @@ export default function ConsolePage() {
                     Segundos/canción
                     <input type="number" min={0} className="cv-input" style={{ width: 62, padding: '5px 8px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
                   </label>
+                  <div style={{ width: 1, height: 24, background: 'var(--cv-hair)' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={cycleOn} onChange={(e) => setCycleOn(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                      Auto-paleta
+                    </label>
+                    <input type="number" min={3} className="cv-input" style={{ width: 52, padding: '5px 7px' }} value={cycleSecs} onChange={(e) => setCycleSecs(Math.max(3, parseInt(e.target.value) || 15))} title="Segundos entre paletas" />
+                    <span className="cv-mono" style={{ fontSize: 10, color: 'var(--cv-mut)' }}>seg</span>
+                  </div>
                   <div style={{ width: 1, height: 24, background: 'var(--cv-hair)' }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: '1 1 auto', minWidth: 210 }}>
                     <span className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.14em', color: 'var(--cv-mut)', textTransform: 'uppercase', flexShrink: 0 }}>Paleta</span>

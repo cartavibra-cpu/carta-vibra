@@ -5,7 +5,7 @@ import React from 'react';
 type IcName =
   | 'prev' | 'next' | 'play' | 'pause' | 'stop'
   | 'volume' | 'mute' | 'cc' | 'chevleft'
-  | 'gear' | 'mic' | 'phone' | 'chevup' | 'chevdown' | 'fullscreen';
+  | 'gear' | 'mic' | 'phone' | 'chevup' | 'chevdown' | 'fullscreen' | 'refresh';
 
 export function Ic({ name, size = 18 }: { name: IcName; size?: number }) {
   const s: React.CSSProperties = { width: size, height: size, display: 'block', flexShrink: 0 };
@@ -109,6 +109,13 @@ export function Ic({ name, size = 18 }: { name: IcName; size?: number }) {
       return (
         <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M20 9V5.5A1.5 1.5 0 0 0 18.5 4H15M4 15v3.5A1.5 1.5 0 0 0 5.5 20H9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15" />
+        </svg>
+      );
+    case 'refresh':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M20 11a8 8 0 0 0-14.3-4.4M4 5v3.5h3.5" />
+          <path d="M4 13a8 8 0 0 0 14.3 4.4M20 19v-3.5h-3.5" />
         </svg>
       );
     default:
