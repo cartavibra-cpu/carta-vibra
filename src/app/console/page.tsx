@@ -48,7 +48,8 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
           background: 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 5px), radial-gradient(circle, #ffffff, #f0ecf6 74%)',
           boxShadow: 'inset 0 0 34px rgba(0,0,0,.10), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px rgba(0,0,0,.14)' }}>
           <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
-            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1))',
+            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.72), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.72), rgba(var(--cv-accent-rgb),1))',
+            filter: 'saturate(1.12)',
             WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
             mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
           <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
@@ -1161,6 +1162,7 @@ export default function ConsolePage() {
     <>
     {switchOverlay}
     <main
+      data-cv-console
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
       style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: clean ? '#000' : ambientBg, cursor: (clean && !controlsVisible) ? 'none' : 'default' }}
@@ -1173,6 +1175,9 @@ export default function ConsolePage() {
         .cv-scroll::-webkit-scrollbar-track{background:transparent}
         .cv-scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb, var(--cv-accent) 42%, transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
         .cv-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--cv-accent) 65%, transparent);background-clip:padding-box}
+        /* auto-paleta: al cambiar de tema, los colores de la pantalla se funden suave (no de un tirón) */
+        [data-cv-console] *{transition:background-color .7s ease,border-color .7s ease,color .7s ease,box-shadow .7s ease,fill .7s ease,stroke .7s ease}
+        [data-cv-console] button,[data-cv-console] input,[data-cv-console] select,[data-cv-console] a{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease}
       `}</style>
 
       {/* al SALIR de pantalla completa: velo negro a pantalla entera que se desvanece (misma transición suave) */}
