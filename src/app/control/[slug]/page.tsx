@@ -39,6 +39,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [jbAutoDj, setJbAutoDj] = useState(true);
   const [theme, setTheme] = useState('vibra');
   const [energyOn, setEnergyOn] = useState(true);
+  const [jbCycleOn, setJbCycleOn] = useState(false);
+  const [jbCycleSecs, setJbCycleSecs] = useState(15);
   const [pcVolume, setPcVolume] = useState(100);
   const [pcStopped, setPcStopped] = useState(false);
   const [pcPending, setPcPending] = useState<string | null>(null);
@@ -143,6 +145,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         if (typeof s.volume === 'number') setPcVolume(s.volume);
         if (typeof s.stopped === 'boolean') setPcStopped(s.stopped);
         if ('pendingName' in s) setPcPending(s.pendingName || null);
+        if (typeof s.cycle === 'boolean') setJbCycleOn(s.cycle);
+        if (typeof s.cyclesecs === 'number') setJbCycleSecs(s.cyclesecs);
       });
     cmdChRef.current = cmd;
     cmd.subscribe((status: string) => {
@@ -167,6 +171,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const jbSwitchPlaylist = () => { jbSend({ cmd: 'switchplaylist' }); setPcPending(null); };
   const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
   const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
+  const jbSetCycle = (v: boolean) => { setJbCycleOn(v); jbSend({ cmd: 'cyclepalette', value: v }); };
+  const jbSetCycleSecs = (n: number) => { setJbCycleSecs(n); jbSend({ cmd: 'cyclesecs', value: n }); };
 
   // Apariencia de la pantalla del local: paleta + termómetro (guarda en el local + avisa al PC).
   const pickTheme = (t: string) => {
@@ -308,6 +314,20 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           ))}
         </div>
         <div className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)', marginTop: 9 }}>cambia el color de la pantalla del local al toque.</div>
+        <div style={{ height: 1, background: 'var(--cv-line)', margin: '14px 0' }} />
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+          <input type="checkbox" checked={jbCycleOn} onChange={(e) => jbSetCycle(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />
+          <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Auto-paleta <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mono)' }}>(salta sola entre paletas oscuras)</span></span>
+        </label>
+        {jbCycleOn && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 12, marginLeft: 28 }}>
+            <span style={{ fontSize: 15, color: 'var(--cv-text)' }}>Cambiar cada</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input type="number" min={3} className="cv-input" value={jbCycleSecs} onChange={(e) => jbSetCycleSecs(Math.max(3, parseInt(e.target.value) || 15))} style={{ width: 72, padding: '10px', fontSize: 16, textAlign: 'center' }} />
+              <span className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>seg</span>
+            </div>
+          </div>
+        )}
         <div style={{ height: 1, background: 'var(--cv-line)', margin: '14px 0' }} />
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
           <input type="checkbox" checked={energyOn} onChange={(e) => setEnergy(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--cv-accent)' }} />

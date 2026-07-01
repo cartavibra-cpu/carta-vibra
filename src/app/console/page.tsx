@@ -232,6 +232,8 @@ export default function ConsolePage() {
   const [showSettings, setShowSettings] = useState(false);
   const [cycleOn, setCycleOn] = useState(false);   // modo auto-paleta (rota temas oscuros)
   const [cycleSecs, setCycleSecs] = useState(15);
+  const cycleOnRef = useRef(false);
+  const cycleSecsRef = useRef(15);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showSettingsRef = useRef(false);
 
@@ -650,7 +652,7 @@ export default function ConsolePage() {
 
   // Avisa al control del celular el estado actual (play/pausa, segundos, AutoDJ).
   const broadcastJbState = () => {
-    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current, theme: themeRef.current, energy: energyOnRef.current, volume: volumeRef.current, stopped: stoppedRef.current, pendingName: pendingRef.current?.name ?? null } }); } catch {}
+    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current, theme: themeRef.current, energy: energyOnRef.current, volume: volumeRef.current, stopped: stoppedRef.current, pendingName: pendingRef.current?.name ?? null, cycle: cycleOnRef.current, cyclesecs: cycleSecsRef.current } }); } catch {}
   };
   // Cuando aparece/desaparece el aviso de cambio de playlist, lo reflejamos al control.
   useEffect(() => { pendingRef.current = pending; broadcastJbState(); }, [pending]);
@@ -667,10 +669,11 @@ export default function ConsolePage() {
 
   // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
   // Cada salto se transmite al celular vía broadcastJbState → el control sigue el color.
-  const cycleOnRef = useRef(false);
   useEffect(() => {
     const wasOff = !cycleOnRef.current;
     cycleOnRef.current = cycleOn;
+    cycleSecsRef.current = cycleSecs;
+    broadcastJbState();  // refleja el estado (on/off + segundos) al celular
     if (!cycleOn) return;
     const darks: string[] = CV_THEME_META.filter((t) => !t.light).map((t) => t.id);
     if (darks.length < 2) return;
@@ -880,6 +883,8 @@ export default function ConsolePage() {
       else if (c.cmd === 'autodj') { const v = !!c.value; setAutoOn(v); autoOnRef.current = v; broadcastJbState(); }
       else if (c.cmd === 'theme') { const t = String(c.value || 'vibra'); applyCvTheme(t); themeRef.current = t; setCurTheme(t); }
       else if (c.cmd === 'energy') { applyEnergy(!!c.value); }
+      else if (c.cmd === 'cyclepalette') { setCycleOn(!!c.value); }
+      else if (c.cmd === 'cyclesecs') { setCycleSecs(Math.max(3, parseInt(c.value) || 15)); }
       else if (c.cmd === 'hello') broadcastJbState();
     }).subscribe();
     cmdChRef.current = cmdCh;
