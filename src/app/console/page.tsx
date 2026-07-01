@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
@@ -48,8 +49,8 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
           background: 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 5px), radial-gradient(circle, #ffffff, #f0ecf6 74%)',
           boxShadow: 'inset 0 0 34px rgba(0,0,0,.10), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px rgba(0,0,0,.14)' }}>
           <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
-            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.72), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.72), rgba(var(--cv-accent-rgb),1))',
-            filter: 'saturate(1.12)',
+            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.85), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.85), rgba(var(--cv-accent-rgb),1))',
+            filter: 'saturate(1.45) drop-shadow(0 0 5px rgba(var(--cv-accent-rgb),.9)) drop-shadow(0 0 12px rgba(var(--cv-accent-rgb),.55))',
             WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
             mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
           <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
@@ -658,15 +659,23 @@ export default function ConsolePage() {
   // Cuando aparece/desaparece el aviso de cambio de playlist, lo reflejamos al control.
   useEffect(() => { pendingRef.current = pending; broadcastJbState(); }, [pending]);
 
-  // Cambiar la paleta desde la consola: aplica en vivo, guarda en el local y avisa al control.
+  // Aplica un tema con cross-fade de TODA la pantalla (View Transitions) si el navegador lo soporta.
+  const applyThemeVT = (t: string) => {
+    const paint = () => { applyCvTheme(t); setCurTheme(t); };
+    const d = document as unknown as { startViewTransition?: (cb: () => void) => void };
+    if (typeof d.startViewTransition === 'function') d.startViewTransition(() => flushSync(paint));
+    else paint();
+  };
+
+  // Cambiar la paleta desde la consola: aplica en vivo (cross-fade), guarda en el local y avisa al control.
   const changeTheme = (t: string) => {
-    applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState();
+    themeRef.current = t; applyThemeVT(t); broadcastJbState();
     const sb = supa(); const vid = venueRef.current;
     if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
 
   // Igual que changeTheme pero SIN persistir (el auto-paleta no ensucia la DB en cada salto).
-  const applyThemeLive = (t: string) => { applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState(); };
+  const applyThemeLive = (t: string) => { themeRef.current = t; applyThemeVT(t); broadcastJbState(); };
 
   // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
   // Cada salto se transmite al celular vía broadcastJbState → el control sigue el color.
@@ -1175,9 +1184,8 @@ export default function ConsolePage() {
         .cv-scroll::-webkit-scrollbar-track{background:transparent}
         .cv-scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb, var(--cv-accent) 42%, transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
         .cv-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--cv-accent) 65%, transparent);background-clip:padding-box}
-        /* auto-paleta: al cambiar de tema, los colores de la pantalla se funden suave (no de un tirón) */
-        [data-cv-console] *{transition:background-color .7s ease,border-color .7s ease,color .7s ease,box-shadow .7s ease,fill .7s ease,stroke .7s ease}
-        [data-cv-console] button,[data-cv-console] input,[data-cv-console] select,[data-cv-console] a{transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .12s ease}
+        /* auto-paleta: cross-fade de TODA la pantalla al cambiar de tema (View Transitions) */
+        ::view-transition-old(root),::view-transition-new(root){animation-duration:.5s;animation-timing-function:ease}
       `}</style>
 
       {/* al SALIR de pantalla completa: velo negro a pantalla entera que se desvanece (misma transición suave) */}
