@@ -1162,8 +1162,8 @@ export default function ConsolePage() {
               <div style={{ flexShrink: 0 }}>
                 <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
                 <div>
-                  <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 2 }}>Código de sala</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 'clamp(30px,25cqw,52px)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '0', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{(roomCode ?? '—').split('').join(' ')}</div>
+                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 4 }}>Código de sala</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(42px,3.6vw,58px)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
                 </div>
                 {widgetQr && (
                   <div style={{ marginTop: 14 }}>
@@ -1171,8 +1171,8 @@ export default function ConsolePage() {
                       <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
                     </div>
                     <div style={{ width: '100%', marginTop: 9 }}>
-                      <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>Votá la próxima</div>
-                      <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>desde tu celular</div>
+                      <div className="cv-mono" style={{ textAlign: 'left', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>Votá la próxima</div>
+                      <div className="cv-mono" style={{ textAlign: 'left', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>desde tu celular</div>
                     </div>
                   </div>
                 )}

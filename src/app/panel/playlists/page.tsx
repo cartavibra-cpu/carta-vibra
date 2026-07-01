@@ -246,7 +246,7 @@ export default function PlaylistsPage() {
           <form onSubmit={createPlaylist} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <input className="cv-input" style={{ flex: '2 1 240px', padding: '11px 14px' }} placeholder="Nombre de la playlist" value={cName} onChange={(e) => setCName(e.target.value)} />
-              <select className="cv-input" style={{ flex: '1 1 160px', padding: '11px 14px' }} value={cType} onChange={(e) => setCType(e.target.value)}>
+              <select className="cv-input" style={{ flex: '1 1 160px', padding: '11px 34px 11px 14px' }} value={cType} onChange={(e) => setCType(e.target.value)}>
                 <option value="jukebox">Jukebox (YouTube)</option>
                 <option value="karaoke">Karaoke (YouTube)</option>
               </select>

@@ -329,8 +329,11 @@ html { scroll-behavior: smooth; }
    Cualquier elemento nuevo hereda la identidad sin tocar nada más.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* Controles nativos (checkbox, radio, range, progress) → acento del tema */
-:root { accent-color: var(--cv-accent); }
+/* Controles nativos (checkbox, radio, range, progress) → acento del tema.
+   color-scheme hace que la lista del <select>, scrollbars nativos, etc. salgan
+   oscuros en temas oscuros y claros en los temas claros (lino/crema/algodón). */
+:root { accent-color: var(--cv-accent); color-scheme: dark; }
+[data-cv-theme="lino"], [data-cv-theme="crema"], [data-cv-theme="algodon"] { color-scheme: light; }
 
 /* Selección de texto */
 ::selection { background: rgba(var(--cv-accent-rgb), .30); color: var(--cv-ink); }
