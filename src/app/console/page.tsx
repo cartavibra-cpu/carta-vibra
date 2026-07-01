@@ -334,6 +334,7 @@ export default function ConsolePage() {
     return () => ro.disconnect();
   }, []);
 
+
   // El termómetro vive en el local (settings.energy, default sí). Lo prende/apaga la consola o el control.
   useEffect(() => {
     const vid = (status as { venue_id?: string } | null)?.venue_id;
@@ -505,7 +506,7 @@ export default function ConsolePage() {
   const refreshPlaylistName = async (pid: string | null) => {
     const sb = supa(); if (!sb || !pid) { setPlaylistName(''); return; }
     try {
-      const { data } = await sb.from('playlists').select('name').eq('id', pid).maybeSingle();
+      const { data } = await sb.from('venue_playlist').select('name').eq('id', pid).maybeSingle();
       setPlaylistName((data as { name?: string } | null)?.name || '');
     } catch { setPlaylistName(''); }
   };
@@ -1069,7 +1070,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'relative', height: '100%', maxWidth: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5), 0 30px 70px -34px rgba(var(--cv-accent-rgb),.4)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'relative', width: '100%', maxHeight: '70vh', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5), 0 30px 70px -34px rgba(var(--cv-accent-rgb),.4)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size', flexShrink: 0 };
 
   return (
     <>
@@ -1097,9 +1098,9 @@ export default function ConsolePage() {
         <div style={clean ? { width: '100%', height: '100%' } : {
           position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
           display: 'flex', flexDirection: 'column',
-          border: '1px solid color-mix(in srgb, var(--cv-accent) 16%, var(--cv-hair))',
-          background: 'repeating-radial-gradient(circle at 50% 22%, rgba(175,175,200,.05) 0 1px, transparent 1px 15px), radial-gradient(150% 160% at 50% -10%, color-mix(in srgb, var(--cv-accent) 20%, var(--cv-surf)) 0%, var(--cv-surf) 50%, color-mix(in srgb, var(--cv-surf) 80%, var(--cv-bg)) 100%)',
-          boxShadow: '0 44px 120px -46px #000, inset 0 1px 0 rgba(255,255,255,.05), inset 0 0 0 1px rgba(var(--cv-accent-rgb),.10)',
+          border: '1px solid color-mix(in srgb, var(--cv-accent) 22%, var(--cv-hair))',
+          background: 'linear-gradient(rgba(255,255,255,.055), rgba(255,255,255,.055)), repeating-radial-gradient(circle at 50% 20%, rgba(185,185,210,.05) 0 1px, transparent 1px 15px), radial-gradient(160% 150% at 50% -14%, color-mix(in srgb, var(--cv-accent) 20%, var(--cv-surf)), var(--cv-surf))',
+          boxShadow: '0 50px 130px -44px #000, inset 0 1px 0 rgba(255,255,255,.07), inset 0 0 0 1px rgba(var(--cv-accent-rgb),.12)',
           padding: 'clamp(16px,1.8vw,30px)',
         }}>
 
@@ -1115,16 +1116,16 @@ export default function ConsolePage() {
           {/* GRILLA: playlist | video+medidor+controles | código+QR+votos */}
           <div style={clean
             ? { width: '100%', height: '100%' }
-            : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(198px,280px) minmax(0,1fr) minmax(228px,300px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
+            : { flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(156px,182px) minmax(0,1fr) minmax(244px,300px)', gap: 'clamp(14px,1.7vw,28px)', alignItems: 'stretch', position: 'relative', zIndex: 2 }}>
 
           {/* IZQUIERDA: votos en vivo / vinilo (arriba) → código → QR (abajo, mismo ancho) */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)', gap: 'clamp(12px,1.6vh,20px)' }}>
-              {/* zona votos → vinilo "esperando votos" cuando no hay votos en la lista */}
+            <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(11px,1.1vw,16px)', gap: 'clamp(12px,1.6vh,20px)' }}>
+              {/* zona votos → vinilo "esperando votos" cuando no hay votos en la lista (todo alineado a la IZQUIERDA) */}
               <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 {votantes.length === 0 ? (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ConsoleVinyl size={158} label="esperando votos" />
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
+                    <ConsoleVinyl size={140} label="esperando votos" />
                   </div>
                 ) : (
                   <>
@@ -1135,15 +1136,15 @@ export default function ConsolePage() {
                   </>
                 )}
               </div>
-              {/* CÓDIGO + QR (abajo, alineados al mismo borde y mismo ancho) */}
+              {/* CÓDIGO + QR (abajo, mismo borde izquierdo y mismo ancho de la franja) */}
               <div style={{ flexShrink: 0 }}>
                 <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
-                <div style={{ width: 'clamp(126px,11vw,154px)' }}>
+                <div>
                   <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 8 }}>Código de sala</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(42px,3.7vw,58px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,3.4vw,54px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.02em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
                 </div>
                 {widgetQr && (
-                  <div style={{ width: 'clamp(126px,11vw,154px)', marginTop: 14 }}>
+                  <div style={{ marginTop: 14 }}>
                     <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 14, background: '#fff', padding: 8, lineHeight: 0 }}>
                       <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
                     </div>
@@ -1154,11 +1155,11 @@ export default function ConsolePage() {
             </div>
           )}
 
-          {/* CENTRO: video (dimensionado por alto → siempre entra) + medidor + panel, todos del ancho del video */}
-          <div style={clean ? { width: '100%', height: '100%' } : { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(9px,1.3vh,17px)', minHeight: 0, position: 'relative' }}>
+          {/* CENTRO: video (ancho completo, arriba) + medidor + panel; abajo queda espacio para desplegar ajustes */}
+          <div style={clean ? { width: '100%', height: '100%' } : { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', gap: 'clamp(9px,1.3vh,17px)', minHeight: 0, position: 'relative' }}>
 
-          {/* wrapper que ocupa el alto sobrante: el video se ajusta a él manteniendo 16:9 */}
-          <div style={clean ? { width: '100%', height: '100%' } : { flex: 1, minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* el video va arriba, a todo el ancho de la columna */}
+          <div style={clean ? { width: '100%', height: '100%' } : { width: '100%', display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
           {/* PANTALLA: el video */}
           <div ref={stageRef} tabIndex={-1} style={videoBox}>
           {/* pointerEvents:none → YouTube no muestra su nombre/compartir/más-videos al pasar el mouse */}
@@ -1249,9 +1250,9 @@ export default function ConsolePage() {
         </div>{/* fin video */}
           </div>{/* fin wrapper video (alto sobrante) */}
 
-          {/* MEDIDOR DE VOTOS — protagonista, del ancho del video */}
+          {/* MEDIDOR DE VOTOS — protagonista, ancho completo */}
           {!clean && energyOn && (
-            <div style={{ width: videoW || '100%', maxWidth: '100%', flexShrink: 0 }}>
+            <div style={{ width: '100%', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 7 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-faint)', textTransform: 'uppercase' }}>tranqui</span>
                 <span style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
@@ -1266,9 +1267,9 @@ export default function ConsolePage() {
             </div>
           )}
 
-          {/* PANEL DE NAVEGACIÓN — del ancho del video, grupos repartidos. Ajustes se abre HACIA ARRIBA (respeta el margen inferior). */}
+          {/* PANEL DE NAVEGACIÓN — ancho completo. Los AJUSTES se despliegan HACIA ABAJO, a lo ancho (en el espacio libre). */}
           {!clean && (
-            <div style={{ width: videoW || '100%', maxWidth: '100%', flexShrink: 0, position: 'relative' }}>
+            <div style={{ width: '100%', flexShrink: 0, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '7px 14px', borderRadius: 14, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)', boxShadow: '0 10px 30px -16px #000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={goBack} title="Anterior (deshacer salto)">⏮</button>
@@ -1289,35 +1290,32 @@ export default function ConsolePage() {
                 </div>
               </div>
               {showSettings && (
-                <div className="cv-scroll" style={{ position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, width: 'min(90vw, 344px)', maxHeight: 'clamp(190px,42vh,400px)', overflowY: 'auto', zIndex: 40, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 -26px 66px -18px #000', padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
-                    <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                <div className="cv-scroll" style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, maxHeight: 'clamp(108px,20vh,220px)', overflowY: 'auto', zIndex: 40, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--cv-ink)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                    AutoDJ cuando no hay votos
+                    AutoDJ sin votos
                   </label>
-                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                  <div style={{ width: 1, height: 24, background: 'var(--cv-hair)' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--cv-ink)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                    Mostrar medidor de votos
+                    Medidor de votos
                   </label>
-                  <div style={{ fontSize: 11, color: 'var(--cv-faint)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Si lo apagás, en la izquierda gira el vinilo.</div>
-                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                  <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
-                    {CV_THEME_META.map((t) => (
-                      <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 28, borderRadius: 7, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
-                    ))}
+                  <div style={{ width: 1, height: 24, background: 'var(--cv-hair)' }} />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--cv-mut)', whiteSpace: 'nowrap' }}>
+                    Segundos/canción
+                    <input type="number" min={0} className="cv-input" style={{ width: 62, padding: '5px 8px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
+                  </label>
+                  <div style={{ width: 1, height: 24, background: 'var(--cv-hair)' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: '1 1 auto', minWidth: 210 }}>
+                    <span className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.14em', color: 'var(--cv-mut)', textTransform: 'uppercase', flexShrink: 0 }}>Paleta</span>
+                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                      {CV_THEME_META.map((t) => (
+                        <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ width: 26, height: 26, borderRadius: 6, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none', flexShrink: 0 }} />
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-mut)', flexWrap: 'wrap' }}>
-                    Segundos por canción (0 = completa):
-                    <input type="number" min={0} className="cv-input" style={{ width: 68, padding: '6px 9px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
-                  </label>
-                  <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
-                  <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', textDecoration: 'none' }}>← Volver al panel</a>
+                  <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mut)', textDecoration: 'none', whiteSpace: 'nowrap' }}>← Panel</a>
+                  <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 14, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
                 </div>
               )}
             </div>
