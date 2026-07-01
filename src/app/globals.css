@@ -51,9 +51,9 @@
   --cv-beat:  0.666s;   /* 60 / BPM  (default 90 BPM) */
   --cv-surco: 0.5;      /* opacidad del campo de surcos vivos */
 
-  /* Fuentes (next/font expone estas variables) */
-  --cv-font-display: var(--font-space, 'Space Grotesk', sans-serif);
-  --cv-font-body:    var(--font-inter, 'Inter', system-ui, sans-serif);
+  /* Fuentes (identidad v2: Syne display/números + Hanken Grotesk UI) */
+  --cv-font-display: var(--font-syne, 'Syne', sans-serif);
+  --cv-font-body:    var(--font-hanken, 'Hanken Grotesk', system-ui, sans-serif);
 }
 
 /* ---------- Keyframes ---------- */
