@@ -26,10 +26,12 @@ const STAGE_BG =
 function ConsoleVinyl({ size, label }: { size: number; label: string }) {
   const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
-  const circleW = size * 0.48 * 0.94; // ancho útil del centro (etiqueta grande)
-  const labelFs = Math.max(7, Math.min(Math.round(size * 0.16), Math.floor(circleW / (longest * 0.74))));
+  // La letra va POR SOBRE el vinilo (capa superior), no en el centro chico:
+  // puede ocupar casi todo el ancho del disco y verse COMPLETA y grande.
+  const labelFs = Math.max(12, Math.min(Math.round(size * 0.2), Math.floor((size * 0.92) / (longest * 0.7))));
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      {/* disco que gira */}
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
         background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,.045) 0 1px, transparent 1px 5px), radial-gradient(circle, #19141f, #0b0a14 74%)',
         boxShadow: 'inset 0 0 40px rgba(0,0,0,.85), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px var(--cv-hair)' }}>
@@ -40,11 +42,14 @@ function ConsoleVinyl({ size, label }: { size: number; label: string }) {
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
           background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
-      <div style={{ position: 'absolute', inset: '26%', borderRadius: '50%', overflow: 'hidden',
-        background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)', border: '1px solid var(--cv-hair)',
-        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 2%' }}>
+      {/* pozo central (agujero del vinilo) */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', width: Math.max(4, size * 0.045), height: Math.max(4, size * 0.045), transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
+      {/* TEXTO por SOBRE el vinilo — capa superior, grande, completa, NO gira */}
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '.02em', pointerEvents: 'none' }}>
+        {/* velo oscuro para que el texto se lea sobre los surcos */}
+        <div style={{ position: 'absolute', inset: '9%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,5,12,.82) 40%, rgba(6,5,12,.45) 61%, transparent 74%)' }} />
         {words.map((w, i) => (
-          <span key={i} className="cv-wordmark cv-grad-theme" style={{ fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.045em', whiteSpace: 'nowrap' }}>{w}</span>
+          <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
         ))}
       </div>
     </div>
