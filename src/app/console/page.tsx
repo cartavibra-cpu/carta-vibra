@@ -1001,7 +1001,7 @@ export default function ConsolePage() {
     <main
       onMouseMove={pokeControls}
       onTouchStart={pokeControls}
-      style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: clean ? '#000' : ambientBg, cursor: controlsVisible ? 'default' : 'none' }}
+      style={{ position: 'relative', height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', background: clean ? '#000' : ambientBg, cursor: (clean && !controlsVisible) ? 'none' : 'default' }}
     >
       <style>{`@keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}`}</style>
 
@@ -1134,26 +1134,26 @@ export default function ConsolePage() {
             </div>
           )}
 
-          {/* zona-sensor arriba: revela los controles */}
-          <div onMouseMove={pokeControls} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%', zIndex: 2147483400 }} />
+          {/* zona-sensor + barra flotante: SOLO en pantalla completa (en modo normal los controles van fijos a la derecha) */}
+          {clean && (
+            <>
+              <div onMouseMove={pokeControls} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%', zIndex: 2147483400 }} />
+              <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500 }}>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={toggleFs} title="Salir de pantalla completa (F)">⛶</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55, color: '#fff' }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
+              </div>
+            </>
+          )}
 
-          {/* barra de controles (auto-esconde), arriba-centro */}
-          <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500 }}>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55, color: '#fff' }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
-            {!clean && <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />}
-            {!clean && <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>}
-          </div>
-
-          {/* (los ajustes se movieron fuera del video → se abren sobre la columna derecha, no lo tapan) */}
+          {/* (en modo normal: controles + ajustes van fijos bajo el QR, en la columna derecha) */}
         </div>
 
           {/* DERECHA: código+QR centrado arriba + banda de votos abajo (mismo alto que la izquierda) */}
           {!clean && (
             <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
-              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 18 }}>
                 <div>
                   <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 10 }}>Código de sala</div>
                   <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(44px,4.4vw,66px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.06em' }}>{roomCode ?? '—'}</div>
@@ -1161,6 +1161,50 @@ export default function ConsolePage() {
                     {widgetQr && <div style={{ width: 'clamp(70px,6.4vw,94px)', height: 'clamp(70px,6.4vw,94px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
                     <div className="cv-mono" style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
                   </div>
+                </div>
+
+                {/* CONTROLES FIJOS bajo el QR + AJUSTES en ventanita que baja (scroll adentro, tapa los votos no el QR) */}
+                <div style={{ position: 'relative' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '5px 6px', borderRadius: 12, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)' }}>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '6px 10px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
+                    <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--cv-hair)', margin: '0 2px' }} />
+                    <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '6px 10px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+                  </div>
+                  {showSettings && (
+                    <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: 'min(100%, 300px)', maxHeight: 'clamp(190px,30vh,280px)', overflowY: 'auto', zIndex: 30, borderRadius: 14, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 66px -18px #000', padding: '14px 15px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, position: 'sticky', top: 0 }}>
+                        <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
+                        <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+                      </div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                        AutoDJ cuando no hay votos
+                      </label>
+                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
+                        <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
+                        Mostrar termómetro de energía
+                      </label>
+                      <div style={{ fontSize: 11, color: 'var(--cv-faint)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
+                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                      <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 5 }}>
+                        {CV_THEME_META.map((t) => (
+                          <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 28, borderRadius: 7, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
+                        ))}
+                      </div>
+                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-mut)', flexWrap: 'wrap' }}>
+                        Segundos por canción (0 = completa):
+                        <input type="number" min={0} className="cv-input" style={{ width: 68, padding: '6px 9px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
+                      </label>
+                      <div style={{ height: 1, background: 'var(--cv-hair)', margin: '11px 0' }} />
+                      <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', textDecoration: 'none' }}>← Volver al panel</a>
+                    </div>
+                  )}
                 </div>
               </div>
               {/* BANDA DE VOTOS DERECHA — flotan y suben desde abajo, intercaladas con la izquierda */}
@@ -1173,43 +1217,6 @@ export default function ConsolePage() {
           )}
 
           </div>{/* grilla dentro del marco */}
-
-          {/* AJUSTES — se abren SOBRE la columna derecha (no tapan el video); mismos controles que tendrá el celular */}
-          {!clean && showSettings && (
-            <>
-              <div onClick={() => setShowSettings(false)} style={{ position: 'absolute', inset: 0, zIndex: 40, background: 'transparent', cursor: 'default' }} />
-              <div style={{ position: 'absolute', top: 'clamp(58px,8vh,94px)', right: 'clamp(16px,1.8vw,30px)', width: 'clamp(258px,22vw,314px)', maxHeight: 'calc(100% - clamp(78px,11vh,124px))', overflowY: 'auto', zIndex: 41, borderRadius: 16, border: '1px solid var(--cv-hair)', background: 'var(--cv-surf)', boxShadow: '0 26px 74px -20px #000', padding: '16px 18px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <span className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-mut)' }}>AJUSTES</span>
-                  <button onClick={() => setShowSettings(false)} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                </div>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={autoOn} onChange={(e) => { setAutoOn(e.target.checked); autoOnRef.current = e.target.checked; }} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                  AutoDJ cuando no hay votos
-                </label>
-                <div style={{ height: 1, background: 'var(--cv-hair)', margin: '12px 0' }} />
-                <label style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--cv-ink)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={energyOn} onChange={(e) => toggleEnergy(e.target.checked)} style={{ width: 16, height: 16, accentColor: sk.accent }} />
-                  Mostrar termómetro de energía
-                </label>
-                <div style={{ fontSize: 11.5, color: 'var(--cv-faint)', margin: '-2px 0 0 25px', lineHeight: 1.4 }}>Apagalo si hay poca gente; en su lugar gira el vinilo del local.</div>
-                <div style={{ height: 1, background: 'var(--cv-hair)', margin: '12px 0' }} />
-                <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.14em', color: 'var(--cv-mut)', marginBottom: 9 }}>PALETA · TU PANTALLA EN VIVO</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6 }}>
-                  {CV_THEME_META.map((t) => (
-                    <button key={t.id} onClick={() => changeTheme(t.id)} title={t.name} style={{ height: 30, borderRadius: 8, cursor: 'pointer', background: t.grad, border: curTheme === t.id ? '2px solid var(--cv-ink)' : '2px solid var(--cv-hair)', boxShadow: curTheme === t.id ? '0 0 8px rgba(var(--cv-accent-rgb),.4)' : 'none' }} />
-                  ))}
-                </div>
-                <div style={{ height: 1, background: 'var(--cv-hair)', margin: '12px 0' }} />
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--cv-mut)', flexWrap: 'wrap' }}>
-                  Segundos por canción (0 = completa):
-                  <input type="number" min={0} className="cv-input" style={{ width: 72, padding: '7px 10px' }} value={maxSeconds} onChange={(e) => { const n = Math.max(0, parseInt(e.target.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; }} />
-                </label>
-                <div style={{ height: 1, background: 'var(--cv-hair)', margin: '12px 0' }} />
-                <a href={status?.slug ? `/panel/venues/${status.slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', textDecoration: 'none' }}>← Volver al panel</a>
-              </div>
-            </>
-          )}
         </div>{/* MARCO */}
       </div>{/* escenario */}
 
