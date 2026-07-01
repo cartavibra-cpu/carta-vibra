@@ -4,6 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 import { useIsMobile } from '@/lib/useIsMobile';
 import { logError } from '@/lib/logError';
+import { Ic } from '@/components/Ic';
 
 const MODE_LABELS: Record<string, string> = { youtube_jukebox: 'YouTube Jukebox', youtube_karaoke: 'YouTube Karaoke', local_pro: 'Local Pro' };
 const modeLabel = (m: string) => MODE_LABELS[m] || m;
@@ -174,7 +175,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
       {consolePaired !== null && !setupDone && (
         <div className="cv-card" style={{ padding: '18px 20px', marginBottom: 20, border: '1px solid rgba(var(--cv-accent-rgb),.3)', background: 'linear-gradient(160deg, rgba(var(--cv-accent-rgb),.10), rgba(var(--cv-accent-rgb),.05))' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
-            <span style={{ fontSize: 18 }}>🚀</span>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)', flexShrink: 0 }} />
             <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>Primeros pasos</span>
           </div>
           <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 14px' }}>
@@ -220,7 +221,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
         <p style={{ fontSize: 13.5, color: 'var(--cv-text-2)', lineHeight: 1.55, margin: '0 0 12px' }}>
           Mientras el PC proyecta a la TV, controlá el local <b style={{ color: 'var(--cv-text)' }}>desde tu celular</b>. En karaoke: agregar, reordenar, anterior y siguiente. En jukebox: saltear, pausar, AutoDJ y segundos por canción. Abrí este link en tu teléfono (logueado con tu cuenta).
         </p>
-        <a href={`/control/${slug}`} className="cv-btn cv-btn-mint" style={{ display: 'inline-block', fontSize: 14, padding: '10px 20px' }}>📱 Abrir control en vivo</a>
+        <a href={`/control/${slug}`} className="cv-btn cv-btn-mint" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14, padding: '10px 20px' }}><Ic name="phone" size={16} />Abrir control en vivo</a>
       </div>
 
       {/* Playlists del local */}

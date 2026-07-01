@@ -4,6 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Waveform from '@/components/Waveform';
 import BrandMark from '@/components/BrandMark';
+import { Ic } from '@/components/Ic';
 import { getSkin, SKIN_STORAGE_KEY, type SkinName } from '@/lib/skins';
 
 declare global {
@@ -372,7 +373,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           {!current ? (
             /* SIN cantante: invitación + código grande al centro (no hay video que mirar) */
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.4cqh', textAlign: 'center', padding: 20, width: '92%' }}>
-              <div style={{ fontSize: 'clamp(30px,6cqw,56px)' }}>🎤</div>
+              <div style={{ color: 'var(--cv-accent)', display: 'flex', filter: 'drop-shadow(0 0 14px rgba(var(--cv-accent-rgb),.5))' }}><Ic name="mic" size={48} /></div>
               <div className="cv-wordmark" style={{ fontSize: 'clamp(18px,3cqw,30px)', fontWeight: 600, color: sk.textOnVideo }}>Anotate para cantar</div>
               <div className="cv-mono" style={{ fontSize: 'clamp(10px,1.5cqw,14px)', letterSpacing: '.06em', color: sk.labelColor }}>escaneá el QR y poné el código</div>
               <div key={skin} className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(46px,11cqw,112px)', fontWeight: 700, letterSpacing: '.04em', lineHeight: .95, marginTop: 2, textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
@@ -427,16 +428,16 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
 
           {/* barra de controles (auto-esconde), arriba-centro */}
           <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500, flexWrap: 'wrap', justifyContent: 'center', maxWidth: '94%' }}>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', opacity: backAvailable ? 1 : .4, color: '#fff' }} onClick={goBack} disabled={!backAvailable} title="Anterior (←)">◀</button>
-            {current && <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>}
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px', color: ac, opacity: (!current && waiting.length === 0) ? .4 : 1 }} onClick={advance} disabled={!current && waiting.length === 0} title="Siguiente (→)">{current ? 'Siguiente ▶' : 'Empezar ▶'}</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', opacity: backAvailable ? 1 : .4, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={goBack} disabled={!backAvailable} title="Anterior (←)"><Ic name="prev" size={14} /></button>
+            {current && <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? <Ic name="play" size={14} /> : <Ic name="pause" size={14} />}</button>}
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 10px', color: ac, opacity: (!current && waiting.length === 0) ? .4 : 1, display: 'inline-flex', alignItems: 'center', gap: 5 }} onClick={advance} disabled={!current && waiting.length === 0} title="Siguiente (→)">{current ? <>Siguiente<Ic name="next" size={13} /></> : <>Empezar<Ic name="play" size={13} /></>}</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px', color: '#fff' }} onClick={() => setShowAdd(true)} title="Agregar cantante">➕</button>
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11.5, padding: '6px 9px', color: '#fff' }} onClick={() => setShowManage(true)} title="Gestionar la fila">☰ {waiting.length}</button>
             <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(255,255,255,.1)', margin: '0 1px' }} />
             <button className="cv-btn cv-btn-ghost" style={{ fontSize: 11, padding: '6px 9px', color: '#fff' }} onClick={() => applySkin(skin === 'neon' ? 'retro' : 'neon')} title="Cambiar estilo">{skin === 'neon' ? '◐ Neón' : '◑ Retro'}</button>
-            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+            <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 9px', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes"><Ic name="gear" size={15} /></button>
           </div>
 
           {/* AGREGAR CANTANTE (modal) */}
@@ -490,7 +491,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
                   <button key={s} onClick={() => applySkin(s)} className="cv-mono" style={{ flex: 1, fontSize: 12.5, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: skin === s ? `1px solid ${getSkin(s).accent2}` : '1px solid rgba(255,255,255,.12)', background: skin === s ? 'rgba(255,255,255,.06)' : 'transparent', color: skin === s ? getSkin(s).accent2 : 'rgba(255,255,255,.6)' }}>{getSkin(s).label}</button>
                 ))}
               </div>
-              <a href={slug ? `/panel/venues/${slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>← Volver al panel</a>
+              <a href={slug ? `/panel/venues/${slug}` : '/panel'} className="cv-mono" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={12} />Volver al panel</a>
             </div>
           )}
         </div>

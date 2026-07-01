@@ -4,7 +4,8 @@ import React from 'react';
 // Heredan el color del texto (currentColor) → combinan con el tema/botón.
 type IcName =
   | 'prev' | 'next' | 'play' | 'pause' | 'stop'
-  | 'volume' | 'mute' | 'cc' | 'chevleft';
+  | 'volume' | 'mute' | 'cc' | 'chevleft'
+  | 'gear' | 'mic' | 'phone' | 'chevup' | 'chevdown';
 
 export function Ic({ name, size = 18 }: { name: IcName; size?: number }) {
   const s: React.CSSProperties = { width: size, height: size, display: 'block', flexShrink: 0 };
@@ -68,6 +69,40 @@ export function Ic({ name, size = 18 }: { name: IcName; size?: number }) {
       return (
         <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M14.5 5l-7 7 7 7" />
+        </svg>
+      );
+    case 'chevup':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M5 15l7-7 7 7" />
+        </svg>
+      );
+    case 'chevdown':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M5 9l7 7 7-7" />
+        </svg>
+      );
+    case 'gear':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.1" />
+          <path d="M12 2.6l1.5 2.3 2.7-.6.4 2.7 2.5 1.1-1 2.6 1 2.6-2.5 1.1-.4 2.7-2.7-.6L12 21.4l-1.5-2.3-2.7.6-.4-2.7-2.5-1.1 1-2.6-1-2.6 2.5-1.1.4-2.7 2.7.6z" />
+        </svg>
+      );
+    case 'mic':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="9" y="2.5" width="6" height="11.5" rx="3" />
+          <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+          <path d="M12 17.5V21M8.5 21h7" />
+        </svg>
+      );
+    case 'phone':
+      return (
+        <svg viewBox="0 0 24 24" style={s} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="6.5" y="2.5" width="11" height="19" rx="2.6" />
+          <path d="M10.5 18.4h3" />
         </svg>
       );
     default:

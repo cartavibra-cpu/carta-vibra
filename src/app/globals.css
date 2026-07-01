@@ -321,3 +321,49 @@ html { scroll-behavior: smooth; }
 @keyframes cvFlow { to { background-position: 230% 0; } }
 @keyframes cvOnda { 0%,100%{ transform: translateY(0);} 32%{ transform: translateY(-.11em);} 64%{ transform: translateY(.03em);} }
 @media (prefers-reduced-motion: reduce) { .cv-wm .vibra .ch { animation: none !important; transform: none; } }
+
+/* ════════════════════════════════════════════════════════════════════════
+   IDENTIDAD GLOBAL · se aplica a TODA la app automáticamente.
+   Scrolls, dropdowns <select>, checkboxes, sliders y selección de texto
+   toman la paleta del tema activo (--cv-accent / --cv-surf / --cv-ink).
+   Cualquier elemento nuevo hereda la identidad sin tocar nada más.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Controles nativos (checkbox, radio, range, progress) → acento del tema */
+:root { accent-color: var(--cv-accent); }
+
+/* Selección de texto */
+::selection { background: rgba(var(--cv-accent-rgb), .30); color: var(--cv-ink); }
+
+/* Scrollbars temáticos en TODA la app (Chrome / Edge / Safari) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--cv-accent-rgb), .32);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--cv-accent-rgb), .55); background-clip: padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: rgba(var(--cv-accent-rgb), .42) transparent; }
+
+/* Dropdowns nativos <select>: flecha propia con el acento + lista temática */
+select.cv-input {
+  -webkit-appearance: none; -moz-appearance: none; appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--cv-accent) 50%),
+    linear-gradient(135deg, var(--cv-accent) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 13px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+select option { background: var(--cv-surf); color: var(--cv-ink); }
+
+/* Foco visible coherente en cualquier control (baja especificidad, se puede pisar) */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid rgba(var(--cv-accent-rgb), .7);
+  outline-offset: 2px;
+}

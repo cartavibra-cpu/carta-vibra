@@ -1170,7 +1170,10 @@ export default function ConsolePage() {
                     <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 6, background: '#fff', padding: 3, lineHeight: 0, overflow: 'hidden' }}>
                       <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
                     </div>
-                    <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45, marginTop: 9 }}>Votá la próxima desde tu celular</div>
+                    <div style={{ width: '100%', marginTop: 9 }}>
+                      <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>Votá la próxima</div>
+                      <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.5 }}>desde tu celular</div>
+                    </div>
                   </div>
                 )}
               </div>
