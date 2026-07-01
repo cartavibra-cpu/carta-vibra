@@ -6,7 +6,7 @@ import BrandMark from '@/components/BrandMark';
 import { Ic } from '@/components/Ic';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
-import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
+import { applyCvTheme, CV_THEME_META, CV_LIGHT_THEMES } from '@/lib/theme';
 import QRCode from 'qrcode';
 
 declare global {
@@ -24,7 +24,7 @@ const STAGE_BG =
 /** Vinilo de la consola: gira (anillo de color + brillo que barre se notan) con el
  *  nombre del local QUIETO en el centro, con la tipografía/gradiente de Carta Vibra.
  *  Es el co-brand integrado: el logo de CV reinterpretado por el nombre del local. */
-function ConsoleVinyl({ size, label, fill }: { size?: number; label: string; fill?: boolean }) {
+function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: string; fill?: boolean; light?: boolean }) {
   const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
   const px = size ?? 140;
@@ -36,25 +36,58 @@ function ConsoleVinyl({ size, label, fill }: { size?: number; label: string; fil
   const outer: React.CSSProperties = fill
     ? { position: 'relative', width: '100%', aspectRatio: '1 / 1', flexShrink: 0 }
     : { position: 'relative', width: px, height: px, flexShrink: 0 };
+  // El disco BLANCO (surcos del color del tema) es SOLO para los temas CLAROS;
+  // en los temas oscuros va el vinilo oscuro de siempre.
+  if (light) {
+    // MISMO vinilo que el oscuro: solo el disco negro pasa a BLANCO y los surcos a OSCUROS.
+    // Todo lo demás (giro, anillo, brillo, pozo, tipografía con su gradiente) queda IGUAL.
+    return (
+      <div style={outer}>
+        {/* disco BLANCO que gira — surcos oscuros */}
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
+          background: 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 5px), radial-gradient(circle, #ffffff, #f0ecf6 74%)',
+          boxShadow: 'inset 0 0 34px rgba(0,0,0,.10), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px rgba(0,0,0,.14)' }}>
+          <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
+            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1))',
+            WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
+            mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
+          <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
+            background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
+        </div>
+        {/* pozo central (agujero del vinilo) */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', width: '4.5%', aspectRatio: '1 / 1', transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
+        {/* TEXTO por SOBRE el vinilo — capa superior, grande, completa, NO gira */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '.02em', pointerEvents: 'none' }}>
+          {/* velo claro para que el texto se lea sobre los surcos (en el original es oscuro) */}
+          <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.9) 42%, rgba(255,255,255,.5) 63%, transparent 78%)' }} />
+          {words.map((w, i) => (
+            <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={outer}>
-      {/* disco BLANCO que gira — surcos y anillo del color del tema */}
+      {/* disco OSCURO que gira (temas oscuros) */}
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
-        background: 'repeating-radial-gradient(circle at center, rgba(var(--cv-accent-rgb),.20) 0 1px, transparent 1px 5px), radial-gradient(circle at 42% 34%, #ffffff, #efeaf5 72%, #ddd5e9 100%)',
-        boxShadow: 'inset 0 0 30px rgba(var(--cv-accent-rgb),.10), 0 0 0 1px rgba(var(--cv-accent-rgb),.30), 0 14px 44px -14px rgba(0,0,0,.5), 0 0 60px -22px rgba(var(--cv-accent-rgb),.55)' }}>
+        background: 'repeating-radial-gradient(circle at center, rgba(255,255,255,.045) 0 1px, transparent 1px 5px), radial-gradient(circle, #19141f, #0b0a14 74%)',
+        boxShadow: 'inset 0 0 40px rgba(0,0,0,.85), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px var(--cv-hair)' }}>
         <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
-          background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.4), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.4), rgba(var(--cv-accent-rgb),1))',
+          background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.45), rgba(var(--cv-accent-rgb),1))',
           WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
           mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
-          background: 'linear-gradient(125deg, rgba(255,255,255,.65) 8%, transparent 33%, transparent 67%, rgba(var(--cv-accent-rgb),.07) 96%)' }} />
+          background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
+      {/* pozo central (agujero del vinilo) */}
+      <div style={{ position: 'absolute', top: '50%', left: '50%', width: '4.5%', aspectRatio: '1 / 1', transform: 'translate(-50%,-50%)', borderRadius: '50%', background: '#05040a', boxShadow: '0 0 0 2px rgba(0,0,0,.55)' }} />
       {/* TEXTO por SOBRE el vinilo — capa superior, grande, completa, NO gira */}
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '.02em', pointerEvents: 'none' }}>
-        {/* halo claro para que el texto se lea sobre los surcos */}
-        <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,.95) 40%, rgba(255,255,255,.62) 62%, transparent 78%)' }} />
+        {/* velo oscuro para que el texto se lea sobre los surcos */}
+        <div style={{ position: 'absolute', inset: '11%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,5,12,.72) 42%, rgba(6,5,12,.38) 63%, transparent 78%)' }} />
         {words.map((w, i) => (
-          <span key={i} className="cv-wordmark" style={{ position: 'relative', color: '#26202f', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(255,255,255,.9)' }}>{w}</span>
+          <span key={i} className="cv-wordmark cv-grad-theme" style={{ position: 'relative', fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.02em', whiteSpace: 'nowrap', textShadow: '0 2px 10px rgba(0,0,0,.75)' }}>{w}</span>
         ))}
       </div>
     </div>
@@ -1172,7 +1205,7 @@ export default function ConsolePage() {
               <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
                 {/* capa VINILO (aparece con suavidad cuando se deja de votar) */}
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', opacity: votantes.length === 0 ? 1 : 0, transform: votantes.length === 0 ? 'scale(1)' : 'scale(.93)', transition: 'opacity .6s ease, transform .6s ease', pointerEvents: votantes.length === 0 ? 'auto' : 'none' }}>
-                  <ConsoleVinyl fill label="esperando votos" />
+                  <ConsoleVinyl fill label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
                 </div>
                 {/* capa VOTOS (aparece con suavidad cuando llega el primer voto) */}
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', opacity: votantes.length === 0 ? 0 : 1, transform: votantes.length === 0 ? 'translateY(10px)' : 'translateY(0)', transition: 'opacity .5s ease, transform .5s ease', pointerEvents: votantes.length === 0 ? 'none' : 'auto' }}>
@@ -1453,7 +1486,7 @@ export default function ConsolePage() {
 
             {/* HERO: vinilo del local + código gigante */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,5vw,80px)', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <ConsoleVinyl size={240} label="esperando votos" />
+              <ConsoleVinyl size={240} label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
               <div style={{ textAlign: 'left' }}>
                 <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 4 }}>CÓDIGO DE SALA</div>
                 <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(90px,15vw,220px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
