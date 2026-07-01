@@ -895,7 +895,7 @@ export default function ConsolePage() {
       else if (c.cmd === 'switchplaylist') switchToPending();
       else if (c.cmd === 'seconds') { const n = Math.max(0, parseInt(c.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; broadcastJbState(); }
       else if (c.cmd === 'autodj') { const v = !!c.value; setAutoOn(v); autoOnRef.current = v; broadcastJbState(); }
-      else if (c.cmd === 'theme') { const t = String(c.value || 'vibra'); applyCvTheme(t); themeRef.current = t; setCurTheme(t); }
+      else if (c.cmd === 'theme') { const t = String(c.value || 'vibra'); applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState(); }
       else if (c.cmd === 'energy') { applyEnergy(!!c.value); }
       else if (c.cmd === 'cyclepalette') { setCycleOn(!!c.value); }
       else if (c.cmd === 'cyclesecs') { setCycleSecs(Math.max(3, parseInt(c.value) || 15)); }
