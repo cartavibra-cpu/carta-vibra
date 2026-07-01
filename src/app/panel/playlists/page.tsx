@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import { CvSelect } from '@/components/CvSelect';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 function getYouTubeId(url: string) {
@@ -246,10 +247,16 @@ export default function PlaylistsPage() {
           <form onSubmit={createPlaylist} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <input className="cv-input" style={{ flex: '2 1 240px', padding: '11px 14px' }} placeholder="Nombre de la playlist" value={cName} onChange={(e) => setCName(e.target.value)} />
-              <select className="cv-input" style={{ flex: '1 1 160px', padding: '11px 34px 11px 14px' }} value={cType} onChange={(e) => setCType(e.target.value)}>
-                <option value="jukebox">Jukebox (YouTube)</option>
-                <option value="karaoke">Karaoke (YouTube)</option>
-              </select>
+              <CvSelect
+                value={cType}
+                onChange={setCType}
+                ariaLabel="Tipo de playlist"
+                style={{ flex: '1 1 160px' }}
+                options={[
+                  { value: 'jukebox', label: 'Jukebox (YouTube)' },
+                  { value: 'karaoke', label: 'Karaoke (YouTube)' },
+                ]}
+              />
             </div>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <input className="cv-input" style={{ flex: '1 1 160px', padding: '11px 14px' }} placeholder="Mood (ej: Fiesta, Cena)" value={cMood} onChange={(e) => setCMood(e.target.value)} />
