@@ -289,7 +289,7 @@ html { scroll-behavior: smooth; }
 /* ─ BRASA ─ */
 [data-cv-theme="cobre"] { --cv-accent:#ff8a6b;--cv-accent-rgb:255,138,107;--cv-theme-grad:linear-gradient(102deg,#f4d9b0,#ff8a6b 52%,#e0a85c);--cv-glow:rgba(255,138,107,.5);--cv-bg:#140d0a;--cv-surf:#1c1410;--cv-ink:#f6ece2;--cv-mut:#b8a594;--cv-faint:#8a7868;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0d08; }
 [data-cv-theme="ambar"] { --cv-accent:#ff9a4d;--cv-accent-rgb:255,154,77;--cv-theme-grad:linear-gradient(102deg,#ffc24d,#ff7a4d 52%,#e05a8a);--cv-glow:rgba(255,154,77,.5);--cv-bg:#160b0a;--cv-surf:#1f0f0d;--cv-ink:#fdeee6;--cv-mut:#c0a596;--cv-faint:#93766a;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0d04; }
-[data-cv-theme="vino"]  { --cv-accent:#e0688a;--cv-accent-rgb:224,104,138;--cv-theme-grad:linear-gradient(102deg,#7a1f3a,#e0688a 52%,#e8b04a);--cv-glow:rgba(224,104,138,.5);--cv-bg:#160812;--cv-surf:#1f0c18;--cv-ink:#f7e9ee;--cv-mut:#c2a0ad;--cv-faint:#94707d;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0810; }
+[data-cv-theme="vino"]  { --cv-accent:#e0688a;--cv-accent-rgb:224,104,138;--cv-theme-grad:linear-gradient(102deg,#b84062,#e0688a 52%,#e8b04a);--cv-glow:rgba(224,104,138,.5);--cv-bg:#160812;--cv-surf:#1f0c18;--cv-ink:#f7e9ee;--cv-mut:#c2a0ad;--cv-faint:#94707d;--cv-hair:rgba(255,255,255,.08); --cv-on:#1c0810; }
 
 /* ─ PENUMBRA ─ */
 [data-cv-theme="tinta"] { --cv-accent:#9a8cff;--cv-accent-rgb:154,140,255;--cv-theme-grad:linear-gradient(102deg,#7a5cff,#a08cff 52%,#d0c2ff);--cv-glow:rgba(154,140,255,.45);--cv-bg:#0d0b16;--cv-surf:#161324;--cv-ink:#ece9f7;--cv-mut:#9b93b3;--cv-faint:#665e82;--cv-hair:rgba(255,255,255,.07); --cv-on:#0d0b16; }
@@ -307,7 +307,8 @@ html { scroll-behavior: smooth; }
   display: inline-flex; align-items: baseline; gap: .16em;
   white-space: nowrap; line-height: 1;
 }
-.cv-wm .carta { font-weight: 700; color: var(--cv-ink); }
+.cv-wm .carta { font-weight: 700; color: #ffffff; }
+[data-cv-theme="lino"] .cv-wm .carta, [data-cv-theme="crema"] .cv-wm .carta, [data-cv-theme="algodon"] .cv-wm .carta { color: var(--cv-ink); }
 .cv-wm .vibra { font-weight: 800; display: inline-flex; }
 .cv-wm .vibra .ch {
   display: inline-block;

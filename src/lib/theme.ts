@@ -41,7 +41,7 @@ export const CV_THEME_META: CvThemeMeta[] = [
   // BRASA
   { id: 'cobre',   name: 'Cobre',   family: 'Brasa', grad: 'linear-gradient(102deg,#f4d9b0,#ff8a6b 52%,#e0a85c)', story: 'cobre y champagne · boutique' },
   { id: 'ambar',   name: 'Ámbar',   family: 'Brasa', grad: 'linear-gradient(102deg,#ffc24d,#ff7a4d 52%,#e05a8a)', story: 'atardecer dorado · terraza' },
-  { id: 'vino',    name: 'Vino',    family: 'Brasa', grad: 'linear-gradient(102deg,#7a1f3a,#e0688a 52%,#e8b04a)', story: 'íntimo y elegante · wine bar' },
+  { id: 'vino',    name: 'Vino',    family: 'Brasa', grad: 'linear-gradient(102deg,#b84062,#e0688a 52%,#e8b04a)', story: 'íntimo y elegante · wine bar' },
   // PENUMBRA
   { id: 'tinta',   name: 'Tinta',   family: 'Penumbra', grad: 'linear-gradient(102deg,#7a5cff,#a08cff 52%,#d0c2ff)', story: 'oscuro sereno · sofisticado' },
   { id: 'niebla',  name: 'Niebla',  family: 'Penumbra', grad: 'linear-gradient(102deg,#c9a0e0,#d0a0c8 52%,#e0c0a0)', story: 'pastel en penumbra · sutil' },

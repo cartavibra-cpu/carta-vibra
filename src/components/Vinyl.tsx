@@ -107,9 +107,12 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
           inset: 0,
           borderRadius: '50%',
           animation: 'cvSpin 9s linear infinite',
-          background:
-            'repeating-radial-gradient(circle at center, rgba(255,255,255,.05) 0 1px, transparent 1px 5px), radial-gradient(circle, #1a1426, #0d0a16 72%)',
-          boxShadow: 'inset 0 0 44px rgba(0,0,0,.85)',
+          background: light
+            ? 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 5px), radial-gradient(circle, #ffffff, #f0ecf6 72%)'
+            : 'repeating-radial-gradient(circle at center, rgba(255,255,255,.05) 0 1px, transparent 1px 5px), radial-gradient(circle, #1a1426, #0d0a16 72%)',
+          boxShadow: light
+            ? 'inset 0 0 22px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.14)'
+            : 'inset 0 0 44px rgba(0,0,0,.85)',
         }}
       >
         <div
@@ -118,6 +121,7 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
             inset: '20%',
             borderRadius: '50%',
             background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.5), rgba(var(--cv-accent-rgb),1))',
+            filter: light ? 'saturate(1.8) brightness(.82) drop-shadow(0 0 3px rgba(var(--cv-accent-rgb),.9))' : undefined,
             WebkitMask: 'radial-gradient(circle, transparent 55%, #000 58%, #000 64%, transparent 67%)',
             mask: 'radial-gradient(circle, transparent 55%, #000 58%, #000 64%, transparent 67%)',
           }}
@@ -141,13 +145,13 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
           position: 'absolute',
           inset: label ? '31%' : '34%',
           borderRadius: '50%',
-          background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)',
-          border: '1px solid rgba(255,255,255,.09)',
+          background: light ? 'radial-gradient(circle at 38% 30%, #ffffff, #f3eff8)' : 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)',
+          border: light ? '1px solid rgba(0,0,0,.10)' : '1px solid rgba(255,255,255,.09)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 10px 26px rgba(0,0,0,.6)',
+          boxShadow: light ? '0 8px 22px rgba(0,0,0,.18)' : '0 10px 26px rgba(0,0,0,.6)',
         }}
       >
         {label ?? (

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
@@ -8,6 +8,9 @@ import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
 import { applyCvTheme, CV_THEME_META, CV_LIGHT_THEMES } from '@/lib/theme';
 import QRCode from 'qrcode';
+
+// Aplica el tema ANTES del primer pintado en el cliente (evita el flash del default).
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 declare global {
   interface Window { YT: any; onYouTubeIframeAPIReady: (() => void) | undefined }
@@ -188,13 +191,15 @@ export default function ConsolePage() {
   const [playlistName, setPlaylistName] = useState<string>('');
   const [volume, setVolumeState] = useState(100);
   const volumeRef = useRef(100);
-  const [stopped, setStopped] = useState(false);
+  // Arranca en TRUE: la consola entra directo a la sala de espera (stop). Así no se ve
+  // la "finta" a play ni el fundido raro al cargar (el overlay ya está visible de una).
+  const [stopped, setStopped] = useState(true);
   const historyRef = useRef<string[]>([]);
   const lastVoteAtRef = useRef(0);
   const [quietVinyl, setQuietVinyl] = useState(false);
   const [videoW, setVideoW] = useState(0);
   const [tracksTick, setTracksTick] = useState(0);
-  const stoppedRef = useRef(false);
+  const stoppedRef = useRef(true);
   const pendingRef = useRef<{ playlistId: string; name: string } | null>(null);
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
   const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
@@ -276,6 +281,17 @@ export default function ConsolePage() {
   const monitorRef = useRef<ReturnType<typeof setInterval> | null>(null);   // monitor de fin de canción
   const currentSectionRef = useRef<'jukebox' | 'karaoke'>('jukebox');       // modo actual (para detectar el cambio)
   const switchingToJukeboxRef = useRef(false);                              // bandera: karaoke→jukebox pendiente de arrancar
+
+  // Aplica el tema guardado del local ANTES del primer pintado (desde caché local), así
+  // no parpadea el default mientras vuelve la consulta async. Al volver console_status se
+  // confirma/actualiza y se re-cachea.
+  useIsoLayoutEffect(() => {
+    try {
+      const t = localStorage.getItem('cv_console_theme');
+      if (t) { applyCvTheme(t); themeRef.current = t; setCurTheme(t); }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('console_device_token') : null;
@@ -474,6 +490,7 @@ export default function ConsolePage() {
         tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false);
         applyCvTheme(data.theme);
         themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra');
+        try { localStorage.setItem('cv_console_theme', data.theme || 'vibra'); } catch {}
         localStorage.removeItem('console_pairing_code');
       } else {
         // Mantener el MISMO código entre recargas en vez de generar uno nuevo cada vez.
@@ -506,7 +523,7 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_status', { p_token: token });
       if (error) throw error;
       setStatus(data); setLoading(false);
-      if (data.paired) { venueRef.current = data.venue_id; applyCvTheme(data.theme); themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra'); localStorage.removeItem('console_pairing_code'); }
+      if (data.paired) { venueRef.current = data.venue_id; applyCvTheme(data.theme); themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra'); try { localStorage.setItem('cv_console_theme', data.theme || 'vibra'); } catch {} localStorage.removeItem('console_pairing_code'); }
       else setTimeout(() => pollStatus(token), 2000);
     } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
   };
@@ -665,6 +682,7 @@ export default function ConsolePage() {
   // Cambiar la paleta desde la consola: aplica al toque, guarda en el local y avisa al control.
   const changeTheme = (t: string) => {
     applyCvTheme(t); themeRef.current = t; setCurTheme(t); broadcastJbState();
+    try { localStorage.setItem('cv_console_theme', t); } catch {}
     const sb = supa(); const vid = venueRef.current;
     if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
@@ -1074,7 +1092,7 @@ export default function ConsolePage() {
       <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
         <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 42%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
         <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 26, padding: 24 }}>
-          <BrandMark size={150} />
+          <BrandMark size={150} light={CV_LIGHT_THEMES.has(curTheme)} />
           <div style={{ textAlign: 'center' }}>
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(28px, 5vw, 40px)', fontWeight: 600 }}>Vinculá esta consola</h1>
             <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Escribí este código en tu panel · sección “Vincular consola”</p>
@@ -1104,7 +1122,7 @@ export default function ConsolePage() {
       <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
         <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 44%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
         <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 30, padding: 24 }}>
-          <BrandMark size={160} />
+          <BrandMark size={160} light={CV_LIGHT_THEMES.has(curTheme)} />
           <div style={{ textAlign: 'center' }}>
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 600 }}>{status.name}</h1>
             <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Consola lista para {status.slug}</p>
@@ -1220,7 +1238,7 @@ export default function ConsolePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'clamp(16px,1.8vw,26px)', position: 'relative', zIndex: 2 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
               <span className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(16px,1.5vw,23px)', fontWeight: 700, letterSpacing: '-.01em', paddingBottom: '.04em' }}>{status?.name || 'Tu local'}</span>
-              <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: 'var(--cv-mut)' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
+              <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: CV_LIGHT_THEMES.has(curTheme) ? 'var(--cv-ink)' : '#ffffff' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
             </div>
           )}
 
@@ -1326,7 +1344,7 @@ export default function ConsolePage() {
 
           {/* ABAJO-IZQUIERDA: marca chiquita (sin "sonando con") */}
           <div style={{ position: 'absolute', bottom: '3.5cqh', left: '2.6cqw', display: 'flex', alignItems: 'center', gap: 5, opacity: .5, pointerEvents: 'none' }}>
-            <BrandMark size={16} layout="row" />
+            <BrandMark size={16} layout="row" light={CV_LIGHT_THEMES.has(curTheme)} />
           </div>
 
           {/* aviso de cambio de lista (dentro de la pantalla, se ve en fullscreen) */}

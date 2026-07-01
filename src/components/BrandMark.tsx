@@ -26,19 +26,21 @@ export default function BrandMark({
   layout = 'stack',
   glow = false,
   beat = false,
+  light = false,
   style,
 }: {
   size?: number;
   layout?: 'stack' | 'row';
   glow?: boolean;
   beat?: boolean;
+  light?: boolean;
   style?: React.CSSProperties;
 }) {
   if (layout === 'row') {
     const font = Math.round(size * 0.56);
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(size * 0.3), ...style }}>
-        <Vinyl size={size} mini />
+        <Vinyl size={size} mini light={light} />
         <span className="cv-wm" style={{ fontSize: font }}>
           <span className="carta">carta</span>
           <Vibra />
@@ -54,10 +56,11 @@ export default function BrandMark({
       size={size}
       glow={glow}
       beat={beat}
+      light={light}
       style={style}
       label={
         <div style={{ textAlign: 'center', lineHeight: 0.92 }}>
-          <div className="cv-wordmark" style={{ fontWeight: 700, fontSize: cartaSize, letterSpacing: '.005em', color: 'var(--cv-ink)' }}>
+          <div className="cv-wordmark" style={{ fontWeight: 700, fontSize: cartaSize, letterSpacing: '.005em', color: light ? 'var(--cv-ink)' : '#ffffff' }}>
             carta
           </div>
           <div className="cv-wordmark cv-grad-theme" style={{ fontWeight: 800, fontSize: vibraSize, letterSpacing: '.005em' }}>
