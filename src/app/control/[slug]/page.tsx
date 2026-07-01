@@ -38,6 +38,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [jbAutoDj, setJbAutoDj] = useState(true);
   const [theme, setTheme] = useState('vibra');
   const [energyOn, setEnergyOn] = useState(true);
+  const [pcVolume, setPcVolume] = useState(100);
+  const [pcStopped, setPcStopped] = useState(false);
+  const [pcPending, setPcPending] = useState<string | null>(null);
   const cmdChRef = useRef<any>(null);
 
   const [showAdd, setShowAdd] = useState(false);
@@ -136,6 +139,9 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         if (typeof s.autodj === 'boolean') setJbAutoDj(s.autodj);
         if (typeof s.theme === 'string') { applyCvTheme(s.theme); setTheme(s.theme); }
         if (typeof s.energy === 'boolean') setEnergyOn(s.energy);
+        if (typeof s.volume === 'number') setPcVolume(s.volume);
+        if (typeof s.stopped === 'boolean') setPcStopped(s.stopped);
+        if ('pendingName' in s) setPcPending(s.pendingName || null);
       });
     cmdChRef.current = cmd;
     cmd.subscribe((status: string) => {
@@ -151,7 +157,13 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   // jukebox: órdenes al PC
   const jbSend = (payload: any) => { try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbcmd', payload }); } catch {} };
   const jbSkip = () => jbSend({ cmd: 'skip' });
+  const jbBack = () => jbSend({ cmd: 'back' });
   const jbPlayPause = () => { jbSend({ cmd: 'playpause' }); setPcPlaying((v) => !v); };
+  const jbStop = () => { jbSend({ cmd: 'stop' }); setPcStopped(true); };
+  const jbResume = () => { jbSend({ cmd: 'resume' }); setPcStopped(false); };
+  const jbCC = () => jbSend({ cmd: 'cc' });
+  const jbVolume = (n: number) => { const v = Math.max(0, Math.min(100, n)); setPcVolume(v); jbSend({ cmd: 'volume', value: v }); };
+  const jbSwitchPlaylist = () => { jbSend({ cmd: 'switchplaylist' }); setPcPending(null); };
   const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
   const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
 
@@ -305,13 +317,31 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
 
       {mode === 'jukebox' ? (
         <>
+          {/* aviso: cambiaron la playlist desde "mis locales" */}
+          {pcPending && (
+            <div className="cv-card" style={{ padding: '15px 16px', marginBottom: 12, border: '1px solid var(--cv-accent)', background: 'rgba(var(--cv-accent-rgb),.10)' }}>
+              <div style={{ fontSize: 14.5, color: 'var(--cv-text)', marginBottom: 11, lineHeight: 1.4 }}>Cambiaron la playlist a <b style={{ color: 'var(--cv-accent)' }}>{pcPending}</b>. ¿La ponés ahora?</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="cv-btn cv-btn-cyan" onClick={jbSwitchPlaylist} style={{ flex: 1, padding: '13px 0', fontSize: 15 }}>Cambiar ahora</button>
+                <button className="cv-btn cv-btn-ghost" onClick={() => setPcPending(null)} style={{ padding: '13px 18px', fontSize: 15 }}>Ahora no</button>
+              </div>
+            </div>
+          )}
           {/* controles de la rockola (jukebox) */}
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
             <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>CONTROLES DE LA ROCKOLA</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <button className="cv-btn cv-btn-ghost" onClick={jbSkip} style={{ padding: '16px 0', fontSize: 16 }}>⏭ Saltear</button>
-              <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '16px 0', fontSize: 16 }}>{pcPlaying ? '⏸ Pausar' : '▶ Reanudar'}</button>
+              <button className="cv-btn cv-btn-ghost" onClick={jbBack} style={{ padding: '15px 0', fontSize: 15 }}>⏮ Anterior</button>
+              <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '15px 0', fontSize: 15 }}>{pcPlaying ? '⏸ Pausa' : '▶ Play'}</button>
+              <button className={pcStopped ? 'cv-btn cv-btn-mint' : 'cv-btn cv-btn-ghost'} onClick={pcStopped ? jbResume : jbStop} style={{ padding: '15px 0', fontSize: 15 }}>{pcStopped ? '▶ Reanudar' : '⏹ Detener'}</button>
+              <button className="cv-btn cv-btn-ghost" onClick={jbSkip} style={{ padding: '15px 0', fontSize: 15 }}>⏭ Saltar</button>
             </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
+              <span style={{ fontSize: 18, width: 24, textAlign: 'center' }}>{pcVolume === 0 ? '🔇' : '🔊'}</span>
+              <input type="range" min={0} max={100} value={pcVolume} onChange={(e) => jbVolume(parseInt(e.target.value))} style={{ flex: 1, accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
+              <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', width: 30, textAlign: 'right' }}>{pcVolume}</span>
+            </div>
+            <button className="cv-btn cv-btn-ghost" onClick={jbCC} style={{ width: '100%', padding: '11px 0', fontSize: 13.5, marginTop: 12 }}>CC · Subtítulos on/off</button>
           </div>
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
             <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>AJUSTES</div>

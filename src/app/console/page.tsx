@@ -26,8 +26,8 @@ const STAGE_BG =
 function ConsoleVinyl({ size, label }: { size: number; label: string }) {
   const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
-  const circleW = size * 0.40 * 0.84; // ancho útil del centro (con padding)
-  const labelFs = Math.max(9, Math.min(Math.round(size * 0.125), Math.floor(circleW / (longest * 0.6))));
+  const circleW = size * 0.44 * 0.94; // ancho útil del centro (etiqueta un poco más grande)
+  const labelFs = Math.max(8, Math.min(Math.round(size * 0.14), Math.floor(circleW / (longest * 0.64))));
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
@@ -40,9 +40,9 @@ function ConsoleVinyl({ size, label }: { size: number; label: string }) {
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
           background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
-      <div style={{ position: 'absolute', inset: '30%', borderRadius: '50%', overflow: 'hidden',
+      <div style={{ position: 'absolute', inset: '28%', borderRadius: '50%', overflow: 'hidden',
         background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)', border: '1px solid var(--cv-hair)',
-        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 6%' }}>
+        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 3%' }}>
         {words.map((w, i) => (
           <span key={i} className="cv-wordmark cv-grad-theme" style={{ fontSize: labelFs, fontWeight: 800, lineHeight: 1.04, textAlign: 'center', letterSpacing: '-.01em', whiteSpace: 'nowrap' }}>{w}</span>
         ))}
@@ -150,6 +150,8 @@ export default function ConsolePage() {
   const [quietVinyl, setQuietVinyl] = useState(false);
   const [videoW, setVideoW] = useState(0);
   const [tracksTick, setTracksTick] = useState(0);
+  const stoppedRef = useRef(false);
+  const pendingRef = useRef<{ playlistId: string; name: string } | null>(null);
   const [ticker, setTicker] = useState<{ name: string | null; title: string } | null>(null);
   const [votantes, setVotantes] = useState<{ id: number; name: string | null; title: string; born: number }[]>([]);
   const votanteIdRef = useRef(0);
@@ -589,6 +591,7 @@ export default function ConsolePage() {
     const nv = Math.max(0, Math.min(100, Math.round(val)));
     setVolumeState(nv); volumeRef.current = nv;
     if (!pausedRef.current) { try { decksRef.current[currentRef.current]?.setVolume(nv); } catch {} }
+    broadcastJbState();
   };
   // Decide según el estado REAL del reproductor (no solo nuestra bandera), así nunca se desfasa.
   const togglePlayPause = () => {
@@ -602,8 +605,10 @@ export default function ConsolePage() {
 
   // Avisa al control del celular el estado actual (play/pausa, segundos, AutoDJ).
   const broadcastJbState = () => {
-    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current, theme: themeRef.current, energy: energyOnRef.current } }); } catch {}
+    try { cmdChRef.current?.send({ type: 'broadcast', event: 'jbstate', payload: { playing: !pausedRef.current, seconds: maxSecondsRef.current, autodj: autoOnRef.current, theme: themeRef.current, energy: energyOnRef.current, volume: volumeRef.current, stopped: stoppedRef.current, pendingName: pendingRef.current?.name ?? null } }); } catch {}
   };
+  // Cuando aparece/desaparece el aviso de cambio de playlist, lo reflejamos al control.
+  useEffect(() => { pendingRef.current = pending; broadcastJbState(); }, [pending]);
 
   // Cambiar la paleta desde la consola: aplica en vivo, guarda en el local y avisa al control.
   const changeTheme = (t: string) => {
@@ -679,7 +684,7 @@ export default function ConsolePage() {
       setIsAutoNow(isAuto);
       await refreshNow();
       if (!track?.external_id) { busyRef.current = false; setTimeout(advance, 400); return; }
-      pausedRef.current = false; setIsPaused(false); setStopped(false);
+      pausedRef.current = false; setIsPaused(false); setStopped(false); stoppedRef.current = false;
       playingRef.current = true;
       transitionTo(track.external_id);
     } catch (e) { logError('console-advance', e); busyRef.current = false; }
@@ -699,15 +704,15 @@ export default function ConsolePage() {
       if (sb && token) await sb.rpc('console_set_now_playing', { p_token: token, p_track: prev, p_position: 0 });
       setIsAutoNow(false);
       await refreshNow();
-      pausedRef.current = false; setIsPaused(false); setStopped(false);
+      pausedRef.current = false; setIsPaused(false); setStopped(false); stoppedRef.current = false;
       playingRef.current = true;
       transitionTo(track.external_id);
     } catch (e) { logError('console-goback', e); busyRef.current = false; }
   };
 
   // STOP: manda a la pantalla de espera (sin video). PAUSA (togglePlayPause) solo congela el video.
-  const stop = () => { setStopped(true); pauseWithFade(); };
-  const resumeFromStop = () => { setStopped(false); resumeWithFade(); };
+  const stop = () => { setStopped(true); stoppedRef.current = true; pauseWithFade(); broadcastJbState(); };
+  const resumeFromStop = () => { setStopped(false); stoppedRef.current = false; resumeWithFade(); broadcastJbState(); };
 
   // Carga el mapa de canciones + el pool del AutoDJ desde la PLAYLIST ACTIVA
   // (por playlist, no por local → así también suenan las de la biblioteca).
@@ -795,7 +800,13 @@ export default function ConsolePage() {
     cmdCh.on('broadcast', { event: 'jbcmd' }, (p: any) => {
       const c = p.payload || {};
       if (c.cmd === 'skip') advance();
-      else if (c.cmd === 'playpause') togglePlayPause();
+      else if (c.cmd === 'back') goBack();
+      else if (c.cmd === 'playpause') { if (stopped) resumeFromStop(); else togglePlayPause(); }
+      else if (c.cmd === 'stop') stop();
+      else if (c.cmd === 'resume') resumeFromStop();
+      else if (c.cmd === 'volume') { changeVolume(parseInt(c.value)); broadcastJbState(); }
+      else if (c.cmd === 'cc') { toggleCC(); }
+      else if (c.cmd === 'switchplaylist') switchToPending();
       else if (c.cmd === 'seconds') { const n = Math.max(0, parseInt(c.value) || 0); setMaxSeconds(n); maxSecondsRef.current = n; broadcastJbState(); }
       else if (c.cmd === 'autodj') { const v = !!c.value; setAutoOn(v); autoOnRef.current = v; broadcastJbState(); }
       else if (c.cmd === 'theme') { const t = String(c.value || 'vibra'); applyCvTheme(t); themeRef.current = t; setCurTheme(t); }
