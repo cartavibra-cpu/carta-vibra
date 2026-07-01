@@ -985,7 +985,7 @@ export default function ConsolePage() {
   // El video: a pantalla completa (clean) o achicado y centrado con su GLOW de color por tema.
   const videoBox: React.CSSProperties = clean
     ? { position: 'relative', width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' }
-    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 14, border: `1px solid ${sk.frameBorder}`, boxShadow: sk.frameGlow, background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
+    : { position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 10, border: '1px solid var(--cv-hair)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.5)', background: '#000', overflow: 'hidden', outline: 'none', containerType: 'size' };
 
   return (
     <>
@@ -997,24 +997,34 @@ export default function ConsolePage() {
     >
       <style>{`@keyframes cvVotante{0%{opacity:0;transform:translateY(9px)}9%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-5px)}}`}</style>
 
-      {/* HEADER: identidad del local */}
-      {!clean && (
-        <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 'clamp(16px,2.4vh,26px) clamp(22px,3vw,40px)', position: 'relative', zIndex: 3 }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
-          <span className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.5vw,22px)', fontWeight: 700, color: 'var(--cv-ink)', letterSpacing: '-.01em' }}>{status?.name || 'Tu local'}</span>
-          <span className="cv-mono" style={{ fontSize: 'clamp(8px,.72vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: 'var(--cv-mut)' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
-        </header>
-      )}
+      {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: clean ? 0 : 'clamp(14px,3vh,30px) clamp(18px,3vw,40px)' }}>
+        <div style={clean ? { width: '100%', height: '100%' } : {
+          position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
+          border: '1px solid var(--cv-hair)',
+          background: 'repeating-radial-gradient(circle at 50% 24%, rgba(150,150,170,.045) 0 1px, transparent 1px 14px), radial-gradient(130% 150% at 50% -4%, color-mix(in srgb, var(--cv-accent) 11%, var(--cv-surf)) 0%, var(--cv-surf) 48%, var(--cv-bg) 100%)',
+          boxShadow: '0 44px 110px -46px #000, inset 0 0 0 1px rgba(var(--cv-accent-rgb),.07)',
+          padding: 'clamp(18px,2vw,32px)',
+        }}>
 
-      {/* ESCENARIO: una sola superficie · medidor | video | código+votantes */}
-      <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: clean ? 0 : '0 clamp(20px,3vw,44px)' }}>
-        <div style={clean
-          ? { width: '100%', height: '100%' }
-          : { display: 'grid', gridTemplateColumns: 'minmax(180px,230px) minmax(0,1fr) minmax(248px,310px)', gap: 'clamp(18px,2.4vw,36px)', alignItems: 'center', width: '100%', maxWidth: 1680 }}>
-
-          {/* IZQUIERDA: medidor vertical finito (flotando) o el disco si está apagado */}
+          {/* barra de identidad DENTRO del marco */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 'clamp(16px,1.8vw,26px)', position: 'relative', zIndex: 2 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
+              <span className="cv-wordmark" style={{ fontSize: 'clamp(15px,1.4vw,21px)', fontWeight: 700, color: 'var(--cv-ink)', letterSpacing: '-.01em' }}>{status?.name || 'Tu local'}</span>
+              <span className="cv-mono" style={{ fontSize: 'clamp(8px,.7vw,11px)', letterSpacing: '.04em', color: 'var(--cv-faint)', marginLeft: 2 }}>sonando con <span className="cv-wordmark" style={{ fontWeight: 700, color: 'var(--cv-mut)' }}>carta <span className="cv-grad-theme">vibra</span></span></span>
+              <span className="cv-wordmark" style={{ marginLeft: 'auto', fontSize: 'clamp(12px,1vw,15px)', fontWeight: 700, color: 'var(--cv-mut)', opacity: .65 }}>carta <span className="cv-grad-theme">vibra</span></span>
+            </div>
+          )}
+
+          {/* GRILLA de secciones DENTRO del marco: medidor | video | código+QR+votantes */}
+          <div style={clean
+            ? { width: '100%', height: '100%' }
+            : { display: 'grid', gridTemplateColumns: 'minmax(148px,208px) minmax(0,1fr) minmax(230px,294px)', gap: 'clamp(16px,2vw,30px)', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+
+          {/* IZQUIERDA: medidor vertical finito o el disco si está apagado */}
+          {!clean && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(14px,1.6vw,26px)' }}>
               {energyOn ? (
                 <div style={{ display: 'flex', gap: 13, height: 'clamp(160px,25vh,210px)', alignItems: 'stretch' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -1159,14 +1169,14 @@ export default function ConsolePage() {
           )}
         </div>
 
-          {/* DERECHA: tarjeta código + QR, y DEBAJO los votantes flotantes (aparecen → suben → se desvanecen) */}
+          {/* DERECHA: código + QR (sección del marco, SIN caja) + votantes flotantes debajo */}
           {!clean && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'center' }}>
-              <div style={{ background: 'var(--cv-surf)', border: '1px solid var(--cv-hair)', borderRadius: 16, padding: 17 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignSelf: 'center', borderLeft: '1px solid var(--cv-hair)', paddingLeft: 'clamp(14px,1.6vw,26px)' }}>
+              <div>
                 <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 9 }}>Código de sala</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4vw,56px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '-.01em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 13 }}>
-                  {widgetQr && <div style={{ width: 'clamp(64px,6vw,84px)', height: 'clamp(64px,6vw,84px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(40px,4vw,58px)', fontWeight: 700, lineHeight: 0.85, letterSpacing: '-.01em', textShadow: sk.codeGlow }}>{roomCode ?? '—'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14 }}>
+                  {widgetQr && <div style={{ width: 'clamp(66px,6vw,88px)', height: 'clamp(66px,6vw,88px)', borderRadius: 13, background: '#fff', padding: 6, flexShrink: 0, lineHeight: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} /></div>}
                   <div className="cv-mono" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.13em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45 }}>Votá la<br />próxima desde<br />tu celular</div>
                 </div>
               </div>
@@ -1182,16 +1192,9 @@ export default function ConsolePage() {
             </div>
           )}
 
-        </div>{/* grilla */}
+          </div>{/* grilla dentro del marco */}
+        </div>{/* MARCO */}
       </div>{/* escenario */}
-
-      {/* FOOTER: marca */}
-      {!clean && (
-        <footer style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'clamp(12px,2vh,20px) clamp(22px,3vw,40px)', position: 'relative', zIndex: 3 }}>
-          <span className="cv-wordmark" style={{ fontSize: 'clamp(13px,1.1vw,15px)', fontWeight: 700, color: 'var(--cv-mut)', opacity: .75 }}>carta <span className="cv-grad-theme">vibra</span></span>
-          <span style={{ fontSize: 11, color: 'var(--cv-mut)', opacity: .45 }}>tu rocola social</span>
-        </footer>
-      )}
 
         {/* STANDBY EN PAUSA: aparece/desaparece con el MISMO fade que la música (~.54s). */}
         <div onClick={isPaused ? togglePlayPause : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: isPaused ? 'pointer' : 'default',
