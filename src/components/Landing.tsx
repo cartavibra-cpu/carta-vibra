@@ -4,6 +4,7 @@ import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
 import { Ic } from '@/components/Ic';
+import PaletteSwitcher from '@/components/PaletteSwitcher';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const STAGE_BG =
@@ -182,6 +183,11 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, ...(isMobile ? { width: '100%' } : {}) }}>
               <Ic name="chat" size={17} /> Escribinos por WhatsApp
             </a>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9, marginTop: 2 }}>
+            <div className="cv-mono" style={{ fontSize: 10.5, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--cv-faint)' }}>elegí una vibra</div>
+            <PaletteSwitcher compact />
           </div>
         </div>
 

@@ -29,6 +29,26 @@ export function applyCvTheme(theme?: string | null): CvTheme {
   return t;
 }
 
+/** Clave de la paleta global (identidad de color) en localStorage. */
+export const CV_THEME_LS_KEY = 'cv-theme';
+
+/** Lee la paleta global guardada. Vibra por defecto. */
+export function readGlobalTheme(): CvTheme {
+  try {
+    const t = typeof localStorage !== 'undefined' ? localStorage.getItem(CV_THEME_LS_KEY) : null;
+    return isCvTheme(t) ? t : CV_DEFAULT_THEME;
+  } catch {
+    return CV_DEFAULT_THEME;
+  }
+}
+
+/** Guarda la paleta global (localStorage) y la aplica al <html>. */
+export function setGlobalTheme(theme?: string | null): CvTheme {
+  const t = applyCvTheme(theme);
+  try { localStorage.setItem(CV_THEME_LS_KEY, t); } catch {}
+  return t;
+}
+
 // Metadata para el selector de tema (swatches en el panel).
 // La fuente de verdad de los tokens vive en globals.css; acá solo el gradiente del swatch.
 export type CvThemeMeta = { id: CvTheme; name: string; family: string; grad: string; story: string; light?: boolean };

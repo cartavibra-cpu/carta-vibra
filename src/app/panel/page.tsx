@@ -1,11 +1,13 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import VenueManager from '@/components/VenueManager';
 import BrandMark from '@/components/BrandMark';
 import Ic from '@/components/Ic';
+import PaletteSwitcher from '@/components/PaletteSwitcher';
+import { setGlobalTheme, type CvTheme } from '@/lib/theme';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
@@ -24,6 +26,8 @@ export default function PanelPage() {
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [openSlugs, setOpenSlugs] = useState<Set<string>>(new Set());
+  const [savedPalette, setSavedPalette] = useState(false);
+  const syncedRef = useRef(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -48,6 +52,27 @@ export default function PanelPage() {
   useEffect(() => {
     if (session) load();
   }, [session]);
+
+  // Al cargar los locales por primera vez, sincronizá la paleta global desde el local
+  // (fuente de verdad en la base) → el chrome sigue tu identidad en cualquier dispositivo.
+  useEffect(() => {
+    if (!syncedRef.current && venues.length && venues[0]?.theme) {
+      syncedRef.current = true;
+      setGlobalTheme(venues[0].theme);
+    }
+  }, [venues]);
+
+  // Elegir la paleta desde "mis locales": PaletteSwitcher ya la aplicó al chrome (localStorage
+  // + <html>); acá la bajamos a TODOS tus locales para que consola y widget queden iguales.
+  const saveIdentityTheme = (id: CvTheme) => {
+    const sb = supa();
+    if (sb && venues.length) {
+      venues.forEach((v) => { sb.rpc('set_venue_theme', { p_venue: v.id, p_theme: id }).then(() => {}, () => {}); });
+      setVenues((prev) => prev.map((v) => ({ ...v, theme: id })));
+    }
+    setSavedPalette(true);
+    setTimeout(() => setSavedPalette(false), 1800);
+  };
 
   const toggle = (s: string) =>
     setOpenSlugs((prev) => { const n = new Set(prev); if (n.has(s)) n.delete(s); else n.add(s); return n; });
@@ -107,6 +132,18 @@ export default function PanelPage() {
             {showCreate ? 'Cerrar' : '+ Nuevo local'}
           </button>
         </div>
+
+        {/* Paleta / identidad de color — se aplica a todo el chrome y (si tenés locales) a tu pantalla y widget */}
+        <section className="cv-card" style={{ padding: '18px 20px', marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+            <h2 className="cv-wordmark" style={{ fontSize: 18, fontWeight: 700, color: 'var(--cv-ink)' }}>Tu paleta</h2>
+            {savedPalette && <span className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-accent)' }}>✓ aplicada</span>}
+          </div>
+          <p className="cv-mono" style={{ fontSize: 12.5, color: 'var(--cv-mut)', marginBottom: 14, lineHeight: 1.5 }}>
+            La identidad de color de tu Carta Vibra. Se aplica a todo{venues.length ? ' — y a tu pantalla y widget' : ''}.
+          </p>
+          <PaletteSwitcher onPick={saveIdentityTheme} />
+        </section>
 
         {/* crear local */}
         {showCreate && (
