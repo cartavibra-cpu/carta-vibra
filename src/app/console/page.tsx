@@ -797,7 +797,13 @@ export default function ConsolePage() {
 
   // STOP: manda a la pantalla de espera (sin video). PAUSA (togglePlayPause) solo congela el video.
   const stop = () => { setStopped(true); stoppedRef.current = true; pauseWithFade(); broadcastJbState(); };
-  const resumeFromStop = () => { setStopped(false); stoppedRef.current = false; resumeWithFade(); broadcastJbState(); };
+  const resumeFromStop = () => {
+    // Si nunca cargamos nada (arranque en stop) o no hay deck sonando, "reanudar" = PRIMERA
+    // reproducción: advance() trae la más votada / AutoDJ y saca el stop solo. Si ya venía
+    // sonando (stop en medio de la sesión), reanudamos el deck pausado con fundido.
+    if (!playingRef.current) { advance(); return; }
+    setStopped(false); stoppedRef.current = false; resumeWithFade(); broadcastJbState();
+  };
 
   // Carga el mapa de canciones + el pool del AutoDJ desde la PLAYLIST ACTIVA
   // (por playlist, no por local → así también suenan las de la biblioteca).
@@ -866,13 +872,16 @@ export default function ConsolePage() {
   const startJukeboxEngine = async () => {
     const sb = supa(); const venueId = venueRef.current; if (!sb || !venueId) return;
     currentRef.current = 'A'; // estado limpio de decks (importante al reiniciar tras karaoke)
+    // ARRANCAMOS EN MODO STOP: la consola entra a la sala de espera (a votar), NO a un
+    // video con play. El operador (o el celular) reanuda cuando quiere que suene música.
+    setStopped(true); stoppedRef.current = true;
     await reloadActivePlaylist();
     await refreshQueue();
     await refreshNow();
     const ch = sb.channel('console-' + venueId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'queue', filter: `venue_id=eq.${venueId}` }, async () => {
         await refreshQueue();
-        if (!playingRef.current && !busyRef.current && !pausedRef.current) advance();
+        if (!playingRef.current && !busyRef.current && !pausedRef.current && !stoppedRef.current) advance();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'now_playing', filter: `venue_id=eq.${venueId}` }, refreshNow);
     ch.subscribe();
@@ -936,7 +945,7 @@ export default function ConsolePage() {
 
     const YT = await loadYT();
     let ready = 0;
-    const onReady = () => { ready++; if (ready === 2) advance(); };
+    const onReady = () => { ready++; if (ready === 2 && !stoppedRef.current) advance(); };
     // controls:0 → sin la barra nativa de YouTube (usamos la nuestra), proyección limpia. disablekb:1
     // deja el teclado para nuestros atajos. Ambos conviven y el estado se sincroniza.
     const opts = (id: string) => ({
@@ -1501,49 +1510,74 @@ export default function ConsolePage() {
         </div>{/* MARCO */}
       </div>{/* escenario */}
 
-        {/* PANTALLA DE ESPERA: aparece con STOP (⏹). La pausa (⏸) solo congela el video, no llega acá. */}
+        {/* PANTALLA DE ESPERA (STOP) — Idea 2: el CÓDIGO manda al centro, vinilo y QR lo
+            flanquean simétricos, todo dentro de UNA tarjeta grande (mismo marco que la vista
+            en vivo). La consola arranca acá; la pausa (⏸) solo congela el video, no llega. */}
         <div onClick={stopped ? resumeFromStop : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: stopped ? 'pointer' : 'default',
             opacity: stopped ? 1 : 0, pointerEvents: stopped ? 'auto' : 'none', transition: 'opacity .54s ease',
             background: ambientBg,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'clamp(30px,4.5vh,56px)', padding: '4vh 4vw' }}>
+            display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
 
-            <div style={{ position: 'absolute', top: 'clamp(20px,4vh,44px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.5)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
-              <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 75%, #ffffff)' }}>{status?.name || 'CARTA VIBRA'}</span>
-            </div>
+          {/* TARJETA GRANDE contenedora */}
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 1720, borderRadius: 26, overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+            border: '1px solid color-mix(in srgb, var(--cv-accent) 22%, var(--cv-hair))',
+            background: 'linear-gradient(rgba(255,255,255,.055), rgba(255,255,255,.055)), repeating-radial-gradient(circle at 50% 20%, rgba(185,185,210,.05) 0 1px, transparent 1px 15px), radial-gradient(160% 150% at 50% -14%, color-mix(in srgb, var(--cv-accent) 20%, var(--cv-surf)), var(--cv-surf))',
+            boxShadow: '0 50px 130px -44px #000, inset 0 1px 0 rgba(255,255,255,.07), inset 0 0 0 1px rgba(var(--cv-accent-rgb),.12)',
+            padding: 'clamp(20px,2.6vw,42px) clamp(22px,3.2vw,56px)',
+          }}>
 
-            {/* HERO: vinilo del local + código gigante */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(36px,5vw,80px)', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <ConsoleVinyl size={240} label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
-              <div style={{ textAlign: 'left' }}>
-                <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.2em', color: sk.labelColor, marginBottom: 4 }}>CÓDIGO DE SALA</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(90px,15vw,220px)', fontWeight: 700, lineHeight: 1, letterSpacing: '-.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
+            {/* nombre del local (arriba, centro) */}
+            <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.42)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
+                <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 78%, #ffffff)' }}>{status?.name || 'CARTA VIBRA'}</span>
               </div>
             </div>
 
-            {/* invitación a votar + termómetro (si está activo) */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(28px,4vw,56px)', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {widgetQr && <div style={{ background: '#fff', padding: 8, borderRadius: 12, lineHeight: 0, flexShrink: 0 }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(84px,8vw,118px)', height: 'clamp(84px,8vw,118px)', display: 'block' }} /></div>}
-                <div>
-                  <div className="cv-mono" style={{ fontSize: 'clamp(9px,.85vw,13px)', letterSpacing: '.16em', color: sk.labelColor }}>VOTÁ LA PRÓXIMA</div>
-                  <div className="cv-wordmark" style={{ fontSize: 'clamp(18px,1.8vw,28px)', fontWeight: 700, color: '#ffffff', marginTop: 2 }}>desde tu celular</div>
+            {/* HERO: vinilo · CÓDIGO (protagonista) · QR — flanqueo simétrico */}
+            <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 'clamp(24px,4vw,72px)' }}>
+
+              {/* IZQUIERDA: vinilo "esperando votos" */}
+              <div style={{ justifySelf: 'center', width: 'clamp(148px,14.5vw,224px)', containerType: 'inline-size' }}>
+                <ConsoleVinyl fill label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
+              </div>
+
+              {/* CENTRO: código de sala + invitación a votar */}
+              <div style={{ justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.24em', color: sk.labelColor, marginBottom: 'clamp(4px,.7vh,10px)' }}>CÓDIGO DE SALA</div>
+                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(82px,12vw,172px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
+                <div style={{ marginTop: 'clamp(10px,1.5vh,22px)' }}>
+                  <span className="cv-mono" style={{ fontSize: 'clamp(9px,.85vw,13px)', letterSpacing: '.16em', color: sk.labelColor }}>VOTÁ LA PRÓXIMA </span>
+                  <span className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.6vw,26px)', fontWeight: 700, color: '#ffffff' }}>desde tu celular</span>
                 </div>
               </div>
-              {energyOn && <div style={{ width: 'clamp(240px,22vw,340px)' }}><EnergyMeter pct={energyPct} rate={voteRate} mode="eq" /></div>}
+
+              {/* DERECHA: QR para votar */}
+              <div style={{ justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(8px,1.1vh,14px)' }}>
+                {widgetQr
+                  ? <div style={{ background: '#fff', padding: 'clamp(7px,.7vw,11px)', borderRadius: 14, lineHeight: 0, boxShadow: '0 0 44px -14px rgba(var(--cv-accent-rgb),.6)' }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(120px,12vw,188px)', height: 'clamp(120px,12vw,188px)', display: 'block' }} /></div>
+                  : <div style={{ width: 'clamp(120px,12vw,188px)', height: 'clamp(120px,12vw,188px)', borderRadius: 14, border: '1px dashed var(--cv-hair)' }} />}
+                <span className="cv-mono" style={{ fontSize: 'clamp(9px,.8vw,12px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.55)' }}>escaneá y votá</span>
+              </div>
             </div>
 
-            <div className="cv-mono" style={{ position: 'absolute', bottom: 'clamp(62px,9vh,104px)', left: '50%', transform: 'translateX(-50%)', fontSize: 'clamp(9px,.85vw,12px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.4)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ic name="play" size={11} />TOCÁ PARA REANUDAR</div>
-
-            {tickerItem && (
-              <div style={{ position: 'absolute', bottom: 'clamp(20px,3.5vh,40px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '9px 16px' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
-                <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(11px,.95vw,15px)', color: '#ffffff', animation: 'cvFadeIn .55s ease' }}>
-                  {tickerItem.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</> : <>alguien votó <b>{tickerItem.title}</b></>}
-                </span>
-              </div>
-            )}
+            {/* PIE: medidor (barra) + ticker (pill) + hint reanudar — apilados, sin montarse */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(9px,1.3vh,16px)' }}>
+              {energyOn && <div style={{ width: '100%', maxWidth: 760 }}><EnergyMeter pct={energyPct} rate={voteRate} mode="eq" /></div>}
+              {tickerItem && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '9px 18px' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
+                  <span key={(ticker?.name || '') + (ticker?.title || '')} className="cv-mono" style={{ fontSize: 'clamp(11px,.95vw,15px)', color: '#ffffff', animation: 'cvFadeIn .55s ease' }}>
+                    {tickerItem.name ? <><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{tickerItem.name}</b> votó {tickerItem.title}</> : <>alguien votó <b>{tickerItem.title}</b></>}
+                  </span>
+                </div>
+              )}
+              <div className="cv-mono" style={{ fontSize: 'clamp(8px,.72vw,11px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.3)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ic name="play" size={10} />TOCÁ PARA REANUDAR</div>
+            </div>
           </div>
+        </div>
     </main>
     </>
   );
