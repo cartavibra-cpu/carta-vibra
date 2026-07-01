@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import QRCode from 'qrcode';
 import { useIsMobile } from '@/lib/useIsMobile';
@@ -187,7 +188,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
               <span style={{ flexShrink: 0, width: 21, height: 21, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 1, background: hasPlaylist ? 'var(--cv-accent)' : 'transparent', border: hasPlaylist ? 'none' : '1.5px solid var(--cv-faint)', color: hasPlaylist ? 'var(--cv-on)' : 'transparent' }}>✓</span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: hasPlaylist ? 'var(--cv-mut)' : 'var(--cv-ink)', textDecoration: hasPlaylist ? 'line-through' : 'none' }}>Elegí la música y ponela a sonar</div>
-                {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> más abajo, en <b style={{ color: 'var(--cv-mut)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-mut)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <a href="/panel/curadas" style={{ color: 'var(--cv-accent)' }}>curadas</a>.</div>}
+                {!hasPlaylist && <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 4, lineHeight: 1.5 }}>Asigná una playlist de tu <Link href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</Link> más abajo, en <b style={{ color: 'var(--cv-mut)' }}>“Playlists del local”</b>, y tocá <b style={{ color: 'var(--cv-mut)' }}>“Poner a sonar”</b>. ¿No tenés ninguna? Mirá las <Link href="/panel/curadas" style={{ color: 'var(--cv-accent)' }}>curadas</Link>.</div>}
               </div>
             </div>
             {/* paso 2: consola */}
@@ -228,7 +229,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
       <div style={block}>
         <div className="cv-mono" style={{ ...labelStyle, marginBottom: 6 }}>PLAYLISTS DEL LOCAL</div>
         <p style={{ fontSize: 13.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '0 0 14px' }}>
-          Asigná playlists de tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> a cada sección y elegí cuál suena.
+          Asigná playlists de tu <Link href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</Link> a cada sección y elegí cuál suena.
           La que <b style={{ color: 'var(--cv-accent)' }}>está sonando</b> es la que ven y votan los clientes — solo una a la vez.
         </p>
 
@@ -300,7 +301,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
                   <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', marginTop: 2 }}>
                     {library.some((p) => belongsToSection(p, sec.key))
                       ? 'ya asignaste todas tus playlists de esta sección.'
-                      : <>no tenés playlists de esta sección · <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>creá una en tu biblioteca</a></>}
+                      : <>no tenés playlists de esta sección · <Link href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>creá una en tu biblioteca</Link></>}
                   </div>
                 )}
               </div>

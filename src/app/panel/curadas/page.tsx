@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import BrandMark from '@/components/BrandMark';
@@ -100,7 +101,7 @@ export default function CuradasPage() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={104} /></div>
           <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>Necesitás iniciar sesión para ver las playlists curadas.</p>
-          <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</a>
+          <Link href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</Link>
         </div>
       </main>
     );
@@ -121,7 +122,7 @@ export default function CuradasPage() {
       <div style={{ maxWidth: 980, margin: '0 auto', padding: isMobile ? '20px 14px 48px' : '32px 20px 60px' }}>
         <h1 className="cv-wordmark" style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 600 }}>Curadas</h1>
         <p style={{ fontSize: 14.5, color: 'var(--cv-mut)', lineHeight: 1.55, margin: '8px 0 26px', maxWidth: 580 }}>
-          Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-ink)' }}>escuchar sus temas</b>, e importá la que te guste a tu <a href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</a> — después la asignás a tus locales desde <a href="/panel" style={{ color: 'var(--cv-accent)' }}>Mis locales</a>. Importar nunca pisa tus playlists: crea una copia tuya.
+          Playlists listas para usar. Abrí cualquiera para <b style={{ color: 'var(--cv-ink)' }}>escuchar sus temas</b>, e importá la que te guste a tu <Link href="/panel/playlists" style={{ color: 'var(--cv-accent)' }}>biblioteca</Link> — después la asignás a tus locales desde <Link href="/panel" style={{ color: 'var(--cv-accent)' }}>Mis locales</Link>. Importar nunca pisa tus playlists: crea una copia tuya.
         </p>
 
         {templates.length === 0 ? (
@@ -158,7 +159,7 @@ export default function CuradasPage() {
                       )}
                     </div>
                     {imported && (
-                      <a href="/panel" className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mut)', textDecoration: 'underline' }}>asignála a un local →</a>
+                      <Link href="/panel" className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-mut)', textDecoration: 'underline' }}>asignála a un local →</Link>
                     )}
                   </div>
                 </div>
@@ -234,7 +235,7 @@ export default function CuradasPage() {
               {done[modalTpl.id] ? (
                 <>
                   <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-accent)' }}>✓ En tu biblioteca</span>
-                  <a href="/panel" className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 16px', textDecoration: 'none' }}>Asignar a un local →</a>
+                  <Link href="/panel" className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '9px 16px', textDecoration: 'none' }}>Asignar a un local →</Link>
                 </>
               ) : (
                 <>

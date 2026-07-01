@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import { Ic } from '@/components/Ic';
@@ -71,7 +72,7 @@ export default function ErroresPage() {
       <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
         <div style={{ textAlign: 'center' }}>
           <p style={{ color: 'var(--cv-mut)', fontSize: 15, marginBottom: 16 }}>Esta sección es solo para administradores.</p>
-          <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
+          <Link href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</Link>
         </div>
       </main>
     );

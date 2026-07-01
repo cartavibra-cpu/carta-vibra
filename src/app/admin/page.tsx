@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import BrandMark from '@/components/BrandMark';
@@ -189,7 +190,7 @@ export default function AdminPage() {
       <div style={{ textAlign: 'center' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}><BrandMark size={104} /></div>
         <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>No tenés acceso. Iniciá sesión con la cuenta de administrador.</p>
-        <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</a>
+        <Link href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Volver al inicio</Link>
       </div>
     </main>
   );

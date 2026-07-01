@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import { CvSelect } from '@/components/CvSelect';
@@ -227,7 +228,7 @@ export default function PlaylistsPage() {
         <TopNav />
         <div style={{ textAlign: 'center', padding: '80px 20px' }}>
           <p style={{ color: 'var(--cv-mut)', marginBottom: 16 }}>Iniciá sesión para ver tus playlists.</p>
-          <a href="/" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', textDecoration: 'none' }}>Ir al inicio</a>
+          <Link href="/" className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '11px 22px', textDecoration: 'none' }}>Ir al inicio</Link>
         </div>
       </main>
     );

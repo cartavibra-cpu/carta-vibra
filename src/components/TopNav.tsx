@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import { useIsMobile } from '@/lib/useIsMobile';
 import BrandMark from '@/components/BrandMark';
@@ -50,16 +51,16 @@ export default function TopNav() {
         borderBottom: '1px solid var(--cv-hair)',
       }}
     >
-      <a href="/panel" style={{ textDecoration: 'none', flexShrink: 0 }}>
+      <Link href="/panel" style={{ textDecoration: 'none', flexShrink: 0 }}>
         <BrandMark size={isMobile ? 30 : 34} layout="row" />
-      </a>
+      </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 14 : 16, flexWrap: 'wrap', justifyContent: isMobile ? 'space-between' : 'flex-end', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
-        <a href="/panel" className="cv-mono" style={linkStyle}>{isMobile ? 'Locales' : 'Mis locales'}</a>
-        <a href="/panel/playlists" className="cv-mono" style={linkStyle}>{isMobile ? 'Playlists' : 'Mis playlists'}</a>
-        <a href="/panel/curadas" className="cv-mono" style={linkStyle}>Curadas</a>
-        {isAdmin && <a href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Admin</a>}
-        {isAdmin && <a href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Errores</a>}
-        <a href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Consola</a>
+        <Link href="/panel" className="cv-mono" style={linkStyle}>{isMobile ? 'Locales' : 'Mis locales'}</Link>
+        <Link href="/panel/playlists" className="cv-mono" style={linkStyle}>{isMobile ? 'Playlists' : 'Mis playlists'}</Link>
+        <Link href="/panel/curadas" className="cv-mono" style={linkStyle}>Curadas</Link>
+        {isAdmin && <Link href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Admin</Link>}
+        {isAdmin && <Link href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Errores</Link>}
+        <Link href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Consola</Link>
         <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
       </div>
     </nav>

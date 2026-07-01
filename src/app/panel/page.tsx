@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import VenueManager from '@/components/VenueManager';
@@ -81,7 +82,7 @@ export default function PanelPage() {
         <div style={{ textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={104} /></div>
           <p style={{ fontSize: 15, color: 'var(--cv-mut)', marginBottom: 18 }}>Necesitás iniciar sesión para entrar al panel.</p>
-          <a href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</a>
+          <Link href="/" className="cv-btn cv-btn-cyan" style={{ display: 'inline-block', fontSize: 15, padding: '12px 24px', textDecoration: 'none' }}>Ir al inicio</Link>
         </div>
       </main>
     );

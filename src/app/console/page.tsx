@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
@@ -1109,7 +1110,7 @@ export default function ConsolePage() {
           ) : (<p className="cv-mono" style={{ color: 'var(--cv-mut)' }}>generando código…</p>)}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
             <button onClick={resetPairing} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-faint)', textDecoration: 'underline' }}>Generar un código nuevo</button>
-            <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none' }}>← Volver al panel</a>
+            <Link href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none' }}>← Volver al panel</Link>
           </div>
         </div>
       </main>

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, use, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
@@ -238,7 +239,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-mut)' }}><Ic name="lock" size={28} /></div>
         <p style={{ color: 'var(--cv-ink)', fontWeight: 600, marginBottom: 6 }}>Iniciá sesión para controlar tu local</p>
         <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mut)', marginBottom: 16 }}>Entrá con la cuenta dueña de «{venue.name}».</p>
-        <a href="/" className="cv-btn cv-btn-primary" style={{ display: 'inline-block', padding: '11px 22px' }}>Ir a iniciar sesión</a>
+        <Link href="/" className="cv-btn cv-btn-primary" style={{ display: 'inline-block', padding: '11px 22px' }}>Ir a iniciar sesión</Link>
       </div>
     </div>
   );
@@ -433,7 +434,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       )}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
-        <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={13} />Volver al panel</a>
+        <Link href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-faint)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={13} />Volver al panel</Link>
       </div>
     </>
   );

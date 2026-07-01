@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supa } from '@/lib/supabaseClient';
 import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
@@ -65,12 +66,12 @@ export default function Home() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
-          <a href="/panel" className="cv-btn cv-btn-primary" style={{ fontSize: 16, padding: '15px 24px' }}>
+          <Link href="/panel" className="cv-btn cv-btn-primary" style={{ fontSize: 16, padding: '15px 24px' }}>
             Ir a mi panel
-          </a>
-          <a href="/console" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 24px' }}>
+          </Link>
+          <Link href="/console" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 24px' }}>
             Abrir consola · pantalla del local
-          </a>
+          </Link>
         </div>
 
         <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--cv-font-body)', fontSize: 13, color: 'var(--cv-faint)', textDecoration: 'underline', marginTop: 4 }}>
