@@ -53,6 +53,7 @@ function MiniEq() {
 export default function WidgetPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [venue, setVenue] = useState<any>(null);
+  const [wTheme, setWTheme] = useState('vibra');   // tema actual (se actualiza en vivo)
   const [mode, setMode] = useState<'jukebox' | 'karaoke'>('jukebox');
   const [activePl, setActivePl] = useState<{ id: string; name: string } | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -93,6 +94,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
     setVenue(v);
     if (!v) return;
     applyCvTheme((v as { theme?: string }).theme);
+    setWTheme((v as { theme?: string }).theme || 'vibra');
     const { data: asg } = await sb.from('venue_playlist_assignment')
       .select('playlist_id,section').eq('venue_id', v.id).eq('is_active', true).maybeSingle();
     const plId = (asg as { playlist_id: string; section: string } | null)?.playlist_id ?? null;
@@ -139,6 +141,10 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venue.id}` }, () => loadSignups(venue.id))
       .subscribe();
     const rch = sb.channel('cmd-' + venue.id);
+    rch.on('broadcast', { event: 'jbstate' }, (p: any) => {
+      const th = p?.payload?.theme;
+      if (typeof th === 'string') { applyCvTheme(th); setWTheme(th); }
+    });
     rch.subscribe();
     reactChRef.current = rch;
     return () => { sb.removeChannel(ch); sb.removeChannel(rch); reactChRef.current = null; };
@@ -236,7 +242,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
   if (!venue) {
     return (
       <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: STAGE_BG }}>
-        <Vinyl size={52} mini light={CV_LIGHT_THEMES.has(venue?.theme)} />
+        <Vinyl size={52} mini light={CV_LIGHT_THEMES.has(wTheme)} />
         <div className="cv-mono" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '.18em' }}>cargando…</div>
       </main>
     );
@@ -398,7 +404,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
           <>
             {/* sonando ahora */}
             <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 14, background: 'linear-gradient(150deg, rgba(var(--cv-accent-rgb),.18), rgba(var(--cv-accent-rgb),.06))', border: '1px solid rgba(255,255,255,.10)', borderRadius: 18, padding: 14 }}>
-              <Vinyl size={56} mini light={CV_LIGHT_THEMES.has(venue?.theme)} />
+              <Vinyl size={56} mini light={CV_LIGHT_THEMES.has(wTheme)} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="cv-mono" style={{ fontSize: 10, letterSpacing: '.16em', color: 'var(--cv-cyan)' }}>SONANDO AHORA</div>
                 <div className="cv-wordmark" style={{ fontSize: 17, fontWeight: 600, marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nowTrack ? nowTrack.title : '—'}</div>

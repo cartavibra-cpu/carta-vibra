@@ -57,6 +57,16 @@ export default function Vinyl({ size, mini = false, glow = false, beat = false, 
         <div
           style={{
             position: 'absolute',
+            inset: 0,
+            borderRadius: '50%',
+            background: light
+              ? 'linear-gradient(118deg, transparent 32%, rgba(var(--cv-accent-rgb),.34) 48%, transparent 64%)'
+              : 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.16) 50%, transparent 62%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
             inset: '42%',
             borderRadius: '50%',
             background: light ? '#2a2233' : '#07060e',
