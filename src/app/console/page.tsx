@@ -183,6 +183,7 @@ export default function ConsolePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
+  const [booting, setBooting] = useState(true);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [widgetQr, setWidgetQr] = useState('');
   const [karaokeMode, setKaraokeMode] = useState(false);
@@ -488,7 +489,7 @@ export default function ConsolePage() {
       const { data, error } = await sb.rpc('console_status', { p_token: token });
       if (error) { localStorage.removeItem('console_device_token'); return startPairing(); }
       if (data.paired) {
-        tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false);
+        tokenRef.current = token; venueRef.current = data.venue_id; setStatus(data); setLoading(false); setBooting(false);
         applyCvTheme(data.theme);
         themeRef.current = data.theme || 'vibra'; setCurTheme(data.theme || 'vibra');
         try { localStorage.setItem('cv_console_theme', data.theme || 'vibra'); } catch {}
@@ -497,7 +498,7 @@ export default function ConsolePage() {
         // Mantener el MISMO código entre recargas en vez de generar uno nuevo cada vez.
         tokenRef.current = token;
         const savedCode = typeof window !== 'undefined' ? localStorage.getItem('console_pairing_code') : null;
-        if (savedCode) { setPairCode(savedCode); setStatus(data); setLoading(false); pollStatus(token); }
+        if (savedCode) { setPairCode(savedCode); setStatus(data); setLoading(false); setBooting(false); pollStatus(token); }
         else { localStorage.removeItem('console_device_token'); return startPairing(); }
       }
     } catch { localStorage.removeItem('console_device_token'); return startPairing(); }
@@ -513,8 +514,9 @@ export default function ConsolePage() {
       localStorage.setItem('console_pairing_code', data.pairing_code);
       tokenRef.current = data.device_token;
       setPairCode(data.pairing_code);
+      setBooting(false);
       pollStatus(data.device_token);
-    } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); }
+    } catch (e: any) { setError(e.message ?? String(e)); setLoading(false); setBooting(false); }
   };
 
   const pollStatus = async (token: string) => {
@@ -1082,6 +1084,19 @@ export default function ConsolePage() {
         <div style={{ textAlign: 'center' }}>
           <p style={{ color: 'var(--cv-warm)', fontSize: 15, marginBottom: 14 }}>Error: {error}</p>
           <button className="cv-btn cv-btn-cyan" style={{ fontSize: 15, padding: '12px 22px' }} onClick={startPairing}>Reintentar</button>
+        </div>
+      </main>
+    );
+  }
+
+  // ---------- Arranque: pantalla neutra hasta saber si está vinculada o no ----------
+  if (booting) {
+    return (
+      <main style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: STAGE_BG }}>
+        <div className="cv-surco" style={{ background: 'repeating-radial-gradient(circle at 50% 42%, rgba(255,255,255,.022) 0 1px, transparent 1px 30px)' }} />
+        <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 26, padding: 24 }}>
+          <BrandMark size={150} light={CV_LIGHT_THEMES.has(curTheme)} />
+          <div className="cv-mono" style={{ fontSize: 13, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--cv-mut)' }}>cargando…</div>
         </div>
       </main>
     );
