@@ -67,7 +67,23 @@ export default function PanelPage() {
   const saveIdentityTheme = (id: CvTheme) => {
     const sb = supa();
     if (sb && venues.length) {
-      venues.forEach((v) => { sb.rpc('set_venue_theme', { p_venue: v.id, p_theme: id }).then(() => {}, () => {}); });
+      venues.forEach((v) => {
+        // 1) persistir en la base (fuente de verdad; al recargar cualquier pantalla lo toma)
+        sb.rpc('set_venue_theme', { p_venue: v.id, p_theme: id }).then(() => {}, () => {});
+        // 2) avisar EN VIVO a las pantallas abiertas de ese local por el mismo canal que ya
+        //    escuchan: la consola oye 'jbcmd' (cmd:theme), el control y el widget oyen 'jbstate'.
+        try {
+          const ch = sb.channel('cmd-' + v.id);
+          ch.subscribe((status: string) => {
+            if (status !== 'SUBSCRIBED') return;
+            try {
+              ch.send({ type: 'broadcast', event: 'jbcmd', payload: { cmd: 'theme', value: id } });
+              ch.send({ type: 'broadcast', event: 'jbstate', payload: { theme: id } });
+            } catch {}
+            setTimeout(() => { try { sb.removeChannel(ch); } catch {} }, 1500);
+          });
+        } catch {}
+      });
       setVenues((prev) => prev.map((v) => ({ ...v, theme: id })));
     }
     setSavedPalette(true);
