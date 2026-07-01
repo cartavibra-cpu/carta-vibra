@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
+import { Ic } from '@/components/Ic';
 import Waveform from '@/components/Waveform';
 import KaraokeConsole from '@/components/KaraokeConsole';
 import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
@@ -1022,8 +1023,8 @@ export default function ConsolePage() {
             <h1 className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 44px)', fontWeight: 600 }}>{status.name}</h1>
             <p className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', marginTop: 10 }}>Consola lista para {status.slug}</p>
           </div>
-          <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(var(--cv-accent-rgb),.5)' }} onClick={startConsole}>
-            ▶ Iniciar sesión musical
+          <button className="cv-btn cv-btn-mint" style={{ fontSize: 20, padding: '18px 40px', boxShadow: '0 0 50px -8px rgba(var(--cv-accent-rgb),.5)', display: 'inline-flex', alignItems: 'center', gap: 12 }} onClick={startConsole}>
+            <Ic name="play" size={20} />Iniciar sesión musical
           </button>
           <p style={{ maxWidth: 400, textAlign: 'center', fontSize: 12, color: 'var(--cv-mono)', lineHeight: 1.5 }}>
             Tocá el botón para desbloquear el audio. Con AutoDJ activo, la música arranca sola desde la playlist activa aunque todavía no haya votos. Para no mostrar avisos, logueá este navegador con tu cuenta de YouTube Premium.
@@ -1263,9 +1264,9 @@ export default function ConsolePage() {
             <>
               <div onMouseMove={pokeControls} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '22%', zIndex: 2147483400 }} />
               <div style={{ position: 'absolute', top: 10, left: '50%', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px', borderRadius: 13, background: 'rgba(7,6,14,.85)', border: '1px solid rgba(255,255,255,.08)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', opacity: controlsOn ? 1 : 0, pointerEvents: controlsOn ? 'auto' : 'none', transform: `translateX(-50%) translateY(${controlsOn ? 0 : -8}px)`, transition: 'opacity .25s ease, transform .25s ease', zIndex: 2147483500 }}>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? '▶' : '⏸'}</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={() => advance()} title="Saltear (→)">⏭</button>
-                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff' }} onClick={toggleFs} title="Salir de pantalla completa (F)">⛶</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={togglePlayPause} title="Pausa/Reanudar (espacio)">{isPaused ? <Ic name="play" size={15} /> : <Ic name="pause" size={15} />}</button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => advance()} title="Saltear (→)"><Ic name="next" size={15} /></button>
+                <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={toggleFs} title="Salir de pantalla completa (F)"><Ic name="fullscreen" size={15} /></button>
                 <button className="cv-btn cv-btn-ghost" style={{ fontSize: 12, padding: '6px 10px', opacity: ccOn ? 1 : .55, color: '#fff' }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
               </div>
             </>
@@ -1297,21 +1298,21 @@ export default function ConsolePage() {
             <div style={{ width: '100%', flexShrink: 0, position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '7px 14px', borderRadius: 14, background: 'var(--cv-bg)', border: '1px solid var(--cv-hair)', boxShadow: '0 10px 30px -16px #000' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={goBack} title="Anterior (deshacer salto)">⏮</button>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 12px', color: 'var(--cv-ink)' }} onClick={togglePlayPause} title="Pausa (congela el video)">{isPaused && !stopped ? '▶' : '⏸'}</button>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={stop} title="Detener (pantalla de espera)">⏹</button>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={() => advance()} title="Saltar (→)">⏭</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={goBack} title="Anterior (deshacer salto)"><Ic name="prev" size={16} /></button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 12px', color: 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={togglePlayPause} title="Pausa (congela el video)">{isPaused && !stopped ? <Ic name="play" size={16} /> : <Ic name="pause" size={16} />}</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 11px', color: 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={stop} title="Detener (pantalla de espera)"><Ic name="stop" size={15} /></button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => advance()} title="Saltar (→)"><Ic name="next" size={16} /></button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)' }} onClick={toggleFs} title="Pantalla completa (F)">⛶</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={toggleFs} title="Pantalla completa (F)"><Ic name="fullscreen" size={16} /></button>
                   <button className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '7px 11px', color: 'var(--cv-ink)', opacity: ccOn ? 1 : .5 }} onClick={toggleCC} title="Subtítulos (C)">CC</button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} title="Volumen">
-                    <span style={{ fontSize: 14, color: 'var(--cv-mut)', width: 18, textAlign: 'center' }}>{volume === 0 ? '🔇' : '🔊'}</span>
+                    <span style={{ color: 'var(--cv-mut)', width: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Ic name={volume === 0 ? 'mute' : 'volume'} size={17} /></span>
                     <input type="range" min={0} max={100} value={volume} onChange={(e) => changeVolume(parseInt(e.target.value))} style={{ width: 'clamp(80px,8vw,130px)', accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
                   </div>
-                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes">⚙</button>
+                  <button className="cv-btn cv-btn-ghost" style={{ fontSize: 14, padding: '7px 11px', color: showSettings ? 'var(--cv-accent)' : 'var(--cv-ink)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings((v) => !v)} title="Ajustes"><Ic name="gear" size={16} /></button>
                 </div>
               </div>
               {showSettings && (
@@ -1439,7 +1440,7 @@ export default function ConsolePage() {
               {energyOn && <div style={{ width: 'clamp(240px,22vw,340px)' }}><EnergyMeter pct={energyPct} rate={voteRate} mode="eq" /></div>}
             </div>
 
-            <div className="cv-mono" style={{ position: 'absolute', bottom: 'clamp(62px,9vh,104px)', left: '50%', transform: 'translateX(-50%)', fontSize: 'clamp(9px,.85vw,12px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.4)' }}>▶ TOCÁ PARA REANUDAR</div>
+            <div className="cv-mono" style={{ position: 'absolute', bottom: 'clamp(62px,9vh,104px)', left: '50%', transform: 'translateX(-50%)', fontSize: 'clamp(9px,.85vw,12px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.4)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ic name="play" size={11} />TOCÁ PARA REANUDAR</div>
 
             {tickerItem && (
               <div style={{ position: 'absolute', bottom: 'clamp(20px,3.5vh,40px)', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 9, background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '9px 16px' }}>
