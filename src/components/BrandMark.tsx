@@ -27,6 +27,7 @@ export default function BrandMark({
   glow = false,
   beat = false,
   light = false,
+  onDark = false,
   style,
 }: {
   size?: number;
@@ -34,6 +35,7 @@ export default function BrandMark({
   glow?: boolean;
   beat?: boolean;
   light?: boolean;
+  onDark?: boolean;
   style?: React.CSSProperties;
 }) {
   if (layout === 'row') {
@@ -42,7 +44,7 @@ export default function BrandMark({
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: Math.round(size * 0.3), ...style }}>
         <Vinyl size={size} mini light={light} />
         <span className="cv-wm" style={{ fontSize: font }}>
-          <span className="carta">carta</span>
+          <span className="carta" style={onDark ? { color: '#ffffff' } : undefined}>carta</span>
           <Vibra />
         </span>
       </span>

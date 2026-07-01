@@ -153,7 +153,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
       {/* ---------- NAV ---------- */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: isMobile ? '12px 16px' : '16px 24px', background: 'linear-gradient(180deg, rgba(7,6,14,.88), rgba(7,6,14,0))', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)' }}>
         <a href="#top" style={{ textDecoration: 'none', flexShrink: 0 }}>
-          <BrandMark size={isMobile ? 30 : 34} layout="row" />
+          <BrandMark size={isMobile ? 30 : 34} layout="row" onDark />
         </a>
         <GoogleButton onClick={onLogin} small />
       </nav>

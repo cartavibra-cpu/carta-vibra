@@ -11,6 +11,10 @@
   --cv-dot-off:       #3A3548;   /* punto playlist inactiva */
   --cv-warm:          #CC9977;   /* acción borrar */
 
+  /* Texto de la nav (franja oscura fija). En temas claros pasa a blanco apagado (ver abajo). */
+  --cv-nav-ink:       var(--cv-mut);
+  --cv-nav-faint:     var(--cv-faint);
+
   /* Forma */
   --cv-radius:     16px;
   --cv-radius-lg:  20px;
@@ -298,6 +302,8 @@ html { scroll-behavior: smooth; }
    oscuros en temas oscuros y claros en los temas claros (lino/crema/algodón). */
 :root { accent-color: var(--cv-accent); color-scheme: dark; }
 [data-cv-theme="lino"], [data-cv-theme="crema"], [data-cv-theme="algodon"] { color-scheme: light; }
+/* La nav va en franja oscura fija → en temas claros su texto pasa a blanco apagado (legible) */
+[data-cv-theme="lino"], [data-cv-theme="crema"], [data-cv-theme="algodon"] { --cv-nav-ink: rgba(255,255,255,.74); --cv-nav-faint: rgba(255,255,255,.46); }
 
 /* Selección de texto */
 ::selection { background: rgba(var(--cv-accent-rgb), .30); color: var(--cv-ink); }

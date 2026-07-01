@@ -31,7 +31,7 @@ export default function TopNav() {
     window.location.href = '/';
   };
 
-  const linkStyle: React.CSSProperties = { fontSize: 13, color: 'var(--cv-mut)', textDecoration: 'none' };
+  const linkStyle: React.CSSProperties = { fontSize: 13, color: 'var(--cv-nav-ink)', textDecoration: 'none' };
 
   return (
     <nav
@@ -52,7 +52,7 @@ export default function TopNav() {
       }}
     >
       <Link href="/panel" style={{ textDecoration: 'none', flexShrink: 0 }}>
-        <BrandMark size={isMobile ? 30 : 34} layout="row" />
+        <BrandMark size={isMobile ? 30 : 34} layout="row" onDark />
       </Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 14 : 16, flexWrap: 'wrap', justifyContent: isMobile ? 'space-between' : 'flex-end', flex: isMobile ? '1 1 100%' : '0 1 auto' }}>
         <Link href="/panel" className="cv-mono" style={linkStyle}>{isMobile ? 'Locales' : 'Mis locales'}</Link>
@@ -61,7 +61,7 @@ export default function TopNav() {
         {isAdmin && <Link href="/admin" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Admin</Link>}
         {isAdmin && <Link href="/admin/errores" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Errores</Link>}
         <Link href="/console" className="cv-mono" style={{ ...linkStyle, color: 'var(--cv-accent)' }}>Consola</Link>
-        <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
+        <button onClick={signOut} className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-nav-faint)', background: 'none', border: 'none', cursor: 'pointer' }}>Salir</button>
       </div>
     </nav>
   );
