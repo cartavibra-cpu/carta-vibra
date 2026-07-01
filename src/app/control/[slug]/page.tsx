@@ -3,6 +3,7 @@ import { useEffect, useState, use, useCallback, useRef } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
+import { Ic } from '@/components/Ic';
 import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
@@ -331,17 +332,17 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
             <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-cyan)', marginBottom: 14 }}>CONTROLES DE LA ROCKOLA</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <button className="cv-btn cv-btn-ghost" onClick={jbBack} style={{ padding: '15px 0', fontSize: 15 }}>⏮ Anterior</button>
-              <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '15px 0', fontSize: 15 }}>{pcPlaying ? '⏸ Pausa' : '▶ Play'}</button>
-              <button className={pcStopped ? 'cv-btn cv-btn-mint' : 'cv-btn cv-btn-ghost'} onClick={pcStopped ? jbResume : jbStop} style={{ padding: '15px 0', fontSize: 15 }}>{pcStopped ? '▶ Reanudar' : '⏹ Detener'}</button>
-              <button className="cv-btn cv-btn-ghost" onClick={jbSkip} style={{ padding: '15px 0', fontSize: 15 }}>⏭ Saltar</button>
+              <button className="cv-btn cv-btn-ghost" onClick={jbBack} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="prev" size={17} />Anterior</button>
+              <button className="cv-btn cv-btn-cyan" onClick={jbPlayPause} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{pcPlaying ? <><Ic name="pause" size={17} />Pausa</> : <><Ic name="play" size={17} />Play</>}</button>
+              <button className={pcStopped ? 'cv-btn cv-btn-mint' : 'cv-btn cv-btn-ghost'} onClick={pcStopped ? jbResume : jbStop} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{pcStopped ? <><Ic name="play" size={17} />Reanudar</> : <><Ic name="stop" size={16} />Detener</>}</button>
+              <button className="cv-btn cv-btn-ghost" onClick={jbSkip} style={{ padding: '15px 0', fontSize: 15, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="next" size={17} />Saltar</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16 }}>
-              <span style={{ fontSize: 18, width: 24, textAlign: 'center' }}>{pcVolume === 0 ? '🔇' : '🔊'}</span>
+              <span style={{ width: 24, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--cv-mut)' }}><Ic name={pcVolume === 0 ? 'mute' : 'volume'} size={20} /></span>
               <input type="range" min={0} max={100} value={pcVolume} onChange={(e) => jbVolume(parseInt(e.target.value))} style={{ flex: 1, accentColor: 'var(--cv-accent)', cursor: 'pointer' }} />
               <span className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)', width: 30, textAlign: 'right' }}>{pcVolume}</span>
             </div>
-            <button className="cv-btn cv-btn-ghost" onClick={jbCC} style={{ width: '100%', padding: '11px 0', fontSize: 13.5, marginTop: 12 }}>CC · Subtítulos on/off</button>
+            <button className="cv-btn cv-btn-ghost" onClick={jbCC} style={{ width: '100%', padding: '11px 0', fontSize: 13.5, marginTop: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="cc" size={18} />Subtítulos on/off</button>
           </div>
           <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
             <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-muted-2)', marginBottom: 16 }}>AJUSTES</div>
@@ -367,11 +368,11 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
 
       {/* controles grandes */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 10, marginBottom: 10 }}>
-        <button className="cv-btn cv-btn-ghost" onClick={goBack} disabled={!backAvailable || busy} style={{ padding: '16px 0', fontSize: 16, opacity: !backAvailable || busy ? 0.4 : 1 }}>◀ Anterior</button>
-        <button className="cv-btn cv-btn-mint" onClick={advance} disabled={(!current && waiting.length === 0) || busy} style={{ padding: '16px 0', fontSize: 16, opacity: (!current && waiting.length === 0) || busy ? 0.4 : 1 }}>{current ? 'Siguiente ▶' : 'Empezar ▶'}</button>
+        <button className="cv-btn cv-btn-ghost" onClick={goBack} disabled={!backAvailable || busy} style={{ padding: '16px 0', fontSize: 16, opacity: !backAvailable || busy ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Ic name="prev" size={17} />Anterior</button>
+        <button className="cv-btn cv-btn-mint" onClick={advance} disabled={(!current && waiting.length === 0) || busy} style={{ padding: '16px 0', fontSize: 16, opacity: (!current && waiting.length === 0) || busy ? 0.4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{current ? <><Ic name="next" size={17} />Siguiente</> : <><Ic name="play" size={17} />Empezar</>}</button>
       </div>
       {current && (
-        <button className="cv-btn cv-btn-ghost" onClick={togglePlay} style={{ width: '100%', padding: '14px 0', fontSize: 16, marginBottom: 10 }}>{pcPlaying ? '⏸ Pausar' : '▶ Reanudar'}</button>
+        <button className="cv-btn cv-btn-ghost" onClick={togglePlay} style={{ width: '100%', padding: '14px 0', fontSize: 16, marginBottom: 10, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>{pcPlaying ? <><Ic name="pause" size={17} />Pausar</> : <><Ic name="play" size={17} />Reanudar</>}</button>
       )}
       {!current && waiting.length > 0 && (
         <p className="cv-mono" style={{ fontSize: 11.5, color: 'var(--cv-mono-2)', marginBottom: 12, textAlign: 'center' }}>el primer tema arrancalo desde el PC; después controlás todo desde acá.</p>
@@ -412,7 +413,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
       )}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
-        <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none' }}>← Volver al panel</a>
+        <a href="/panel" className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="chevleft" size={13} />Volver al panel</a>
       </div>
     </>
   );
