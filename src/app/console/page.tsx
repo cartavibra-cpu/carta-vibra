@@ -424,7 +424,8 @@ export default function ConsolePage() {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       pokeControls();
       const k = e.key.toLowerCase();
-      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePlayPause(); }
+      if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); if (stoppedRef.current) resumeFromStop(); else togglePlayPause(); }
+      else if (k === 's') { e.preventDefault(); if (!stoppedRef.current) stop(); } // S = detener (pantalla de espera)
       else if (e.key === 'ArrowRight' || k === 'n') { e.preventDefault(); advance(); }
       else if (k === 'f') { e.preventDefault(); toggleFs(); }
       else if (k === 'c') { e.preventDefault(); toggleCC(); }
@@ -1510,9 +1511,10 @@ export default function ConsolePage() {
         </div>{/* MARCO */}
       </div>{/* escenario */}
 
-        {/* PANTALLA DE ESPERA (STOP) — Idea 2: el CÓDIGO manda al centro, vinilo y QR lo
-            flanquean simétricos, todo dentro de UNA tarjeta grande (mismo marco que la vista
-            en vivo). La consola arranca acá; la pausa (⏸) solo congela el video, no llega. */}
+        {/* PANTALLA DE ESPERA (STOP) — Opción A (lados cambiados): a la IZQUIERDA el ingreso
+            (código + QR, como en la pantalla en vivo), a la DERECHA el vinilo grande que llena
+            el alto. Medidor reinventado: barra de energía delgada full-width abajo (no tarjeta).
+            Todo en UNA tarjeta grande. La consola arranca acá; la pausa (⏸) solo congela. */}
         <div onClick={stopped ? resumeFromStop : undefined} style={{ position: 'absolute', inset: 0, zIndex: 2147483300, cursor: stopped ? 'pointer' : 'default',
             opacity: stopped ? 1 : 0, pointerEvents: stopped ? 'auto' : 'none', transition: 'opacity .54s ease',
             background: ambientBg,
@@ -1529,43 +1531,54 @@ export default function ConsolePage() {
           }}>
 
             {/* nombre del local (arriba, centro) */}
-            <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0, marginBottom: 'clamp(8px,1.4vh,16px)' }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 16px', borderRadius: 999, background: 'rgba(8,7,16,.42)', border: '1px solid color-mix(in srgb, var(--cv-accent) 26%, transparent)' }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 10px var(--cv-accent)' }} />
                 <span className="cv-mono" style={{ fontSize: 'clamp(9px,.9vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 78%, #ffffff)' }}>{status?.name || 'CARTA VIBRA'}</span>
               </div>
             </div>
 
-            {/* HERO: vinilo · CÓDIGO (protagonista) · QR — flanqueo simétrico */}
-            <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', columnGap: 'clamp(24px,4vw,72px)' }}>
+            {/* CUERPO: IZQUIERDA ingreso (código + QR) · DERECHA vinilo grande */}
+            <div style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: 'minmax(360px,440px) minmax(0,1fr)', gap: 'clamp(24px,3vw,56px)', alignItems: 'stretch' }}>
 
-              {/* IZQUIERDA: vinilo "esperando votos" */}
-              <div style={{ justifySelf: 'center', width: 'clamp(148px,14.5vw,224px)', containerType: 'inline-size' }}>
-                <ConsoleVinyl fill label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
-              </div>
-
-              {/* CENTRO: código de sala + invitación a votar */}
-              <div style={{ justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.24em', color: sk.labelColor, marginBottom: 'clamp(4px,.7vh,10px)' }}>CÓDIGO DE SALA</div>
-                <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(82px,12vw,172px)', fontWeight: 700, lineHeight: 1, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
-                <div style={{ marginTop: 'clamp(10px,1.5vh,22px)' }}>
-                  <span className="cv-mono" style={{ fontSize: 'clamp(9px,.85vw,13px)', letterSpacing: '.16em', color: sk.labelColor }}>VOTÁ LA PRÓXIMA </span>
-                  <span className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.6vw,26px)', fontWeight: 700, color: '#ffffff' }}>desde tu celular</span>
+              {/* IZQUIERDA: ingreso — código de sala + QR, repartidos para llenar el alto */}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly', borderRight: '1px solid var(--cv-hair)', paddingRight: 'clamp(24px,3vw,56px)', minHeight: 0 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div className="cv-mono" style={{ fontSize: 'clamp(10px,1vw,14px)', letterSpacing: '.24em', color: sk.labelColor, marginBottom: 'clamp(6px,.9vh,12px)' }}>CÓDIGO DE SALA</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ fontSize: 'clamp(78px,11vw,150px)', fontWeight: 700, lineHeight: .9, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(11px,1.5vh,18px)' }}>
+                  <div className="cv-mono" style={{ fontSize: 'clamp(9px,.8vw,12px)', letterSpacing: '.2em', color: 'var(--cv-faint)', display: 'flex', alignItems: 'center', gap: 12, width: 'clamp(200px,16vw,270px)', justifyContent: 'center' }}>
+                    <span style={{ height: 1, flex: 1, background: 'var(--cv-hair)' }} />O ESCANEÁ<span style={{ height: 1, flex: 1, background: 'var(--cv-hair)' }} />
+                  </div>
+                  {widgetQr
+                    ? <div style={{ background: '#fff', padding: 'clamp(7px,.7vw,11px)', borderRadius: 14, lineHeight: 0, boxShadow: '0 0 44px -14px rgba(var(--cv-accent-rgb),.6)' }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(116px,11.5vw,156px)', height: 'clamp(116px,11.5vw,156px)', display: 'block' }} /></div>
+                    : <div style={{ width: 'clamp(116px,11.5vw,156px)', height: 'clamp(116px,11.5vw,156px)', borderRadius: 14, border: '1px dashed var(--cv-hair)' }} />}
+                  <span className="cv-wordmark" style={{ fontSize: 'clamp(16px,1.6vw,24px)', fontWeight: 700, color: '#ffffff' }}>votá desde tu celular</span>
                 </div>
               </div>
 
-              {/* DERECHA: QR para votar */}
-              <div style={{ justifySelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(8px,1.1vh,14px)' }}>
-                {widgetQr
-                  ? <div style={{ background: '#fff', padding: 'clamp(7px,.7vw,11px)', borderRadius: 14, lineHeight: 0, boxShadow: '0 0 44px -14px rgba(var(--cv-accent-rgb),.6)' }}><img src={widgetQr} alt="QR para votar" style={{ width: 'clamp(120px,12vw,188px)', height: 'clamp(120px,12vw,188px)', display: 'block' }} /></div>
-                  : <div style={{ width: 'clamp(120px,12vw,188px)', height: 'clamp(120px,12vw,188px)', borderRadius: 14, border: '1px dashed var(--cv-hair)' }} />}
-                <span className="cv-mono" style={{ fontSize: 'clamp(9px,.8vw,12px)', letterSpacing: '.14em', color: 'rgba(255,255,255,.55)' }}>escaneá y votá</span>
+              {/* DERECHA: vinilo "esperando votos" — llena el alto */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, paddingLeft: 'clamp(18px,2.4vw,48px)' }}>
+                <div style={{ height: '100%', aspectRatio: '1 / 1', maxWidth: '100%', containerType: 'inline-size' }}>
+                  <ConsoleVinyl fill label="esperando votos" light={CV_LIGHT_THEMES.has(curTheme)} />
+                </div>
               </div>
             </div>
 
-            {/* PIE: medidor (barra) + ticker (pill) + hint reanudar — apilados, sin montarse */}
-            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(9px,1.3vh,16px)' }}>
-              {energyOn && <div style={{ width: '100%', maxWidth: 760 }}><EnergyMeter pct={energyPct} rate={voteRate} mode="eq" /></div>}
+            {/* PIE: barra de energía (delgada, full-width) + ticker (pill) + hint reanudar */}
+            <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(10px,1.4vh,16px)', marginTop: 'clamp(12px,1.8vh,22px)' }}>
+              {energyOn && (
+                <div style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'clamp(6px,.9vh,10px)' }}>
+                    <span className="cv-mono" style={{ fontSize: 'clamp(9px,.8vw,12px)', letterSpacing: '.18em', color: 'color-mix(in srgb, var(--cv-accent) 72%, #ffffff)', textTransform: 'uppercase' }}>Energía de la sala</span>
+                    <span className="cv-mono" style={{ fontSize: 'clamp(9px,.85vw,13px)', letterSpacing: '.05em', color: 'rgba(255,255,255,.6)' }}><b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{voteRate}</b> votos/min · <b style={{ color: 'var(--cv-accent)', fontWeight: 700 }}>{energyPct > 66 ? 'CALIENTE' : energyPct > 33 ? 'SUBE' : 'TRANQUI'}</b></span>
+                  </div>
+                  <div style={{ height: 'clamp(10px,1.1vh,15px)', borderRadius: 999, background: 'rgba(255,255,255,.07)', border: '1px solid var(--cv-hair)', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ height: '100%', width: Math.max(3, Math.min(100, energyPct)) + '%', background: 'var(--cv-theme-grad)', boxShadow: '0 0 26px rgba(var(--cv-accent-rgb),.6)', borderRadius: 999, transition: 'width 1.6s cubic-bezier(.4,0,.2,1)' }} />
+                  </div>
+                </div>
+              )}
               {tickerItem && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, background: 'rgba(var(--cv-accent-rgb),.12)', border: '1px solid rgba(var(--cv-accent-rgb),.26)', borderRadius: 999, padding: '9px 18px' }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cv-accent)', boxShadow: '0 0 8px var(--cv-accent)', flexShrink: 0 }} />
