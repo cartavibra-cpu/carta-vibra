@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
@@ -49,8 +48,8 @@ function ConsoleVinyl({ size, label, fill, light }: { size?: number; label: stri
           background: 'repeating-radial-gradient(circle at center, rgba(0,0,0,.055) 0 1px, transparent 1px 5px), radial-gradient(circle, #ffffff, #f0ecf6 74%)',
           boxShadow: 'inset 0 0 34px rgba(0,0,0,.10), 0 0 70px -16px rgba(var(--cv-accent-rgb),.55), 0 0 0 1px rgba(0,0,0,.14)' }}>
           <div style={{ position: 'absolute', inset: '18%', borderRadius: '50%',
-            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.85), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.85), rgba(var(--cv-accent-rgb),1))',
-            filter: 'saturate(1.45) drop-shadow(0 0 5px rgba(var(--cv-accent-rgb),.9)) drop-shadow(0 0 12px rgba(var(--cv-accent-rgb),.55))',
+            background: 'conic-gradient(from 210deg, rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.88), rgba(var(--cv-accent-rgb),1), rgba(var(--cv-accent-rgb),.88), rgba(var(--cv-accent-rgb),1))',
+            filter: 'saturate(1.9) brightness(.8) drop-shadow(0 0 4px rgba(var(--cv-accent-rgb),.95)) drop-shadow(0 0 11px rgba(var(--cv-accent-rgb),.6))',
             WebkitMask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)',
             mask: 'radial-gradient(circle, transparent 56%, #000 59%, #000 66%, transparent 69%)' }} />
           <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
@@ -236,6 +235,7 @@ export default function ConsolePage() {
   const [cycleSecs, setCycleSecs] = useState(15);
   const cycleOnRef = useRef(false);
   const cycleSecsRef = useRef(15);
+  const [themeDim, setThemeDim] = useState(false);   // "dip de luces" al cambiar de paleta
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showSettingsRef = useRef(false);
 
@@ -659,23 +659,29 @@ export default function ConsolePage() {
   // Cuando aparece/desaparece el aviso de cambio de playlist, lo reflejamos al control.
   useEffect(() => { pendingRef.current = pending; broadcastJbState(); }, [pending]);
 
-  // Aplica un tema con cross-fade de TODA la pantalla (View Transitions) si el navegador lo soporta.
-  const applyThemeVT = (t: string) => {
-    const paint = () => { applyCvTheme(t); setCurTheme(t); };
-    const d = document as unknown as { startViewTransition?: (cb: () => void) => void };
-    if (typeof d.startViewTransition === 'function') d.startViewTransition(() => flushSync(paint));
-    else paint();
+  // Cambia el tema con "dip de luces": atenúa la pantalla, cambia la paleta a oscuras,
+  // y vuelve a encender con la nueva. Evita mezclar las dos paletas y no congela el video.
+  const dimTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const applyThemeDip = (t: string) => {
+    themeRef.current = t;
+    setThemeDim(true);                                  // 1) bajan las luces
+    if (dimTimerRef.current) clearTimeout(dimTimerRef.current);
+    dimTimerRef.current = setTimeout(() => {
+      applyCvTheme(t); setCurTheme(t);                  // 2) cambia la paleta con la pantalla atenuada
+      broadcastJbState();                               // avisa al celular en el mismo instante
+      dimTimerRef.current = setTimeout(() => setThemeDim(false), 60);  // 3) suben las luces (nueva paleta)
+    }, 300);
   };
 
-  // Cambiar la paleta desde la consola: aplica en vivo (cross-fade), guarda en el local y avisa al control.
+  // Cambiar la paleta desde la consola: aplica con dip, guarda en el local y avisa al control.
   const changeTheme = (t: string) => {
-    themeRef.current = t; applyThemeVT(t); broadcastJbState();
+    applyThemeDip(t);
     const sb = supa(); const vid = venueRef.current;
     if (sb && vid) (async () => { try { await sb.rpc('set_venue_theme', { p_venue: vid, p_theme: t }); } catch {} })();
   };
 
   // Igual que changeTheme pero SIN persistir (el auto-paleta no ensucia la DB en cada salto).
-  const applyThemeLive = (t: string) => { themeRef.current = t; applyThemeVT(t); broadcastJbState(); };
+  const applyThemeLive = (t: string) => { applyThemeDip(t); };
 
   // Modo auto-paleta: cada N segundos salta al siguiente tema OSCURO (nunca a los claros).
   // Cada salto se transmite al celular vía broadcastJbState → el control sigue el color.
@@ -1184,12 +1190,13 @@ export default function ConsolePage() {
         .cv-scroll::-webkit-scrollbar-track{background:transparent}
         .cv-scroll::-webkit-scrollbar-thumb{background:color-mix(in srgb, var(--cv-accent) 42%, transparent);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
         .cv-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--cv-accent) 65%, transparent);background-clip:padding-box}
-        /* auto-paleta: cross-fade de TODA la pantalla al cambiar de tema (View Transitions) */
-        ::view-transition-old(root),::view-transition-new(root){animation-duration:.5s;animation-timing-function:ease}
       `}</style>
 
       {/* al SALIR de pantalla completa: velo negro a pantalla entera que se desvanece (misma transición suave) */}
       {exitingFs && <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 2147483646, pointerEvents: 'none', animation: 'cvFsFade .85s ease-in-out forwards' }} />}
+
+      {/* dip de luces al cambiar de paleta: atenúa la escena, cambia a oscuras, y vuelve a encender */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 300, pointerEvents: 'none', background: '#04030a', opacity: themeDim ? 0.85 : 0, transition: `opacity ${themeDim ? '300ms' : '470ms'} ease` }} />
 
       {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: clean ? 0 : 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
