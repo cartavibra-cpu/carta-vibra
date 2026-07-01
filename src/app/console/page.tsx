@@ -26,8 +26,8 @@ const STAGE_BG =
 function ConsoleVinyl({ size, label }: { size: number; label: string }) {
   const words = (label || 'esperando votos').trim().split(/\s+/).slice(0, 3);
   const longest = Math.max(...words.map((w) => w.length), 1);
-  const circleW = size * 0.44 * 0.94; // ancho útil del centro (etiqueta un poco más grande)
-  const labelFs = Math.max(8, Math.min(Math.round(size * 0.14), Math.floor(circleW / (longest * 0.64))));
+  const circleW = size * 0.48 * 0.94; // ancho útil del centro (etiqueta grande)
+  const labelFs = Math.max(7, Math.min(Math.round(size * 0.16), Math.floor(circleW / (longest * 0.74))));
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'cvSpin 7s linear infinite',
@@ -40,11 +40,11 @@ function ConsoleVinyl({ size, label }: { size: number; label: string }) {
         <div style={{ position: 'absolute', inset: 0, borderRadius: '50%',
           background: 'linear-gradient(120deg, transparent 38%, rgba(255,255,255,.13) 50%, transparent 62%)' }} />
       </div>
-      <div style={{ position: 'absolute', inset: '28%', borderRadius: '50%', overflow: 'hidden',
+      <div style={{ position: 'absolute', inset: '26%', borderRadius: '50%', overflow: 'hidden',
         background: 'radial-gradient(circle at 38% 30%, #17121f, #0a0812)', border: '1px solid var(--cv-hair)',
-        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 3%' }}>
+        boxShadow: '0 8px 22px rgba(0,0,0,.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 2%' }}>
         {words.map((w, i) => (
-          <span key={i} className="cv-wordmark cv-grad-theme" style={{ fontSize: labelFs, fontWeight: 800, lineHeight: 1.04, textAlign: 'center', letterSpacing: '-.01em', whiteSpace: 'nowrap' }}>{w}</span>
+          <span key={i} className="cv-wordmark cv-grad-theme" style={{ fontSize: labelFs, fontWeight: 800, lineHeight: 1.05, textAlign: 'center', letterSpacing: '-.045em', whiteSpace: 'nowrap' }}>{w}</span>
         ))}
       </div>
     </div>
