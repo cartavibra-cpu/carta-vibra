@@ -161,6 +161,8 @@ export default function ConsolePage() {
   const [isAutoNow, setIsAutoNow] = useState(false);
   const [autoOn, setAutoOn] = useState(true);
   const [isFs, setIsFs] = useState(false);
+  const [exitingFs, setExitingFs] = useState(false);
+  const prevFsRef = useRef(false);
   const [isPaused, setIsPaused] = useState(false);
   const [ccOn, setCcOn] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -220,9 +222,14 @@ export default function ConsolePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // pantalla completa: refleja el estado real del navegador
+  // pantalla completa: refleja el estado real del navegador + fade al salir
   useEffect(() => {
-    const onFs = () => setIsFs(!!document.fullscreenElement);
+    const onFs = () => {
+      const nowFs = !!document.fullscreenElement;
+      if (prevFsRef.current && !nowFs) { setExitingFs(true); setTimeout(() => setExitingFs(false), 900); }
+      prevFsRef.current = nowFs;
+      setIsFs(nowFs);
+    };
     document.addEventListener('fullscreenchange', onFs);
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
@@ -1013,6 +1020,9 @@ export default function ConsolePage() {
         .cv-scroll::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb, var(--cv-accent) 65%, transparent);background-clip:padding-box}
       `}</style>
 
+      {/* al SALIR de pantalla completa: velo negro a pantalla entera que se desvanece (misma transición suave) */}
+      {exitingFs && <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 2147483646, pointerEvents: 'none', animation: 'cvFsFade .85s ease-in-out forwards' }} />}
+
       {/* ESCENARIO: UN SOLO MARCO sólido que contiene TODO (medidor · video · código+QR+votantes) */}
       <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'stretch', justifyContent: 'center', padding: clean ? 0 : 'clamp(10px,2vh,22px) clamp(16px,2.6vw,38px)' }}>
         <div style={clean ? { width: '100%', height: '100%' } : {
@@ -1079,7 +1089,7 @@ export default function ConsolePage() {
           <div id="wrap-B" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, pointerEvents: 'none' }}><div id="yt-B" /></div>
 
           {/* al entrar a pantalla completa: velo negro que se desvanece (transición suave, no abrupta) */}
-          {clean && <div style={{ position: 'absolute', inset: 0, background: '#000', zIndex: 2147483600, pointerEvents: 'none', animation: 'cvFsFade .55s ease forwards' }} />}
+          {clean && <div style={{ position: 'absolute', inset: 0, background: '#000', zIndex: 2147483600, pointerEvents: 'none', animation: 'cvFsFade .85s ease-in-out forwards' }} />}
 
           {/* viñeta sutil para legibilidad */}
           <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(125% 125% at 50% 50%, transparent 56%, rgba(0,0,0,.42) 100%)' }} />
