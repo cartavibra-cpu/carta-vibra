@@ -5,6 +5,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import BrandMark from '@/components/BrandMark';
 import { Ic } from '@/components/Ic';
+import { CvSelect } from '@/components/CvSelect';
 import { applyCvTheme, CV_THEME_META } from '@/lib/theme';
 
 type Track = { id: string; title: string; artist: string | null; external_id: string | null };
@@ -45,6 +46,8 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const [pcVolume, setPcVolume] = useState(100);
   const [pcStopped, setPcStopped] = useState(false);
   const [pcPending, setPcPending] = useState<string | null>(null);
+  const [plList, setPlList] = useState<{ id: string; playlistId: string; section: string; name: string }[]>([]);
+  const [activeAsgId, setActiveAsgId] = useState<string | null>(null);
   const cmdChRef = useRef<any>(null);
 
   const [showAdd, setShowAdd] = useState(false);
@@ -59,6 +62,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const current = queue.find((s) => s.state === 'singing') || null;
   const waiting = queue.filter((s) => s.state === 'waiting');
   const vid = venue?.id as string | undefined;
+  const jbPlaylists = plList.filter((p) => p.section === 'jukebox');
   const isOwner = !!(session?.user?.id && venue?.owner && session.user.id === venue.owner);
   const addMatches = addFilter.trim()
     ? tracks.filter((t) => (t.title + ' ' + (t.artist || '')).toLowerCase().includes(addFilter.trim().toLowerCase()))
@@ -117,6 +121,25 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     setTracks((t as Track[]) || []);
   }, []);
 
+  // Todas las playlists asignadas al local (con nombre), para el dropdown del control.
+  const loadPlaylists = useCallback(async (venueId: string) => {
+    const sb = supa(); if (!sb) return;
+    const { data: asg } = await sb.from('venue_playlist_assignment')
+      .select('id,playlist_id,section,is_active,sort').eq('venue_id', venueId).order('sort');
+    const rows = (asg as any[]) || [];
+    const pids = rows.map((a) => a.playlist_id);
+    const names: Record<string, string> = {};
+    if (pids.length) {
+      const { data: pls } = await sb.from('venue_playlist').select('id,name').in('id', pids);
+      (pls as any[] | null)?.forEach((p) => { names[p.id] = p.name; });
+    }
+    setPlList(rows.map((a) => ({ id: a.id, playlistId: a.playlist_id, section: a.section, name: names[a.playlist_id] ?? '(sin nombre)' })));
+    const active = rows.find((a) => a.is_active);
+    setActiveAsgId(active ? active.id : null);
+  }, []);
+
+  useEffect(() => { if (vid) loadPlaylists(vid); }, [vid, loadPlaylists]);
+
   useEffect(() => {
     if (!venue) return;
     loadQueue(venue.id);
@@ -124,10 +147,10 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     const ch = sb.channel('ctrl-' + venue.id)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'karaoke_signup', filter: `venue_id=eq.${venue.id}` }, () => loadQueue(venue.id))
       // si activás otra playlist (jukebox ⇄ karaoke), el control cambia de modo solo
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venue.id}` }, () => refreshMode(venue.id))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'venue_playlist_assignment', filter: `venue_id=eq.${venue.id}` }, () => { refreshMode(venue.id); loadPlaylists(venue.id); })
       .subscribe();
     return () => { sb.removeChannel(ch); };
-  }, [venue, loadQueue, refreshMode]);
+  }, [venue, loadQueue, refreshMode, loadPlaylists]);
 
   // canal de comandos hacia el PC (broadcast): pausar/reanudar + estado (karaoke y jukebox)
   useEffect(() => {
@@ -170,6 +193,17 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
   const jbCC = () => jbSend({ cmd: 'cc' });
   const jbVolume = (n: number) => { const v = Math.max(0, Math.min(100, n)); setPcVolume(v); jbSend({ cmd: 'volume', value: v }); };
   const jbSwitchPlaylist = () => { jbSend({ cmd: 'switchplaylist' }); setPcPending(null); };
+
+  // Elegir otra playlist desde el control: la activamos y la consola detecta el cambio →
+  // muestra el aviso "¿la ponés ahora?" (misma confirmación que al cambiar desde el panel).
+  const pickPlaylist = async (assignmentId: string) => {
+    if (!assignmentId || assignmentId === activeAsgId) return;
+    const sb = supa(); if (!sb) return;
+    setBusy(true);
+    const { error } = await sb.rpc('set_active_assignment', { p_assignment: assignmentId });
+    setBusy(false);
+    if (error) { alert('No se pudo cambiar la playlist: ' + error.message); logError('control-cambiar-playlist', new Error(error.message), { assignmentId }); return; }
+  };
   const jbSetAutoDj = (v: boolean) => { setJbAutoDj(v); jbSend({ cmd: 'autodj', value: v }); };
   const jbSetSeconds = (n: number) => { setJbSeconds(n); jbSend({ cmd: 'seconds', value: n }); };
   const jbSetCycle = (v: boolean) => { setJbCycleOn(v); jbSend({ cmd: 'cyclepalette', value: v }); };
@@ -350,6 +384,20 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
                 <button className="cv-btn cv-btn-cyan" onClick={jbSwitchPlaylist} style={{ flex: 1, padding: '13px 0', fontSize: 15 }}>Cambiar ahora</button>
                 <button className="cv-btn cv-btn-ghost" onClick={() => setPcPending(null)} style={{ padding: '13px 18px', fontSize: 15 }}>Ahora no</button>
               </div>
+            </div>
+          )}
+          {/* cambiar de playlist rápido (con confirmación) */}
+          {jbPlaylists.length > 1 && (
+            <div className="cv-card" style={{ padding: '18px', marginBottom: 12 }}>
+              <div className="cv-mono" style={{ fontSize: 11, letterSpacing: '.16em', color: 'var(--cv-accent)', marginBottom: 12 }}>PLAYLIST</div>
+              <CvSelect
+                value={activeAsgId ?? ''}
+                onChange={pickPlaylist}
+                options={jbPlaylists.map((p) => ({ value: p.id, label: p.name }))}
+                ariaLabel="Elegir playlist"
+                style={{ width: '100%' }}
+              />
+              <p className="cv-mono" style={{ fontSize: 11, color: 'var(--cv-faint)', marginTop: 10, lineHeight: 1.4 }}>Al elegir otra, la pantalla te pregunta si la ponés ya.</p>
             </div>
           )}
           {/* controles de la rockola (jukebox) */}

@@ -62,6 +62,23 @@ export default function PanelPage() {
     }
   }, [venues]);
 
+  // El local es la fuente de verdad de la paleta. Si la cambian desde el control o la consola,
+  // reflejala EN VIVO en el chrome del panel (sin recargar), escuchando el mismo canal que ellos.
+  const primaryVenueId = venues[0]?.id;
+  useEffect(() => {
+    const sb = supa();
+    if (!sb || !primaryVenueId) return;
+    const ch = sb.channel('cmd-' + primaryVenueId);
+    ch.on('broadcast', { event: 'jbstate' }, (p: any) => {
+      const t = p?.payload?.theme;
+      if (typeof t === 'string') {
+        setGlobalTheme(t as CvTheme);
+        setVenues((prev) => prev.map((v) => ({ ...v, theme: t })));
+      }
+    }).subscribe();
+    return () => { try { sb.removeChannel(ch); } catch {} };
+  }, [primaryVenueId]);
+
   // Elegir la paleta desde "mis locales": PaletteSwitcher ya la aplicó al chrome (localStorage
   // + <html>); acá la bajamos a TODOS tus locales para que consola y widget queden iguales.
   const saveIdentityTheme = (id: CvTheme) => {
