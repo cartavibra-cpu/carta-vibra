@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
 import Waveform from '@/components/Waveform';
+import { Ic } from '@/components/Ic';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const STAGE_BG =
@@ -10,7 +11,7 @@ const STAGE_BG =
 
 // Contacto — Fran: confirmá que este WhatsApp sea el de Carta Vibra (es el mismo de CartaViva).
 const WHATSAPP = '56979282574';
-const WHATSAPP_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, me interesa Carta Vibra para mi local 🎶')}`;
+const WHATSAPP_URL = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, me interesa Carta Vibra para mi local')}`;
 const EMAIL = 'cartavibra@gmail.com';
 const EMAIL_URL = `mailto:${EMAIL}?subject=${encodeURIComponent('Quiero Carta Vibra en mi local')}`;
 
@@ -179,7 +180,7 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
               Ver cómo funciona
             </a>
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '14px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, ...(isMobile ? { width: '100%' } : {}) }}>
-              <span style={{ fontSize: 17 }}>💬</span> Escribinos por WhatsApp
+              <Ic name="chat" size={17} /> Escribinos por WhatsApp
             </a>
           </div>
         </div>
@@ -393,10 +394,10 @@ export default function Landing({ onLogin }: { onLogin: () => void }) {
 
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 6, width: '100%', maxWidth: isMobile ? 360 : undefined }}>
               <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="cv-btn cv-btn-mint" style={{ fontSize: 15, padding: '15px 28px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, ...(isMobile ? { width: '100%' } : {}) }}>
-                <span style={{ fontSize: 18 }}>💬</span> Escribinos por WhatsApp
+                <Ic name="chat" size={18} /> Escribinos por WhatsApp
               </a>
               <a href={EMAIL_URL} className="cv-btn cv-btn-ghost" style={{ fontSize: 15, padding: '15px 26px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, maxWidth: '100%', overflow: 'hidden', ...(isMobile ? { width: '100%' } : {}) }}>
-                <span style={{ fontSize: 16, flexShrink: 0 }}>✉️</span> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{EMAIL}</span>
+                <Ic name="mail" size={16} /> <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{EMAIL}</span>
               </a>
             </div>
 

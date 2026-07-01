@@ -235,7 +235,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     <div style={{ textAlign: 'center', marginTop: 50 }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
-        <div style={{ fontSize: 30, marginBottom: 8 }}>🔒</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-muted)' }}><Ic name="lock" size={28} /></div>
         <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Iniciá sesión para controlar tu local</p>
         <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)', marginBottom: 16 }}>Entrá con la cuenta dueña de «{venue.name}».</p>
         <a href="/" className="cv-btn cv-btn-primary" style={{ display: 'inline-block', padding: '11px 22px' }}>Ir a iniciar sesión</a>
@@ -247,7 +247,7 @@ export default function ControlPage({ params }: { params: Promise<{ slug: string
     <div style={{ textAlign: 'center', marginTop: 50 }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}><BrandMark size={92} /></div>
       <div className="cv-card" style={{ padding: '24px 20px' }}>
-        <div style={{ fontSize: 30, marginBottom: 8 }}>🚫</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-warm)' }}><Ic name="ban" size={28} /></div>
         <p style={{ color: 'var(--cv-text)', fontWeight: 600, marginBottom: 6 }}>Este local no es tuyo</p>
         <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted)' }}>«{venue.name}» pertenece a otra cuenta.</p>
       </div>

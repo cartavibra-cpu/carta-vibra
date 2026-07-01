@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
+import { Ic } from '@/components/Ic';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
@@ -93,7 +94,7 @@ export default function ErroresPage() {
           </button>
         </div>
         <p style={{ fontSize: 14, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 18px', maxWidth: 580 }}>
-          Lo que falló en la app (cliente y servidor). Si está vacío, todo viene andando 🎉.
+          Lo que falló en la app (cliente y servidor). Si está vacío, todo viene andando.
         </p>
 
         {/* resumen */}
@@ -124,7 +125,7 @@ export default function ErroresPage() {
         {/* lista */}
         {shown.length === 0 ? (
           <div className="cv-card" style={{ padding: '40px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>🎉</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10, color: "var(--cv-mint)" }}><Ic name="check" size={34} /></div>
             <p className="cv-mono" style={{ fontSize: 14, color: 'var(--cv-muted)' }}>Sin errores registrados. Todo viene andando.</p>
           </div>
         ) : (

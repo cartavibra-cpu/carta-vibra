@@ -4,6 +4,7 @@ import { supa } from '@/lib/supabaseClient';
 import { logError } from '@/lib/logError';
 import Vinyl from '@/components/Vinyl';
 import BrandMark from '@/components/BrandMark';
+import { Ic } from '@/components/Ic';
 import { applyCvTheme, CV_LIGHT_THEMES } from '@/lib/theme';
 import { cleanName } from '@/lib/profanity';
 
@@ -268,7 +269,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
         <h1 className="cv-wordmark" style={{ fontSize: 24, fontWeight: 600 }}>{venue.name}</h1>
         {activePl && (
           <div className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-muted-2)', marginTop: 4 }}>
-            {mode === 'karaoke' ? <>🎤 Karaoke · <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></> : <>Suena: <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></>}
+            {mode === 'karaoke' ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><Ic name="mic" size={13} /> Karaoke · <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></span> : <>Suena: <span style={{ color: 'var(--cv-mint)' }}>{activePl.name}</span></>}
           </div>
         )}
 
@@ -396,7 +397,7 @@ export default function WidgetPage({ params }: { params: Promise<{ slug: string 
             </div>
 
             <div className="cv-mono" style={{ textAlign: 'center', fontSize: 10, letterSpacing: '.05em', color: 'var(--cv-mono-2)', marginTop: 22, lineHeight: 1.6 }}>
-              anotate, esperá tu turno y cantá · 🎤
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>anotate, esperá tu turno y cantá <Ic name="mic" size={11} /></span>
             </div>
           </>
         ) : (

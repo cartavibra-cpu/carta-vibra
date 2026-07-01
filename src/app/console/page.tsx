@@ -1104,7 +1104,7 @@ export default function ConsolePage() {
                   <div key={i} className="cv-wordmark" style={{ width: 60, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, background: 'var(--cv-bg-2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: 12, color: 'var(--cv-text)' }}>{d}</div>
                 ))}
               </div>
-              <button onClick={copyPairCode} className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '8px 18px' }}>{copied ? '✓ Copiado' : '📋 Copiar código'}</button>
+              <button onClick={copyPairCode} className="cv-btn cv-btn-ghost" style={{ fontSize: 13, padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: 7 }}>{copied ? (<><Ic name="check" size={15} /> Copiado</>) : (<><Ic name="copy" size={15} /> Copiar código</>)}</button>
             </div>
           ) : (<p className="cv-mono" style={{ color: 'var(--cv-muted)' }}>generando código…</p>)}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, marginTop: 4 }}>
@@ -1144,10 +1144,10 @@ export default function ConsolePage() {
 
   // ---------- Consola en vivo ----------
   // Overlay de transición entre modos (se ve durante el cambio, sin recargar).
-  const accent = switchingTo === 'karaoke' ? 'var(--cv-mint)' : 'var(--cv-cyan)';
+  const accent = 'var(--cv-accent)';
   const switchOverlay = switchingTo ? (
     <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 22, background: 'var(--cv-bg)' }}>
-      <div style={{ fontSize: 66 }}>{switchingTo === 'karaoke' ? '🎤' : '🎵'}</div>
+      <div style={{ color: accent, display: 'flex' }}>{switchingTo === 'karaoke' ? <Ic name="mic" size={58} /> : <Ic name="music" size={58} />}</div>
       <div className="cv-wordmark" style={{ fontSize: 'clamp(30px, 5vw, 46px)', fontWeight: 600, color: accent }}>
         {switchingTo === 'karaoke' ? 'Modo Karaoke' : 'Modo Rockola'}
       </div>

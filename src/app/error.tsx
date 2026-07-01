@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { logError } from '@/lib/logError';
+import { Ic } from '@/components/Ic';
 
 // Atrapa cualquier error de renderizado en las páginas (ej: el crash #310 que
 // nos costó encontrar). Lo registra en Supabase y muestra una pantalla amable
@@ -28,7 +29,7 @@ export default function Error({
       }}
     >
       <div style={{ textAlign: 'center', maxWidth: 420 }}>
-        <div style={{ fontSize: 52, marginBottom: 8 }}>🎚️</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-accent, #9b8cff)' }}><Ic name="sliders" size={44} /></div>
         <h1 className="cv-wordmark" style={{ fontSize: 26, fontWeight: 600, color: 'var(--cv-text)' }}>
           Algo se desafinó
         </h1>

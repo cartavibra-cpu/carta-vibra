@@ -410,7 +410,7 @@ export default function KaraokeConsole({ token, venueId, slug, roomCode, playlis
           {pendingPlaylist && (
             <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', maxWidth: 'min(94%, 520px)', zIndex: 2147483600, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 13, border: `1px solid ${sk.cardBorder}`, background: 'rgba(7,6,14,.95)', boxShadow: '0 14px 44px -10px rgba(0,0,0,.75)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                <span style={{ fontSize: 17, flexShrink: 0 }}>🔄</span>
+                <span style={{ display: 'flex', flexShrink: 0, color: 'rgba(255,255,255,.85)' }}><Ic name="refresh" size={16} /></span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)' }}>Activaron otra playlist</div>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pendingPlaylist.name}</div>

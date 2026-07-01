@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { logError } from '@/lib/logError';
+import { Ic } from '@/components/Ic';
 
 // Atrapa errores en el layout raíz (los más graves). Reemplaza TODO el documento,
 // así que lleva su propio <html>/<body> y estilos en línea (no hay CSS garantizado).
@@ -30,7 +31,7 @@ export default function GlobalError({
         }}
       >
         <div style={{ textAlign: 'center', padding: 24 }}>
-          <div style={{ fontSize: 52 }}>🎚️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, color: '#9b8cff' }}><Ic name="sliders" size={44} /></div>
           <h1 style={{ fontSize: 24, fontWeight: 600 }}>Algo se desafinó</h1>
           <p style={{ fontSize: 14, opacity: 0.7 }}>Ya quedó registrado. Probá recargar.</p>
           <button

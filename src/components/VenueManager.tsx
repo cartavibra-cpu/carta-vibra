@@ -179,7 +179,7 @@ export default function VenueManager({ slug, showHeader = false }: { slug: strin
             <span className="cv-wordmark" style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)' }}>Primeros pasos</span>
           </div>
           <p style={{ fontSize: 13, color: 'var(--cv-text-2)', lineHeight: 1.5, margin: '0 0 14px' }}>
-            Dos cositas y tu local queda listo para abrir 👇
+            Dos cositas y tu local queda listo para abrir:
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {/* paso 1: playlist */}

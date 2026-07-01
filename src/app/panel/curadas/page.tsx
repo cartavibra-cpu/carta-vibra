@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supa } from '@/lib/supabaseClient';
 import TopNav from '@/components/TopNav';
 import BrandMark from '@/components/BrandMark';
+import Ic from '@/components/Ic';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 const PANEL_BG = 'radial-gradient(700px 500px at 50% -10%, rgba(var(--cv-accent-rgb),.12), transparent 60%), var(--cv-bg)';
@@ -110,7 +111,7 @@ export default function CuradasPage() {
           <div className="cv-mono" style={{ fontSize: 13, color: 'var(--cv-muted)' }}>cargando playlists curadas…</div>
         ) : templates.length === 0 ? (
           <div className="cv-card" style={{ padding: '28px 24px', textAlign: 'center' }}>
-            <div style={{ fontSize: 30, marginBottom: 10 }}>🎵</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10, color: 'var(--cv-cyan)' }}><Ic name="music" size={30} /></div>
             <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--cv-text)', marginBottom: 4 }}>Pronto vas a tener playlists curadas acá</div>
             <p className="cv-mono" style={{ fontSize: 12, color: 'var(--cv-mono)' }}>Estamos preparando colecciones listas para usar.</p>
           </div>
