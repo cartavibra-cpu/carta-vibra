@@ -107,9 +107,9 @@ body {
   color: transparent;
 }
 
-/* Etiquetas monoespaciadas (EN VIVO, SONANDO AHORA, CÓDIGO DE SALA) */
+/* Etiquetas / rótulos (EN VIVO, SONANDO AHORA, CÓDIGO DE SALA) — Hanken, espaciadas */
 .cv-mono {
-  font-family: ui-monospace, Menlo, monospace;
+  font-family: var(--cv-font-body);
   letter-spacing: .14em;
   color: var(--cv-mono);
 }
