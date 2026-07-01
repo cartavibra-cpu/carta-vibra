@@ -1162,15 +1162,15 @@ export default function ConsolePage() {
               <div style={{ flexShrink: 0 }}>
                 <div style={{ height: 1, background: 'var(--cv-hair)', marginBottom: 'clamp(13px,1.7vh,20px)' }} />
                 <div>
-                  <div className="cv-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 2 }}>Código de sala</div>
-                  <div className={'cv-wordmark ' + sk.gradClass} style={{ width: '100%', fontSize: `${Math.min(54, Math.round(92 / (Math.max((roomCode ?? '—').length, 1) * 0.6)))}cqw`, fontWeight: 700, lineHeight: 0.92, letterSpacing: '.01em', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{roomCode ?? '—'}</div>
+                  <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10, fontWeight: 700, letterSpacing: '.16em', color: 'var(--cv-faint)', textTransform: 'uppercase', marginBottom: 2 }}>Código de sala</div>
+                  <div className={'cv-wordmark ' + sk.gradClass} style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 'clamp(30px,25cqw,52px)', fontWeight: 700, lineHeight: 0.95, letterSpacing: '0', textShadow: sk.codeGlow, paddingBottom: '.04em' }}>{(roomCode ?? '—').split('').join(' ')}</div>
                 </div>
                 {widgetQr && (
                   <div style={{ marginTop: 14 }}>
                     <div style={{ width: '100%', aspectRatio: '1 / 1', borderRadius: 6, background: '#fff', padding: 3, lineHeight: 0, overflow: 'hidden' }}>
                       <img src={widgetQr} alt="QR para votar" style={{ width: '100%', height: '100%', display: 'block' }} />
                     </div>
-                    <div className="cv-mono" style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45, marginTop: 9 }}>Votá la próxima desde tu celular</div>
+                    <div className="cv-mono" style={{ width: '100%', textAlign: 'justify', textAlignLast: 'justify', fontSize: 10.5, fontWeight: 700, letterSpacing: '.12em', color: 'var(--cv-mut)', textTransform: 'uppercase', lineHeight: 1.45, marginTop: 9 }}>Votá la próxima desde tu celular</div>
                   </div>
                 )}
               </div>
