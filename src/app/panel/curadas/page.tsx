@@ -26,6 +26,7 @@ function moodAccent(mood: string | null, name: string) {
 export default function CuradasPage() {
   const isMobile = useIsMobile();
   const [session, setSession] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ export default function CuradasPage() {
   useEffect(() => {
     const sb = supa();
     if (!sb) return;
-    sb.auth.getSession().then(({ data }: any) => setSession(data.session));
+    sb.auth.getSession().then(({ data }: any) => { setSession(data.session); setAuthChecked(true); });
     const { data: sub } = sb.auth.onAuthStateChange((_e: any, s: any) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -85,6 +86,14 @@ export default function CuradasPage() {
     const n = data?.imported ?? 0;
     setDone((prev) => ({ ...prev, [t.id]: `${n} ${n === 1 ? 'canción' : 'canciones'}` }));
   };
+
+  if (!authChecked) {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
+        <BrandMark size={104} />
+      </main>
+    );
+  }
 
   if (!session) {
     return (

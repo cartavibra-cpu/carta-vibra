@@ -13,6 +13,7 @@ const modeLabel = (m: string) => MODE_LABELS[m] || m;
 
 export default function PanelPage() {
   const [session, setSession] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [venues, setVenues] = useState<any[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [name, setName] = useState('');
@@ -27,7 +28,7 @@ export default function PanelPage() {
   useEffect(() => {
     const sb = supa();
     if (!sb) return;
-    sb.auth.getSession().then(({ data }: any) => setSession(data.session));
+    sb.auth.getSession().then(({ data }: any) => { setSession(data.session); setAuthChecked(true); });
     const { data: sub } = sb.auth.onAuthStateChange((_event: any, s: any) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -66,6 +67,14 @@ export default function PanelPage() {
     } catch (e: any) { setErr(e?.message || 'No se pudo crear el local.'); }
     finally { setCreating(false); }
   };
+
+  if (!authChecked) {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: PANEL_BG, padding: 24 }}>
+        <BrandMark size={104} />
+      </main>
+    );
+  }
 
   if (!session) {
     return (
